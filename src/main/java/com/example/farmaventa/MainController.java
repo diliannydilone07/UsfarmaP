@@ -1,0 +1,95 @@
+package com.example.farmaventa;
+
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+
+public class MainController implements Initializable {
+
+    // ── FXML ──────────────────────────────────────────────────────────────
+    @FXML private StackPane contentArea;
+
+    @FXML private Button btnInicio;
+    @FXML private Button btnVentas;
+    @FXML private Button btnPersonas;
+    @FXML private Button btnInventario;
+    @FXML private Button btnReclamaciones;   // ← nuevo
+
+    @FXML private Label lblUsuario;
+
+    private Button btnActivo;
+
+    // ── Estilos ───────────────────────────────────────────────────────────
+    private static final String ESTILO_ACTIVO =
+            "-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; " +
+                    "-fx-font-weight: bold; -fx-font-size: 13px; " +
+                    "-fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 12 10 12;";
+
+    private static final String ESTILO_INACTIVO =
+            "-fx-background-color: transparent; -fx-text-fill: #424242; " +
+                    "-fx-font-size: 13px; -fx-background-radius: 6; " +
+                    "-fx-cursor: hand; -fx-padding: 10 12 10 12;";
+
+    // ── Init ──────────────────────────────────────────────────────────────
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        resetarTodosLosBotones();
+        cargarVista("Dashboard.fxml", btnInicio);
+    }
+
+    // ── Handlers del menú ─────────────────────────────────────────────────
+    @FXML private void onMenuInicio()        { cargarVista("Dashboard.fxml",        btnInicio); }
+    @FXML private void onMenuVentas()        { cargarVista("Ventas.fxml",           btnVentas); }
+    @FXML private void onMenuPersonas()      { cargarVista("Personas.fxml",         btnPersonas); }
+    @FXML private void onMenuInventario()    { cargarVista("Inventario.fxml",       btnInventario); }
+    @FXML private void onMenuReclamaciones() { cargarVista("ReclamacionVenta.fxml", btnReclamaciones); }
+
+    // ── Lógica de navegación ──────────────────────────────────────────────
+    private void cargarVista(String nombreFxml, Button boton) {
+        try {
+            URL ruta = getClass().getResource("/com/example/farmaventa/" + nombreFxml);
+            if (ruta == null) {
+                System.err.println("No se encontró el FXML: " + nombreFxml);
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(ruta);
+            Node vista = loader.load();
+            contentArea.getChildren().setAll(vista);
+            marcarBotonActivo(boton);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void resetarTodosLosBotones() {
+        List.of(btnInicio, btnVentas, btnPersonas, btnInventario, btnReclamaciones)
+                .forEach(b -> b.setStyle(ESTILO_INACTIVO));
+        btnActivo = null;
+    }
+
+    private void marcarBotonActivo(Button nuevoActivo) {
+        if (btnActivo != null) btnActivo.setStyle(ESTILO_INACTIVO);
+        nuevoActivo.setStyle(ESTILO_ACTIVO);
+        btnActivo = nuevoActivo;
+    }
+
+    // ── API pública ───────────────────────────────────────────────────────
+    public void navegarA(String nombreFxml, Button boton) {
+        cargarVista(nombreFxml, boton != null ? boton : btnInicio);
+    }
+
+    public Button getBtnInicio()          { return btnInicio; }
+    public Button getBtnVentas()          { return btnVentas; }
+    public Button getBtnPersonas()        { return btnPersonas; }
+    public Button getBtnInventario()      { return btnInventario; }
+    public Button getBtnReclamaciones()   { return btnReclamaciones; }
+}

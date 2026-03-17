@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+    Dashboard.fxml  — Pantalla de inicio
+    Controlador sugerido: com.example.farmaventa.DashboardController
+    Se carga dentro del StackPane `contentArea` de MainLayout.fxml
+-->
+<ScrollPane fitToWidth="true"
+            style="-fx-background-color: transparent; -fx-background: transparent;"
+            xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/17.0.12"
+            fx:controller="com.example.farmaventa.DashboardController">
+
+    <VBox spacing="24">
+        <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+
+        <!-- ═══════  ENCABEZADO  ═══════ -->
+        <VBox spacing="4">
+            <Label text="Bienvenido, Administrador 👋"
+                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;"/>
+            <Label fx:id="lblFechaHoy"
+                   text="Lunes, 16 de marzo de 2026"
+                   style="-fx-font-size: 13px; -fx-text-fill: #757575;"/>
+        </VBox>
+
+        <!-- ═══════  TARJETAS DE RESUMEN  ═══════ -->
+        <HBox spacing="16">
+
+            <!-- Tarjeta Ventas Hoy -->
+            <VBox spacing="6" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+                         -fx-border-color: #E8F5E9; -fx-border-radius: 10; -fx-border-width: 1;">
+                <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+                <Label text="🛒  Ventas Hoy"
+                       style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;"/>
+                <Label fx:id="lblVentasHoy" text="0"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;"/>
+                <Label text="registradas"
+                       style="-fx-font-size: 11px; -fx-text-fill: #BDBDBD;"/>
+            </VBox>
+
+            <!-- Tarjeta Ingresos Hoy -->
+            <VBox spacing="6" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+                         -fx-border-color: #E8F5E9; -fx-border-radius: 10; -fx-border-width: 1;">
+                <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+                <Label text="💵  Ingresos Hoy"
+                       style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;"/>
+                <Label fx:id="lblIngresosHoy" text="RD$ 0.00"
+                       style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1565C0;"/>
+                <Label text="monto total"
+                       style="-fx-font-size: 11px; -fx-text-fill: #BDBDBD;"/>
+            </VBox>
+
+            <!-- Tarjeta Clientes -->
+            <VBox spacing="6" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+                         -fx-border-color: #E8F5E9; -fx-border-radius: 10; -fx-border-width: 1;">
+                <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+                <Label text="👥  Clientes Registrados"
+                       style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;"/>
+                <Label fx:id="lblTotalClientes" text="0"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #6A1B9A;"/>
+                <Label text="en total"
+                       style="-fx-font-size: 11px; -fx-text-fill: #BDBDBD;"/>
+            </VBox>
+
+            <!-- Tarjeta Alertas de Stock -->
+            <VBox spacing="6" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+                         -fx-border-color: #FFEBEE; -fx-border-radius: 10; -fx-border-width: 1;">
+                <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+                <Label text="⚠️  Stock Bajo"
+                       style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;"/>
+                <Label fx:id="lblAlertasStock" text="0"
+                       style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #C62828;"/>
+                <Label text="productos bajo mínimo"
+                       style="-fx-font-size: 11px; -fx-text-fill: #BDBDBD;"/>
+            </VBox>
+
+        </HBox>
+
+        <!-- ═══════  FILA INFERIOR: Acceso rápido + Últimas ventas  ═══════ -->
+        <HBox spacing="16" VBox.vgrow="ALWAYS">
+
+            <!-- Acceso Rápido -->
+            <VBox spacing="12" prefWidth="240"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+                         -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+
+                <Label text="Acceso Rápido"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #424242;"/>
+                <Separator/>
+
+                <Button text="🛒   Nueva Venta"
+                        maxWidth="Infinity" alignment="CENTER_LEFT"
+                        style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;
+                               -fx-font-size: 13px; -fx-font-weight: bold;
+                               -fx-background-radius: 6; -fx-cursor: hand;
+                               -fx-padding: 10 14 10 14;"/>
+
+                <Button text="➕   Nuevo Producto"
+                        maxWidth="Infinity" alignment="CENTER_LEFT"
+                        style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;
+                               -fx-font-size: 13px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 10 14 10 14;"/>
+
+                <Button text="👤   Registrar Persona"
+                        maxWidth="Infinity" alignment="CENTER_LEFT"
+                        style="-fx-background-color: #F3E5F5; -fx-text-fill: #6A1B9A;
+                               -fx-font-size: 13px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 10 14 10 14;"/>
+
+                <Button text="📦   Ver Inventario"
+                        maxWidth="Infinity" alignment="CENTER_LEFT"
+                        style="-fx-background-color: #FFF8E1; -fx-text-fill: #E65100;
+                               -fx-font-size: 13px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 10 14 10 14;"/>
+            </VBox>
+
+            <!-- Últimas ventas registradas -->
+            <VBox spacing="10" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+                         -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Últimas Ventas"
+                           style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #424242;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Ver todas →"
+                            style="-fx-background-color: transparent; -fx-text-fill: #2E7D32;
+                                   -fx-font-size: 12px; -fx-cursor: hand;"/>
+                </HBox>
+                <Separator/>
+
+                <TableView fx:id="tablaUltimasVentas" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color: transparent;">
+                    <columns>
+                        <TableColumn fx:id="colVentaId"     text="#"          prefWidth="50"/>
+                        <TableColumn fx:id="colVentaCliente" text="Cliente"   prefWidth="140"/>
+                        <TableColumn fx:id="colVentaFecha"  text="Fecha"      prefWidth="120"/>
+                        <TableColumn fx:id="colVentaTipo"   text="Tipo"       prefWidth="100"/>
+                        <TableColumn fx:id="colVentaMonto"  text="Monto"      prefWidth="110"/>
+                    </columns>
+                </TableView>
+
+            </VBox>
+        </HBox>
+
+    </VBox>
+</ScrollPane>

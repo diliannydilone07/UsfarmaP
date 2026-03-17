@@ -8,4 +8,6 @@ module com.example.farmaventa {
 
     opens com.example.farmaventa to javafx.fxml;
     exports com.example.farmaventa;
+    exports com.example.farmaventa.modelo;
+    opens com.example.farmaventa.modelo to javafx.fxml;
 }

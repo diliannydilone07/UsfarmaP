@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+    Personas.fxml — Gestión de Clientes y Empleados
+    Controlador: com.example.farmaventa.PersonaController
+-->
+<VBox spacing="0"
+      style="-fx-background-color: #F4F6F8;"
+      minHeight="650"
+      xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      fx:controller="com.example.farmaventa.PersonaController">
+
+    <!-- ── Encabezado de sección ── -->
+    <HBox alignment="CENTER_LEFT" spacing="10"
+          style="-fx-background-color: #FFFFFF;
+                 -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+        <padding><Insets top="18" right="24" bottom="18" left="24"/></padding>
+        <VBox spacing="2">
+            <Label text="Gestión de Personas"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;"/>
+            <Label text="Administra clientes y empleados de la farmacia"
+                   style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;"/>
+        </VBox>
+    </HBox>
+
+    <!-- ── Cuerpo ── -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS" minHeight="580">
+        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+        <!-- ────  FORMULARIO  ──── -->
+        <VBox spacing="12" prefWidth="290"
+              style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
+                     -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+            <padding><Insets top="20" right="18" bottom="20" left="18"/></padding>
+
+            <Label text="Registro de Información"
+                   style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
+
+            <!-- Tipo de persona -->
+            <HBox spacing="0"
+                  style="-fx-background-color: #F5F5F5; -fx-background-radius: 8;">
+                <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
+                <RadioButton fx:id="rbCliente" text="Cliente" selected="true"
+                             HBox.hgrow="ALWAYS"
+                             style="-fx-background-color: #FFFFFF; -fx-background-radius: 6;
+                                    -fx-padding: 7 0 7 12; -fx-text-fill: #1B5E20;
+                                    -fx-font-weight: bold;">
+                    <toggleGroup><ToggleGroup fx:id="tgTipo"/></toggleGroup>
+                </RadioButton>
+                <RadioButton fx:id="rbEmpleado" text="Empleado" toggleGroup="$tgTipo"
+                             HBox.hgrow="ALWAYS"
+                             style="-fx-background-color: transparent; -fx-background-radius: 6;
+                                    -fx-padding: 7 0 7 12;"/>
+            </HBox>
+
+            <Separator/>
+
+            <VBox spacing="4">
+                <Label text="ID Persona" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtId" promptText="Automático o manual"
+                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+            </VBox>
+
+            <HBox spacing="8">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Nombre *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                    <TextField fx:id="txtNombre" promptText="Juan"
+                               style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Apellido *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                    <TextField fx:id="txtApellido" promptText="Pérez"
+                               style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="4">
+                <Label text="Género" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <ComboBox fx:id="cmbGenero" maxWidth="Infinity" promptText="Seleccionar..."
+                          style="-fx-background-radius: 6;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Teléfono" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtTelefono" promptText="809-000-0000"
+                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Correo Electrónico" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtEmail" promptText="correo@ejemplo.com"
+                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+            </VBox>
+
+            <!-- Datos adicionales de Empleado (visibles según selección) -->
+            <VBox fx:id="vboxDatosEmpleado" spacing="10" managed="false" visible="false"
+                  style="-fx-background-color: #E8F5E9; -fx-background-radius: 8;">
+                <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                <Label text="Datos de Empleado"
+                       style="-fx-font-size: 11px; -fx-text-fill: #2E7D32; -fx-font-weight: bold;"/>
+                <VBox spacing="4">
+                    <Label text="Cargo" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                    <ComboBox fx:id="cmbCargo" maxWidth="Infinity" promptText="Seleccionar cargo..."
+                              style="-fx-background-radius: 6;"/>
+                </VBox>
+                <VBox spacing="4">
+                    <Label text="Fecha de Contratación" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                    <DatePicker fx:id="dpHorario" maxWidth="Infinity"
+                                style="-fx-background-radius: 6;"/>
+                </VBox>
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS"/>
+            <Separator/>
+
+            <HBox spacing="8">
+                <Button text="💾  Guardar"
+                        HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                        style="-fx-background-color: #388E3C; -fx-text-fill: white;
+                               -fx-font-weight: bold; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 10 0 10 0;"/>
+                <Button text="✖"
+                        style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
+                               -fx-background-radius: 6; -fx-cursor: hand;
+                               -fx-padding: 10 14 10 14;"/>
+            </HBox>
+        </VBox>
+
+        <!-- ────  TABLA  ──── -->
+        <VBox spacing="12" HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
+                     -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+            <padding><Insets top="20" right="18" bottom="20" left="18"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Listado General"
+                       style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <!-- Filtro de tipo -->
+                <ComboBox promptText="Todos"
+                          style="-fx-background-radius: 6;" prefWidth="110"/>
+                <TextField fx:id="txtBusqueda" prefWidth="210"
+                           promptText="🔍 Buscar..."
+                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+            </HBox>
+            <Separator/>
+
+            <TableView fx:id="tablaPersonas" VBox.vgrow="ALWAYS"
+                       style="-fx-background-color: transparent;">
+                <columns>
+                    <TableColumn fx:id="colId"       text="ID"       prefWidth="55"/>
+                    <TableColumn fx:id="colNombre"   text="Nombre"   prefWidth="140"/>
+                    <TableColumn fx:id="colTipo"     text="Tipo"     prefWidth="80"/>
+                    <TableColumn fx:id="colCargo"    text="Cargo"    prefWidth="110"/>
+                    <TableColumn fx:id="colTelefono" text="Teléfono" prefWidth="110"/>
+                    <TableColumn fx:id="colEmail"    text="Correo"   prefWidth="170"/>
+                </columns>
+                <placeholder>
+                    <Label text="No hay personas registradas aún"
+                           style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;"/>
+                </placeholder>
+            </TableView>
+
+            <HBox alignment="CENTER_RIGHT" spacing="10">
+                <Button text="✏  Editar Seleccionado"
+                        style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;
+                               -fx-font-size: 12px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 8 14 8 14;"/>
+                <Button text="🗑  Eliminar"
+                        style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
+                               -fx-border-color: #FFCDD2; -fx-font-size: 12px;
+                               -fx-background-radius: 6; -fx-cursor: hand;
+                               -fx-padding: 8 14 8 14;"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>
