@@ -23,6 +23,7 @@ public class MainController implements Initializable {
     @FXML private Button btnInventario;
     @FXML private Button btnReclamaciones;
     @FXML private Button btnConvenios;
+    @FXML private Button btnEnvios;
 
     @FXML private Label lblUsuario;
 
@@ -51,6 +52,7 @@ public class MainController implements Initializable {
     @FXML private void onMenuInventario()    { cargarVista("Inventario.fxml",       btnInventario); }
     @FXML private void onMenuReclamaciones() { cargarVista("Reclamacionventa.fxml", btnReclamaciones); } // v minúscula
     @FXML private void onMenuConvenios()     { cargarVista("Convenio.fxml",         btnConvenios); }
+    @FXML private void onMenuEnvios()        { cargarVista("Envio.fxml",             btnEnvios); }
 
     private void cargarVista(String nombreFxml, Button boton) {
         try {
@@ -71,7 +73,7 @@ public class MainController implements Initializable {
 
     private void resetarTodosLosBotones() {
         List.of(btnInicio, btnVentas, btnPersonas,
-                        btnInventario, btnReclamaciones, btnConvenios)
+                        btnInventario, btnReclamaciones, btnConvenios, btnEnvios)
                 .forEach(b -> b.setStyle(ESTILO_INACTIVO));
         btnActivo = null;
     }
@@ -92,4 +94,5 @@ public class MainController implements Initializable {
     public Button getBtnInventario()      { return btnInventario; }
     public Button getBtnReclamaciones()   { return btnReclamaciones; }
     public Button getBtnConvenios()       { return btnConvenios; }
+    public Button getBtnEnvios()          { return btnEnvios; }
 }

@@ -4,277 +4,450 @@ import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Persona;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 
 import javax.swing.JOptionPane;
 import java.sql.*;
 
+/**
+ * PersonaController — CRUD completo de personas CON dirección.
+ *
+ * La dirección sigue el árbol:
+ *   TBL_REGION → TBL_PAIS → TBL_PROVINCIA → TBL_MUNICIPIO
+ *   → TBL_DISTRITO_MUNICIPAL → TBL_SECTOR → TBL_CALLE → TBL_DIRECCION
+ *
+ * Al guardar/editar una persona se inserta/actualiza también su dirección.
+ */
 public class PersonaController {
 
     Conexion conexion = new Conexion();
 
-    @FXML private TextField        txtId;
+    // ── Datos personales ──────────────────────────────────────────────────
     @FXML private TextField        txtNombre;
     @FXML private TextField        txtApellido;
-    @FXML private TextField        txtTelefono;
-    @FXML private TextField        txtEmail;
     @FXML private ComboBox<String> cmbGenero;
-    @FXML private ComboBox<String> cmbCargo;
-    @FXML private DatePicker       dpHorario;
-    @FXML private RadioButton      rbCliente;
-    @FXML private RadioButton      rbEmpleado;
-    @FXML private VBox             vboxDatosEmpleado;
-    @FXML private TextField        txtBusqueda;
+    @FXML private TextField        txtTelefono;
+    @FXML private TextField        txtCorreo;
 
-    @FXML private TableView<Persona>           tablaPersonas;
-    @FXML private TableColumn<Persona, Number> colId;
-    @FXML private TableColumn<Persona, String> colNombre;
-    @FXML private TableColumn<Persona, String> colTipo;
-    @FXML private TableColumn<Persona, String> colCargo;
-    @FXML private TableColumn<Persona, String> colTelefono;
-    @FXML private TableColumn<Persona, String> colEmail;
+    // ── Dirección — ComboBoxes encadenados ────────────────────────────────
+    @FXML private ComboBox<String> cmbRegion;
+    @FXML private ComboBox<String> cmbPais;
+    @FXML private ComboBox<String> cmbProvincia;
+    @FXML private ComboBox<String> cmbMunicipio;
+    @FXML private ComboBox<String> cmbDistrito;
+    @FXML private ComboBox<String> cmbSector;
+    @FXML private ComboBox<String> cmbCalle;
+    @FXML private TextField        txtDescripcionDireccion;
 
+    // ── Tabla ─────────────────────────────────────────────────────────────
+    @FXML private TextField                      txtBuscar;
+    @FXML private TableView<Persona>             tablaPersonas;
+    @FXML private TableColumn<Persona, Number>   colId;
+    @FXML private TableColumn<Persona, String>   colNombre;
+    @FXML private TableColumn<Persona, String>   colApellido;
+    @FXML private TableColumn<Persona, String>   colGenero;
+    @FXML private TableColumn<Persona, String>   colTelefono;
+    @FXML private TableColumn<Persona, String>   colCorreo;
+    @FXML private TableColumn<Persona, String>   colDireccion;
+
+    // ── Datos internos ────────────────────────────────────────────────────
+    private final ObservableList<Persona> listaPersonas = FXCollections.observableArrayList();
+    private FilteredList<Persona>         listaFiltrada;
+    private int idPersonaSeleccionada = -1;
+
+    // IDs seleccionados en los combos de dirección
+    private int idRegion, idPais, idProvincia, idMunicipio, idDistrito, idSector, idCalle;
+
+    // ══════════════════════════════════════════════════════════════════════
     @FXML
     public void initialize() {
         cmbGenero.getItems().addAll("Masculino", "Femenino", "Otro");
-        cargarComboCargos();
 
-        // mostrar/ocultar sección empleado
-        rbEmpleado.selectedProperty().addListener((obs, old, seleccionado) -> {
-            vboxDatosEmpleado.setVisible(seleccionado);
-            vboxDatosEmpleado.setManaged(seleccionado);
-            if (!seleccionado) { cmbCargo.setValue(null); dpHorario.setValue(null); }
-        });
-
-        // al hacer click en la tabla, llenar el formulario
-        tablaPersonas.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel != null) cargarEnFormulario(sel);
-        });
-
-        colId.setCellValueFactory(c -> c.getValue().idPersonaProperty());
+        // Columnas tabla
+        colId.setCellValueFactory(c -> c.getValue().idProperty());
         colNombre.setCellValueFactory(c -> c.getValue().nombreProperty());
-        colTipo.setCellValueFactory(c -> c.getValue().tipoProperty());
-        colCargo.setCellValueFactory(c -> c.getValue().cargoProperty());
+        colApellido.setCellValueFactory(c -> c.getValue().apellidoProperty());
+        colGenero.setCellValueFactory(c -> c.getValue().generoProperty());
         colTelefono.setCellValueFactory(c -> c.getValue().telefonoProperty());
-        colEmail.setCellValueFactory(c -> c.getValue().emailProperty());
+        colCorreo.setCellValueFactory(c -> c.getValue().correoProperty());
+        colDireccion.setCellValueFactory(c -> c.getValue().direccionProperty());
 
-        actualizarTabla();
+        // Filtro búsqueda
+        listaFiltrada = new FilteredList<>(listaPersonas, p -> true);
+        tablaPersonas.setItems(listaFiltrada);
+        txtBuscar.textProperty().addListener((obs, o, n) ->
+                listaFiltrada.setPredicate(p -> {
+                    if (n == null || n.isBlank()) return true;
+                    String lower = n.toLowerCase();
+                    return p.getNombre().toLowerCase().contains(lower)
+                            || p.getApellido().toLowerCase().contains(lower)
+                            || p.getCorreo().toLowerCase().contains(lower)
+                            || p.getTelefono().toLowerCase().contains(lower);
+                })
+        );
+
+        // Clic en fila
+        tablaPersonas.getSelectionModel().selectedItemProperty().addListener(
+                (obs, o, n) -> { if (n != null) cargarEnFormulario(n); });
+
+        // Encadenar combos de dirección
+        cmbRegion.setOnAction(e -> cargarPaisesPorRegion());
+        cmbPais.setOnAction(e -> cargarProvinciasPorPaisRegion());
+        cmbProvincia.setOnAction(e -> cargarMunicipiosPorProvincia());
+        cmbMunicipio.setOnAction(e -> cargarDistritosPorMunicipio());
+        cmbDistrito.setOnAction(e -> cargarSectoresPorDistrito());
+        cmbSector.setOnAction(e -> cargarCallesPorSector());
+        cmbCalle.setOnAction(e -> actualizarIdCalle());
+
+        cargarRegiones();
+        cargarPersonas();
     }
 
-    private void cargarComboCargos() {
-        String sql = "SELECT nombre FROM TBL_CARGO";
+    // ══════  CARGA DE COMBOS DE DIRECCIÓN  ═══════════════════════════════
+
+    private void cargarRegiones() {
+        cmbRegion.getItems().clear();
         try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) cmbCargo.getItems().add(rs.getString("nombre"));
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT id_region, nombre FROM TBL_REGION ORDER BY nombre")) {
+            while (rs.next())
+                cmbRegion.getItems().add(rs.getInt("id_region") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) { System.err.println("Error regiones: " + e.getMessage()); }
+    }
+
+    private void cargarPaisesPorRegion() {
+        cmbPais.getItems().clear();
+        cmbProvincia.getItems().clear(); cmbMunicipio.getItems().clear();
+        cmbDistrito.getItems().clear();  cmbSector.getItems().clear();
+        cmbCalle.getItems().clear();
+        if (cmbRegion.getValue() == null) return;
+        idRegion = Integer.parseInt(cmbRegion.getValue().split(" - ")[0]);
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_pais, nombre FROM TBL_PAIS ORDER BY nombre")) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                cmbPais.getItems().add(rs.getInt("id_pais") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) { System.err.println("Error países: " + e.getMessage()); }
+    }
+
+    private void cargarProvinciasPorPaisRegion() {
+        cmbProvincia.getItems().clear(); cmbMunicipio.getItems().clear();
+        cmbDistrito.getItems().clear();  cmbSector.getItems().clear();
+        cmbCalle.getItems().clear();
+        if (cmbPais.getValue() == null) return;
+        idPais = Integer.parseInt(cmbPais.getValue().split(" - ")[0]);
+        String sql = "SELECT id_provincia, nombre FROM TBL_PROVINCIA WHERE id_region=? AND id_pais=? ORDER BY nombre";
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idRegion); ps.setInt(2, idPais);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                cmbProvincia.getItems().add(rs.getInt("id_provincia") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) { System.err.println("Error provincias: " + e.getMessage()); }
+    }
+
+    private void cargarMunicipiosPorProvincia() {
+        cmbMunicipio.getItems().clear(); cmbDistrito.getItems().clear();
+        cmbSector.getItems().clear();    cmbCalle.getItems().clear();
+        if (cmbProvincia.getValue() == null) return;
+        idProvincia = Integer.parseInt(cmbProvincia.getValue().split(" - ")[0]);
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_municipio, nombre FROM TBL_MUNICIPIO WHERE id_provincia=? ORDER BY nombre")) {
+            ps.setInt(1, idProvincia);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                cmbMunicipio.getItems().add(rs.getInt("id_municipio") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) { System.err.println("Error municipios: " + e.getMessage()); }
+    }
+
+    private void cargarDistritosPorMunicipio() {
+        cmbDistrito.getItems().clear(); cmbSector.getItems().clear(); cmbCalle.getItems().clear();
+        if (cmbMunicipio.getValue() == null) return;
+        idMunicipio = Integer.parseInt(cmbMunicipio.getValue().split(" - ")[0]);
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_dm, nombre FROM TBL_DISTRITO_MUNICIPAL WHERE id_municipio=? ORDER BY nombre")) {
+            ps.setInt(1, idMunicipio);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                cmbDistrito.getItems().add(rs.getInt("id_dm") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) { System.err.println("Error distritos: " + e.getMessage()); }
+    }
+
+    private void cargarSectoresPorDistrito() {
+        cmbSector.getItems().clear(); cmbCalle.getItems().clear();
+        if (cmbDistrito.getValue() == null) return;
+        idDistrito = Integer.parseInt(cmbDistrito.getValue().split(" - ")[0]);
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_sector, nombre FROM TBL_SECTOR WHERE id_dm=? ORDER BY nombre")) {
+            ps.setInt(1, idDistrito);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                cmbSector.getItems().add(rs.getInt("id_sector") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) { System.err.println("Error sectores: " + e.getMessage()); }
+    }
+
+    private void cargarCallesPorSector() {
+        cmbCalle.getItems().clear();
+        if (cmbSector.getValue() == null) return;
+        idSector = Integer.parseInt(cmbSector.getValue().split(" - ")[0]);
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_calle, nombre FROM TBL_CALLE WHERE id_sector=? ORDER BY nombre")) {
+            ps.setInt(1, idSector);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                cmbCalle.getItems().add(rs.getInt("id_calle") + " - " + rs.getString("nombre"));
+        } catch (SQLException e) { System.err.println("Error calles: " + e.getMessage()); }
+    }
+
+    private void actualizarIdCalle() {
+        if (cmbCalle.getValue() == null) return;
+        idCalle = Integer.parseInt(cmbCalle.getValue().split(" - ")[0]);
+    }
+
+    // ══════  CRUD PERSONA  ════════════════════════════════════════════════
+
+    @FXML
+    public void cargarPersonas() {
+        listaPersonas.clear();
+        idPersonaSeleccionada = -1;
+
+        String sql = """
+                SELECT p.id_persona, p.nombre, p.apellido, p.genero,
+                       p.numero_telefono, p.correo_electronico,
+                       ISNULL(d.descripcion, '') AS descripcion,
+                       ISNULL(ca.nombre, '') AS calle,
+                       ISNULL(se.nombre, '') AS sector,
+                       ISNULL(dm.nombre, '') AS distrito,
+                       ISNULL(mu.nombre, '') AS municipio,
+                       ISNULL(pr.nombre, '') AS provincia,
+                       ISNULL(re.nombre, '') AS region,
+                       ISNULL(pa.nombre, '') AS pais,
+                       d.id_direccion
+                FROM TBL_PERSONA p
+                LEFT JOIN TBL_DIRECCION          d  ON d.id_persona  = p.id_persona
+                LEFT JOIN TBL_CALLE              ca ON ca.id_calle   = d.id_calle
+                LEFT JOIN TBL_SECTOR             se ON se.id_sector  = ca.id_sector
+                LEFT JOIN TBL_DISTRITO_MUNICIPAL dm ON dm.id_dm      = se.id_dm
+                LEFT JOIN TBL_MUNICIPIO          mu ON mu.id_municipio = dm.id_municipio
+                LEFT JOIN TBL_PROVINCIA          pr ON pr.id_provincia = mu.id_provincia
+                LEFT JOIN TBL_REGION             re ON re.id_region  = pr.id_region
+                LEFT JOIN TBL_PAIS               pa ON pa.id_pais    = pr.id_pais
+                ORDER BY p.id_persona DESC
+                """;
+
+        try (Connection con = conexion.establecerConexion();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                // Construir dirección completa legible
+                String dir = "";
+                if (!rs.getString("descripcion").isBlank()) {
+                    dir = rs.getString("descripcion")
+                            + ", C/" + rs.getString("calle")
+                            + ", " + rs.getString("sector")
+                            + ", " + rs.getString("municipio")
+                            + ", " + rs.getString("provincia");
+                }
+                listaPersonas.add(new Persona(
+                        rs.getInt("id_persona"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido"),
+                        rs.getString("genero"),
+                        rs.getString("numero_telefono"),
+                        rs.getString("correo_electronico"),
+                        dir
+                ));
+            }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error al cargar cargos: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error al cargar personas: " + e.getMessage());
         }
     }
 
-    // Botón "💾 Guardar" → onAction="#onGuardar"
+    // ── Guardar nueva persona + dirección ─────────────────────────────────
     @FXML
-    public void onGuardar(ActionEvent event) {
-        if (txtNombre.getText().isBlank() || txtApellido.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Nombre y Apellido son obligatorios.");
-            return;
-        }
+    public void onGuardarPersona(ActionEvent event) {
+        if (!validarFormulario()) return;
 
-        String sqlPersona = "INSERT INTO TBL_PERSONA (nombre, apellido, genero, numero_telefono, correo_electronico) "
-                + "VALUES (?, ?, ?, ?, ?)";
+        String sqlPersona = """
+                INSERT INTO TBL_PERSONA (nombre, apellido, genero, numero_telefono, correo_electronico)
+                VALUES (?, ?, ?, ?, ?)
+                """;
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, txtNombre.getText().trim());
             ps.setString(2, txtApellido.getText().trim());
-            ps.setString(3, cmbGenero.getValue() != null ? cmbGenero.getValue() : "");
+            ps.setString(3, cmbGenero.getValue());
             ps.setString(4, txtTelefono.getText().trim());
-            ps.setString(5, txtEmail.getText().trim());
+            ps.setString(5, txtCorreo.getText().trim());
             ps.executeUpdate();
 
-            // obtener el id generado
             int idPersona = -1;
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) idPersona = keys.getInt(1);
 
-            // insertar en TBL_CLIENTE o TBL_EMPLEADO
-            if (rbEmpleado.isSelected()) {
-                insertarEmpleado(con, idPersona);
-            } else {
-                PreparedStatement psC = con.prepareStatement("INSERT INTO TBL_CLIENTE (id_persona) VALUES (?)");
-                psC.setInt(1, idPersona);
-                psC.executeUpdate();
+            // Insertar dirección si se seleccionó una calle
+            if (idPersona != -1 && idCalle > 0 && !txtDescripcionDireccion.getText().isBlank()) {
+                insertarDireccion(con, idPersona, idCalle, txtDescripcionDireccion.getText().trim());
             }
 
-            JOptionPane.showMessageDialog(null, "Persona guardada correctamente.");
-            actualizarTabla();
-            Limpiar();
+            JOptionPane.showMessageDialog(null, "✔ Persona registrada correctamente.");
+            limpiar();
+            cargarPersonas();
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error al guardar: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error al guardar persona: " + e.getMessage());
         }
     }
 
-    private void insertarEmpleado(Connection con, int idPersona) throws SQLException {
-        if (dpHorario.getValue() == null || cmbCargo.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona horario y cargo para el empleado.");
-            return;
-        }
-        // buscar id_cargo por nombre
-        int idCargo = -1;
-        PreparedStatement psCargo = con.prepareStatement("SELECT id_cargo FROM TBL_CARGO WHERE nombre = ?");
-        psCargo.setString(1, cmbCargo.getValue());
-        ResultSet rs = psCargo.executeQuery();
-        if (rs.next()) idCargo = rs.getInt("id_cargo");
-
-        if (idCargo == -1) { JOptionPane.showMessageDialog(null, "Cargo no encontrado."); return; }
-
-        PreparedStatement psE = con.prepareStatement(
-                "INSERT INTO TBL_EMPLEADO (horario_trabajo, id_persona, id_cargo) VALUES (?, ?, ?)");
-        psE.setString(1, dpHorario.getValue().toString() + " 08:00:00");
-        psE.setInt(2, idPersona);
-        psE.setInt(3, idCargo);
-        psE.executeUpdate();
-    }
-
-    // Botón "✏ Editar Seleccionado" → onAction="#onEditar"
+    // ── Editar persona + dirección ────────────────────────────────────────
     @FXML
-    public void onEditar(ActionEvent event) {
-        if (txtId.getText().isBlank()) {
+    public void onEditarPersona(ActionEvent event) {
+        if (idPersonaSeleccionada == -1) {
             JOptionPane.showMessageDialog(null, "Selecciona una persona de la tabla primero.");
             return;
         }
-        String sql = "UPDATE TBL_PERSONA SET nombre=?, apellido=?, genero=?, numero_telefono=?, correo_electronico=? "
-                + "WHERE id_persona=?";
+        if (!validarFormulario()) return;
+
+        String sql = """
+                UPDATE TBL_PERSONA
+                SET nombre=?, apellido=?, genero=?, numero_telefono=?, correo_electronico=?
+                WHERE id_persona=?
+                """;
+
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, txtNombre.getText().trim());
             ps.setString(2, txtApellido.getText().trim());
-            ps.setString(3, cmbGenero.getValue() != null ? cmbGenero.getValue() : "");
+            ps.setString(3, cmbGenero.getValue());
             ps.setString(4, txtTelefono.getText().trim());
-            ps.setString(5, txtEmail.getText().trim());
-            ps.setInt(6,    Integer.parseInt(txtId.getText().trim()));
+            ps.setString(5, txtCorreo.getText().trim());
+            ps.setInt(6, idPersonaSeleccionada);
             ps.executeUpdate();
 
-            JOptionPane.showMessageDialog(null, "Persona actualizada.");
-            actualizarTabla();
-            Limpiar();
+            // Actualizar o insertar dirección
+            if (idCalle > 0 && !txtDescripcionDireccion.getText().isBlank()) {
+                // Verificar si ya tiene dirección
+                PreparedStatement psCheck = con.prepareStatement(
+                        "SELECT id_direccion FROM TBL_DIRECCION WHERE id_persona=?");
+                psCheck.setInt(1, idPersonaSeleccionada);
+                ResultSet rs = psCheck.executeQuery();
+
+                if (rs.next()) {
+                    int idDir = rs.getInt("id_direccion");
+                    PreparedStatement psUpd = con.prepareStatement(
+                            "UPDATE TBL_DIRECCION SET descripcion=?, id_calle=? WHERE id_direccion=?");
+                    psUpd.setString(1, txtDescripcionDireccion.getText().trim());
+                    psUpd.setInt(2, idCalle);
+                    psUpd.setInt(3, idDir);
+                    psUpd.executeUpdate();
+                } else {
+                    insertarDireccion(con, idPersonaSeleccionada, idCalle,
+                            txtDescripcionDireccion.getText().trim());
+                }
+            }
+
+            JOptionPane.showMessageDialog(null, "✔ Persona actualizada correctamente.");
+            limpiar();
+            cargarPersonas();
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error al modificar: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error al editar persona: " + e.getMessage());
         }
     }
 
-    // Botón "🗑 Eliminar" → onAction="#onEliminar"
+    // ── Eliminar persona ──────────────────────────────────────────────────
     @FXML
-    public void onEliminar(ActionEvent event) {
-        if (txtId.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Selecciona una persona de la tabla primero.");
+    public void onEliminarPersona(ActionEvent event) {
+        if (idPersonaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(null, "Selecciona una persona primero.");
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(null, "¿Eliminar esta persona?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(null,
+                "¿Eliminar la persona #" + idPersonaSeleccionada + " y su dirección?",
+                "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        int idPersona = Integer.parseInt(txtId.getText().trim());
-
         try (Connection con = conexion.establecerConexion()) {
+            // Eliminar dirección primero (FK)
+            PreparedStatement psDir = con.prepareStatement(
+                    "DELETE FROM TBL_DIRECCION WHERE id_persona=?");
+            psDir.setInt(1, idPersonaSeleccionada);
+            psDir.executeUpdate();
 
-            // 1. Borrar de TBL_CLIENTE si existe (hijo antes que el padre)
-            PreparedStatement psC = con.prepareStatement(
-                    "DELETE FROM TBL_CLIENTE WHERE id_persona=?");
-            psC.setInt(1, idPersona);
-            psC.executeUpdate();
-
-            // 2. Borrar de TBL_EMPLEADO si existe (hijo antes que el padre)
-            PreparedStatement psE = con.prepareStatement(
-                    "DELETE FROM TBL_EMPLEADO WHERE id_persona=?");
-            psE.setInt(1, idPersona);
-            psE.executeUpdate();
-
-            // 3. Ahora sí borrar de TBL_PERSONA
-            PreparedStatement psP = con.prepareStatement(
+            PreparedStatement ps = con.prepareStatement(
                     "DELETE FROM TBL_PERSONA WHERE id_persona=?");
-            psP.setInt(1, idPersona);
-            psP.executeUpdate();
+            ps.setInt(1, idPersonaSeleccionada);
+            ps.executeUpdate();
 
             JOptionPane.showMessageDialog(null, "Persona eliminada.");
-            actualizarTabla();
-            Limpiar();
-
+            limpiar();
+            cargarPersonas();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
         }
     }
 
-    // Botón "✖" limpiar → onAction="#onLimpiar"  (el ✖ pequeño del formulario)
+    // ── Limpiar ───────────────────────────────────────────────────────────
     @FXML
-    public void onLimpiar(ActionEvent event) { Limpiar(); }
-
-    @FXML
-    public void Limpiar() {
-        txtId.clear();
-        txtNombre.clear();
-        txtApellido.clear();
-        txtTelefono.clear();
-        txtEmail.clear();
+    public void limpiar() {
+        txtNombre.clear(); txtApellido.clear(); txtTelefono.clear();
+        txtCorreo.clear(); txtDescripcionDireccion.clear(); txtBuscar.clear();
         cmbGenero.setValue(null);
-        cmbCargo.setValue(null);
-        dpHorario.setValue(null);
-        rbCliente.setSelected(true);
+        cmbRegion.setValue(null); cmbPais.setValue(null);
+        cmbProvincia.setValue(null); cmbMunicipio.setValue(null);
+        cmbDistrito.setValue(null); cmbSector.setValue(null); cmbCalle.setValue(null);
+        idPersonaSeleccionada = -1;
+        idRegion = 0; idPais = 0; idProvincia = 0; idMunicipio = 0;
+        idDistrito = 0; idSector = 0; idCalle = 0;
         tablaPersonas.getSelectionModel().clearSelection();
     }
 
-    private void actualizarTabla() {
-        String sql = "SELECT p.id_persona, p.nombre, p.apellido, p.genero, "
-                + "p.numero_telefono, p.correo_electronico, "
-                + "CASE WHEN c.id_cliente IS NOT NULL THEN 'Cliente' ELSE 'Empleado' END AS tipo, "
-                + "ISNULL(ca.nombre, '') AS cargo "
-                + "FROM TBL_PERSONA p "
-                + "LEFT JOIN TBL_CLIENTE  c  ON c.id_persona = p.id_persona "
-                + "LEFT JOIN TBL_EMPLEADO e  ON e.id_persona = p.id_persona "
-                + "LEFT JOIN TBL_CARGO    ca ON ca.id_cargo  = e.id_cargo";
-
-        try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            ObservableList<Persona> lista = FXCollections.observableArrayList();
-            while (rs.next()) {
-                lista.add(new Persona(
-                        rs.getInt("id_persona"),
-                        rs.getString("nombre"),
-                        rs.getString("apellido"),
-                        rs.getString("tipo"),
-                        rs.getString("numero_telefono"),
-                        rs.getString("correo_electronico"),
-                        rs.getString("genero"),
-                        rs.getString("cargo")
-                ));
-            }
-            tablaPersonas.setItems(lista);
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error al cargar personas: " + e.getMessage());
-        }
+    // ── Helpers ───────────────────────────────────────────────────────────
+    private void insertarDireccion(Connection con, int idPersona, int idCalle, String descripcion)
+            throws SQLException {
+        PreparedStatement ps = con.prepareStatement(
+                "INSERT INTO TBL_DIRECCION (descripcion, id_calle, id_persona) VALUES (?, ?, ?)");
+        ps.setString(1, descripcion);
+        ps.setInt(2, idCalle);
+        ps.setInt(3, idPersona);
+        ps.executeUpdate();
     }
 
     private void cargarEnFormulario(Persona p) {
-        txtId.setText(String.valueOf(p.getIdPersona()));
+        idPersonaSeleccionada = p.getId();
         txtNombre.setText(p.getNombre());
         txtApellido.setText(p.getApellido());
-        txtTelefono.setText(p.getTelefono());
-        txtEmail.setText(p.getEmail());
         cmbGenero.setValue(p.getGenero());
-        if ("Empleado".equals(p.getTipo())) {
-            rbEmpleado.setSelected(true);
-            cmbCargo.setValue(p.getCargo());
-        } else {
-            rbCliente.setSelected(true);
+        txtTelefono.setText(p.getTelefono());
+        txtCorreo.setText(p.getCorreo());
+        // La dirección ya viene como texto legible en la tabla;
+        // para editar campos individuales de dirección el usuario
+        // usa los combos encadenados directamente.
+        txtDescripcionDireccion.setText("");
+    }
+
+    private boolean validarFormulario() {
+        if (txtNombre.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "El nombre es obligatorio."); return false;
         }
+        if (txtApellido.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "El apellido es obligatorio."); return false;
+        }
+        if (cmbGenero.getValue() == null) {
+            JOptionPane.showMessageDialog(null, "Selecciona el género."); return false;
+        }
+        return true;
     }
 }

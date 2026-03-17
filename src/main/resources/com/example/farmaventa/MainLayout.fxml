@@ -95,6 +95,16 @@
                                -fx-font-size: 13px; -fx-background-radius: 6;
                                -fx-cursor: hand; -fx-padding: 10 10 10 10;"/>
 
+
+                <!-- NUEVO: Envíos -->
+                <Button fx:id="btnEnvios"
+                        text="🚚  Envíos"
+                        maxWidth="Infinity" alignment="CENTER_LEFT"
+                        onAction="#onMenuEnvios"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242;
+                               -fx-font-size: 13px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 10 10 10 10;"/>
+
                 <Region VBox.vgrow="ALWAYS"/>
                 <Separator/>
                 <Label text="v1.0.0  •  FarmaVenta"
