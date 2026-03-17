@@ -1,91 +1,63 @@
 package com.example.farmaventa.modelo;
 
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+
 import java.time.LocalDate;
 
 /**
- * Modelo: RECLAMACION_VENTA
- * Atributos según diagrama de clases:
- *   - id_reclamacionventa : int
- *   - Venta               : Venta
- *   - fecha_reclamacion   : Date
- *   - estado_actual       : EstadoReclamacion
- *   - descripcion         : varchar
- *   - cantidadAdevolver   : int
- *
- * Métodos del diagrama:
- *   + registrarReclamacion()
- *   + validarGarantia()
+ * Mapea TBL_RECLAMACION_VENTA + JOIN TBL_VENTA + TBL_CLIENTE + TBL_PERSONA
+ * Columnas reales:
+ *   id_reclamacionventa, fecha_reclamacion, estado (BIT), id_venta
+ *   + nombre del cliente (JOIN)
+ *   + descripcion y cantidad (de TBL_PRODUCTO_RECLAMACION_VENTA, primer producto)
  */
 public class ReclamacionVenta {
 
-    private int         idReclamacionventa;
-    private String      idVenta;           // referencia a la venta asociada
-    private String      nombreCliente;     // campo de conveniencia para la UI
-    private LocalDate   fechaReclamacion;
-    private String      estadoActualNombre; // nombre del estado (enum/clase)
-    private String      descripcion;
-    private int         cantidadAdevolver;
+    private final SimpleIntegerProperty             idReclamacionventa = new SimpleIntegerProperty();
+    private final SimpleIntegerProperty             idVenta            = new SimpleIntegerProperty();
+    private final SimpleStringProperty              nombreCliente      = new SimpleStringProperty();
+    private final SimpleObjectProperty<LocalDate>   fechaReclamacion   = new SimpleObjectProperty<>();
+    // estado BIT: 0 = Pendiente, 1 = Resuelta — se muestra como texto
+    private final SimpleStringProperty              estadoActualNombre = new SimpleStringProperty();
+    private final SimpleIntegerProperty             cantidadAdevolver  = new SimpleIntegerProperty();
+    private final SimpleStringProperty              descripcion        = new SimpleStringProperty();
 
-    // ── Constructor vacío ──────────────────────────────────────────────────
     public ReclamacionVenta() {}
 
-    // ── Constructor completo ───────────────────────────────────────────────
-    public ReclamacionVenta(int id, String idVenta, String nombreCliente,
-                            LocalDate fecha, String estado,
-                            String descripcion, int cantidadAdevolver) {
-        this.idReclamacionventa = id;
-        this.idVenta            = idVenta;
-        this.nombreCliente      = nombreCliente;
-        this.fechaReclamacion   = fecha;
-        this.estadoActualNombre = estado;
-        this.descripcion        = descripcion;
-        this.cantidadAdevolver  = cantidadAdevolver;
+    public ReclamacionVenta(int idReclamacionventa, int idVenta, String nombreCliente,
+                            LocalDate fechaReclamacion, String estadoActualNombre,
+                            int cantidadAdevolver, String descripcion) {
+        this.idReclamacionventa.set(idReclamacionventa);
+        this.idVenta.set(idVenta);
+        this.nombreCliente.set(nombreCliente != null ? nombreCliente : "");
+        this.fechaReclamacion.set(fechaReclamacion);
+        this.estadoActualNombre.set(estadoActualNombre != null ? estadoActualNombre : "ESTADO_RECLAMACION_PENDIENTE");
+        this.cantidadAdevolver.set(cantidadAdevolver);
+        this.descripcion.set(descripcion != null ? descripcion : "");
     }
 
-    // ── Métodos del diagrama ───────────────────────────────────────────────
+    public SimpleIntegerProperty           idReclamacionventaProperty() { return idReclamacionventa; }
+    public SimpleIntegerProperty           idVentaProperty()            { return idVenta; }
+    public SimpleStringProperty            nombreClienteProperty()      { return nombreCliente; }
+    public SimpleObjectProperty<LocalDate> fechaReclamacionProperty()   { return fechaReclamacion; }
+    public SimpleStringProperty            estadoActualNombreProperty() { return estadoActualNombre; }
+    public SimpleIntegerProperty           cantidadADevolverProperty()  { return cantidadAdevolver; }
+    public SimpleStringProperty            descripcionProperty()        { return descripcion; }
 
-    /**
-     * registrarReclamacion()
-     * Persiste la reclamación en la base de datos.
-     * TODO: implementar con DAO/servicio real.
-     */
-    public void registrarReclamacion() {
-        // reclamacionDAO.guardar(this);
-        System.out.println("Reclamación registrada: " + idReclamacionventa);
-    }
-
-    /**
-     * validarGarantia()
-     * Verifica si la venta asociada cae dentro del período de garantía.
-     * TODO: implementar lógica de negocio real.
-     */
-    public boolean validarGarantia() {
-        // Ejemplo: garantía de 30 días desde la venta
-        // Venta venta = ventaDAO.buscarPorId(idVenta);
-        // return venta.getFecha().plusDays(30).isAfter(LocalDate.now());
-        return true; // placeholder
-    }
-
-    // ── Getters y Setters ──────────────────────────────────────────────────
-
-    public int getIdReclamacionventa()           { return idReclamacionventa; }
-    public void setIdReclamacionventa(int id)    { this.idReclamacionventa = id; }
-
-    public String getIdVenta()                   { return idVenta; }
-    public void setIdVenta(String idVenta)       { this.idVenta = idVenta; }
-
-    public String getNombreCliente()             { return nombreCliente; }
-    public void setNombreCliente(String nombre)  { this.nombreCliente = nombre; }
-
-    public LocalDate getFechaReclamacion()                   { return fechaReclamacion; }
-    public void setFechaReclamacion(LocalDate fecha)         { this.fechaReclamacion = fecha; }
-
-    public String getEstadoActualNombre()                    { return estadoActualNombre; }
-    public void setEstadoActualNombre(String estadoNombre)   { this.estadoActualNombre = estadoNombre; }
-
-    public String getDescripcion()               { return descripcion; }
-    public void setDescripcion(String desc)      { this.descripcion = desc; }
-
-    public int getCantidadAdevolver()            { return cantidadAdevolver; }
-    public void setCantidadAdevolver(int cant)   { this.cantidadAdevolver = cant; }
+    public int       getIdReclamacionventa()               { return idReclamacionventa.get(); }
+    public void      setIdReclamacionventa(int v)          { idReclamacionventa.set(v); }
+    public int       getIdVenta()                          { return idVenta.get(); }
+    public void      setIdVenta(int v)                     { idVenta.set(v); }
+    public String    getNombreCliente()                    { return nombreCliente.get(); }
+    public void      setNombreCliente(String v)            { nombreCliente.set(v); }
+    public LocalDate getFechaReclamacion()                 { return fechaReclamacion.get(); }
+    public void      setFechaReclamacion(LocalDate v)      { fechaReclamacion.set(v); }
+    public String    getEstadoActualNombre()               { return estadoActualNombre.get(); }
+    public void      setEstadoActualNombre(String v)       { estadoActualNombre.set(v); }
+    public int       getCantidadAdevolver()                { return cantidadAdevolver.get(); }
+    public void      setCantidadAdevolver(int v)           { cantidadAdevolver.set(v); }
+    public String    getDescripcion()                      { return descripcion.get(); }
+    public void      setDescripcion(String v)              { descripcion.set(v); }
 }

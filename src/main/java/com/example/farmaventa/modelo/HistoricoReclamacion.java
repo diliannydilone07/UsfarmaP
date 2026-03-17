@@ -1,69 +1,63 @@
 package com.example.farmaventa.modelo;
 
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+
 import java.time.LocalDate;
 
 /**
- * Modelo: HISTORICO_RECLAMACION
- * Atributos según diagrama de clases:
- *   - id_historico           : int
- *   - descripcion            : string
- *   - cliente                : cliente
- *   - fecha_creacion         : date
- *   - id_reclamacionventa    : id_reclamacion_venta
- *
- * Método:
- *   + obtenerDetalleCambio()
+ * Mapea TBL_HISTORICO_RECLAMACION_VENTA
+ * Columnas reales:
+ *   id_historico_reclam_venta, descripcion, creado_por,
+ *   fecha_creacion, id_reclamacionventa
  */
 public class HistoricoReclamacion {
 
-    private int        idHistorico;
-    private String     descripcion;
-    private String     cliente;              // nombre del cliente
-    private LocalDate  fechaCreacion;
-    private int        idReclamacionventa;   // FK hacia ReclamacionVenta
+    private final SimpleIntegerProperty             idHistorico        = new SimpleIntegerProperty();
+    private final SimpleStringProperty              descripcion        = new SimpleStringProperty();
+    private final SimpleStringProperty              creadoPor          = new SimpleStringProperty(); // creado_por
+    private final SimpleObjectProperty<LocalDate>   fechaCreacion      = new SimpleObjectProperty<>();
+    private final SimpleIntegerProperty             idReclamacionventa = new SimpleIntegerProperty();
 
-    // ── Constructor vacío ─────────────────────────────────────────────────
     public HistoricoReclamacion() {}
 
-    // ── Constructor completo ──────────────────────────────────────────────
-    public HistoricoReclamacion(int id, String descripcion, String cliente,
+    public HistoricoReclamacion(int idHistorico, String descripcion, String creadoPor,
                                 LocalDate fechaCreacion, int idReclamacionventa) {
-        this.idHistorico          = id;
-        this.descripcion          = descripcion;
-        this.cliente              = cliente;
-        this.fechaCreacion        = fechaCreacion;
-        this.idReclamacionventa   = idReclamacionventa;
+        this.idHistorico.set(idHistorico);
+        this.descripcion.set(descripcion != null ? descripcion : "");
+        this.creadoPor.set(creadoPor != null ? creadoPor : "");
+        this.fechaCreacion.set(fechaCreacion);
+        this.idReclamacionventa.set(idReclamacionventa);
     }
 
-    // ── Método del diagrama ───────────────────────────────────────────────
-
-    /**
-     * obtenerDetalleCambio()
-     * Retorna un texto formateado con todos los datos del registro histórico.
-     * Se muestra en el TextArea de detalle en la UI.
-     */
+    // Método del diagrama — se muestra en el TextArea de detalle
     public String obtenerDetalleCambio() {
-        return  "ID Histórico : " + idHistorico + "\n" +
-                "Fecha        : " + (fechaCreacion != null ? fechaCreacion.toString() : "—") + "\n" +
-                "Cliente      : " + (cliente != null ? cliente : "—") + "\n" +
-                "Reclamación  : #" + idReclamacionventa + "\n\n" +
-                "Descripción  :\n" + (descripcion != null ? descripcion : "Sin descripción.");
+        return "ID Histórico  : " + idHistorico.get()              + "\n" +
+                "Fecha         : " + (fechaCreacion.get() != null
+                ? fechaCreacion.get() : "—")  + "\n" +
+                "Creado por    : " + (creadoPor.get() != null
+                ? creadoPor.get() : "—")      + "\n" +
+                "Reclamación   : #" + idReclamacionventa.get()       + "\n\n" +
+                "Descripción   :\n" + (descripcion.get() != null
+                ? descripcion.get()
+                : "Sin descripción.");
     }
 
-    // ── Getters y Setters ─────────────────────────────────────────────────
+    public SimpleIntegerProperty           idHistoricoProperty()        { return idHistorico; }
+    public SimpleStringProperty            descripcionProperty()        { return descripcion; }
+    public SimpleStringProperty            creadoPorProperty()          { return creadoPor; }
+    public SimpleObjectProperty<LocalDate> fechaCreacionProperty()      { return fechaCreacion; }
+    public SimpleIntegerProperty           idReclamacionventaProperty() { return idReclamacionventa; }
 
-    public int getIdHistorico()                     { return idHistorico; }
-    public void setIdHistorico(int id)              { this.idHistorico = id; }
-
-    public String getDescripcion()                  { return descripcion; }
-    public void setDescripcion(String desc)         { this.descripcion = desc; }
-
-    public String getCliente()                      { return cliente; }
-    public void setCliente(String cliente)          { this.cliente = cliente; }
-
-    public LocalDate getFechaCreacion()             { return fechaCreacion; }
-    public void setFechaCreacion(LocalDate fecha)   { this.fechaCreacion = fecha; }
-
-    public int getIdReclamacionventa()              { return idReclamacionventa; }
-    public void setIdReclamacionventa(int id)       { this.idReclamacionventa = id; }
+    public int       getIdHistorico()                   { return idHistorico.get(); }
+    public void      setIdHistorico(int v)              { idHistorico.set(v); }
+    public String    getDescripcion()                   { return descripcion.get(); }
+    public void      setDescripcion(String v)           { descripcion.set(v); }
+    public String    getCreadoPor()                     { return creadoPor.get(); }
+    public void      setCreadoPor(String v)             { creadoPor.set(v); }
+    public LocalDate getFechaCreacion()                 { return fechaCreacion.get(); }
+    public void      setFechaCreacion(LocalDate v)      { fechaCreacion.set(v); }
+    public int       getIdReclamacionventa()            { return idReclamacionventa.get(); }
+    public void      setIdReclamacionventa(int v)       { idReclamacionventa.set(v); }
 }
