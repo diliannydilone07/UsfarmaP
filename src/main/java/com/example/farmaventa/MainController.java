@@ -15,20 +15,19 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
 
-    // ── FXML ──────────────────────────────────────────────────────────────
     @FXML private StackPane contentArea;
 
     @FXML private Button btnInicio;
     @FXML private Button btnVentas;
     @FXML private Button btnPersonas;
     @FXML private Button btnInventario;
-    @FXML private Button btnReclamaciones;   // ← nuevo
+    @FXML private Button btnReclamaciones;
+    @FXML private Button btnConvenios;
 
     @FXML private Label lblUsuario;
 
     private Button btnActivo;
 
-    // ── Estilos ───────────────────────────────────────────────────────────
     private static final String ESTILO_ACTIVO =
             "-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; " +
                     "-fx-font-weight: bold; -fx-font-size: 13px; " +
@@ -39,26 +38,25 @@ public class MainController implements Initializable {
                     "-fx-font-size: 13px; -fx-background-radius: 6; " +
                     "-fx-cursor: hand; -fx-padding: 10 12 10 12;";
 
-    // ── Init ──────────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         resetarTodosLosBotones();
         cargarVista("Dashboard.fxml", btnInicio);
     }
 
-    // ── Handlers del menú ─────────────────────────────────────────────────
+    // Nombres exactos según la imagen de tu proyecto
     @FXML private void onMenuInicio()        { cargarVista("Dashboard.fxml",        btnInicio); }
     @FXML private void onMenuVentas()        { cargarVista("Ventas.fxml",           btnVentas); }
     @FXML private void onMenuPersonas()      { cargarVista("Personas.fxml",         btnPersonas); }
     @FXML private void onMenuInventario()    { cargarVista("Inventario.fxml",       btnInventario); }
-    @FXML private void onMenuReclamaciones() { cargarVista("ReclamacionVenta.fxml", btnReclamaciones); }
+    @FXML private void onMenuReclamaciones() { cargarVista("Reclamacionventa.fxml", btnReclamaciones); } // v minúscula
+    @FXML private void onMenuConvenios()     { cargarVista("Convenio.fxml",         btnConvenios); }
 
-    // ── Lógica de navegación ──────────────────────────────────────────────
     private void cargarVista(String nombreFxml, Button boton) {
         try {
             URL ruta = getClass().getResource("/com/example/farmaventa/" + nombreFxml);
             if (ruta == null) {
-                System.err.println("No se encontró el FXML: " + nombreFxml);
+                System.err.println(">>> No se encontro el FXML: " + nombreFxml);
                 return;
             }
             FXMLLoader loader = new FXMLLoader(ruta);
@@ -66,12 +64,14 @@ public class MainController implements Initializable {
             contentArea.getChildren().setAll(vista);
             marcarBotonActivo(boton);
         } catch (IOException e) {
+            System.err.println(">>> Error cargando: " + nombreFxml);
             e.printStackTrace();
         }
     }
 
     private void resetarTodosLosBotones() {
-        List.of(btnInicio, btnVentas, btnPersonas, btnInventario, btnReclamaciones)
+        List.of(btnInicio, btnVentas, btnPersonas,
+                        btnInventario, btnReclamaciones, btnConvenios)
                 .forEach(b -> b.setStyle(ESTILO_INACTIVO));
         btnActivo = null;
     }
@@ -82,7 +82,6 @@ public class MainController implements Initializable {
         btnActivo = nuevoActivo;
     }
 
-    // ── API pública ───────────────────────────────────────────────────────
     public void navegarA(String nombreFxml, Button boton) {
         cargarVista(nombreFxml, boton != null ? boton : btnInicio);
     }
@@ -92,4 +91,5 @@ public class MainController implements Initializable {
     public Button getBtnPersonas()        { return btnPersonas; }
     public Button getBtnInventario()      { return btnInventario; }
     public Button getBtnReclamaciones()   { return btnReclamaciones; }
+    public Button getBtnConvenios()       { return btnConvenios; }
 }

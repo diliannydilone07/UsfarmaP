@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="0"
+      style="-fx-background-color: #F4F6F8;"
+      minHeight="650"
+      xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      fx:controller="com.example.farmaventa.ConvenioController">
+
+    <!-- ══════  ENCABEZADO  ══════ -->
+    <HBox alignment="CENTER_LEFT" spacing="10"
+          style="-fx-background-color: #FFFFFF;
+                 -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+        <padding><Insets top="18" right="24" bottom="18" left="24"/></padding>
+        <VBox spacing="2">
+            <Label text="Gestión de Convenios"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;"/>
+            <Label text="Registra y administra los convenios con proveedores"
+                   style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="lblVigencia" text="● Vigente"
+               style="-fx-text-fill: #2E7D32; -fx-font-size: 12px; -fx-font-weight: bold;
+                      -fx-background-color: #E8F5E9; -fx-background-radius: 20;
+                      -fx-padding: 4 12 4 12;"/>
+    </HBox>
+
+    <!-- ══════  CUERPO  ══════ -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS" minHeight="580">
+        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+        <!-- ─────  COLUMNA IZQUIERDA: Formulario  ───── -->
+        <VBox spacing="14" prefWidth="280"
+              style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
+                     -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+            <padding><Insets top="20" right="18" bottom="20" left="18"/></padding>
+
+            <Label text="Datos del Convenio"
+                   style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
+            <Separator/>
+
+            <VBox spacing="4">
+                <Label text="ID Proveedor *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtIdProveedor" promptText="Ej. 1"
+                           style="-fx-background-radius: 6; -fx-border-radius: 6;
+                                  -fx-border-color: #E0E0E0; -fx-border-width: 1;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="ID Producto *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtIdProducto" promptText="Ej. 5"
+                           style="-fx-background-radius: 6; -fx-border-radius: 6;
+                                  -fx-border-color: #E0E0E0; -fx-border-width: 1;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Fecha Inicio *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <DatePicker fx:id="dpFechaInicio" maxWidth="Infinity"
+                            style="-fx-background-radius: 6;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Fecha Fin *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <DatePicker fx:id="dpFechaFin" maxWidth="Infinity"
+                            style="-fx-background-radius: 6;"/>
+            </VBox>
+
+            <VBox spacing="4" VBox.vgrow="ALWAYS">
+                <Label text="Acuerdo / Descripción *"
+                       style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextArea fx:id="taAcuerdo"
+                          promptText="Detalla los términos del convenio..."
+                          wrapText="true" prefRowCount="5"
+                          style="-fx-background-radius: 6; -fx-border-radius: 6;
+                                 -fx-border-color: #E0E0E0; -fx-border-width: 1;"/>
+            </VBox>
+
+        </VBox>
+
+        <!-- ─────  COLUMNA CENTRAL: Tabla  ───── -->
+        <VBox spacing="12" HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
+                     -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+            <padding><Insets top="20" right="18" bottom="20" left="18"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Convenios Registrados"
+                       style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="txtBuscar" promptText="🔍  Buscar proveedor / producto..."
+                           prefWidth="240"
+                           style="-fx-background-radius: 20; -fx-border-radius: 20;
+                                  -fx-border-color: #E0E0E0; -fx-border-width: 1;
+                                  -fx-padding: 5 12 5 12;"/>
+            </HBox>
+            <Separator/>
+
+            <TableView fx:id="tablaConvenios" VBox.vgrow="ALWAYS"
+                       style="-fx-background-color: transparent;">
+                <columns>
+                    <TableColumn fx:id="colId"          text="#"          prefWidth="55"/>
+                    <TableColumn fx:id="colProveedor"   text="Proveedor"  prefWidth="160"/>
+                    <TableColumn fx:id="colProducto"    text="Producto"   prefWidth="160"/>
+                    <TableColumn fx:id="colFechaInicio" text="Inicio"     prefWidth="100"/>
+                    <TableColumn fx:id="colFechaFin"    text="Fin"        prefWidth="100"/>
+                    <TableColumn fx:id="colVigencia"    text="Estado"     prefWidth="90"/>
+                </columns>
+                <placeholder>
+                    <Label text="No hay convenios registrados aún 📋"
+                           style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;"/>
+                </placeholder>
+            </TableView>
+
+        </VBox>
+
+        <!-- ─────  COLUMNA DERECHA: Acciones  ───── -->
+        <VBox spacing="10" prefWidth="230">
+
+            <VBox spacing="10"
+                  style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
+                         -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                <padding><Insets top="16" right="14" bottom="16" left="14"/></padding>
+                <Label text="Acciones"
+                       style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #424242;"/>
+                <Separator/>
+
+                <!-- Solo inserta nuevo -->
+                <Button text="✔ Guardar Nuevo"
+                        onAction="#onGuardarConvenio"
+                        maxWidth="Infinity"
+                        style="-fx-background-color: #388E3C; -fx-text-fill: white;
+                               -fx-font-weight: bold; -fx-font-size: 11px;
+                               -fx-background-radius: 6; -fx-cursor: hand;
+                               -fx-padding: 10 6 10 6;"/>
+
+                <!-- Solo actualiza el seleccionado -->
+                <Button text="✏ Editar Convenio"
+                        onAction="#onEditarConvenio"
+                        maxWidth="Infinity"
+                        style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;
+                               -fx-font-weight: bold; -fx-font-size: 11px;
+                               -fx-background-radius: 6; -fx-border-color: #BBDEFB;
+                               -fx-cursor: hand; -fx-padding: 10 6 10 6;"/>
+
+                <Button text="🗑 Eliminar Convenio"
+                        onAction="#onEliminarConvenio"
+                        maxWidth="Infinity"
+                        style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
+                               -fx-font-size: 11px; -fx-background-radius: 6;
+                               -fx-border-color: #FFCDD2; -fx-cursor: hand;
+                               -fx-padding: 9 6 9 6;"/>
+
+                <Button text="🔄 Limpiar"
+                        onAction="#limpiar"
+                        maxWidth="Infinity"
+                        style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
+                               -fx-font-size: 11px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 9 6 9 6;"/>
+            </VBox>
+
+        </VBox>
+    </HBox>
+</VBox>
