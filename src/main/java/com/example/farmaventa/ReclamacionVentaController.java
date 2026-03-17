@@ -255,12 +255,27 @@ public class ReclamacionVentaController implements Initializable {
                 "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        String sql = "DELETE FROM TBL_RECLAMACION_VENTA WHERE id_reclamacionventa=?";
-        try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        int idReclam = sel.getIdReclamacionventa();
 
-            ps.setInt(1, sel.getIdReclamacionventa());
-            ps.executeUpdate();
+        try (Connection con = conexion.establecerConexion()) {
+
+            // Borrar hijos primero
+            PreparedStatement psH = con.prepareStatement(
+                    "DELETE FROM TBL_HISTORICO_RECLAMACION_VENTA WHERE id_reclamacionventa=?");
+            psH.setInt(1, idReclam);
+            psH.executeUpdate();
+
+            PreparedStatement psP = con.prepareStatement(
+                    "DELETE FROM TBL_PRODUCTO_RECLAMACION_VENTA WHERE id_reclamacionventa=?");
+            psP.setInt(1, idReclam);
+            psP.executeUpdate();
+
+            // Ahora borrar la reclamación
+            PreparedStatement psR = con.prepareStatement(
+                    "DELETE FROM TBL_RECLAMACION_VENTA WHERE id_reclamacionventa=?");
+            psR.setInt(1, idReclam);
+            psR.executeUpdate();
+
             listaHistorico.clear();
             lblHistorialDe.setText("—");
             actualizarTabla();

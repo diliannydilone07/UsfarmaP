@@ -180,12 +180,28 @@ public class PersonaController {
         int confirm = JOptionPane.showConfirmDialog(null, "¿Eliminar esta persona?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        String sql = "DELETE FROM TBL_PERSONA WHERE id_persona=?";
-        try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        int idPersona = Integer.parseInt(txtId.getText().trim());
 
-            ps.setInt(1, Integer.parseInt(txtId.getText().trim()));
-            ps.executeUpdate();
+        try (Connection con = conexion.establecerConexion()) {
+
+            // 1. Borrar de TBL_CLIENTE si existe (hijo antes que el padre)
+            PreparedStatement psC = con.prepareStatement(
+                    "DELETE FROM TBL_CLIENTE WHERE id_persona=?");
+            psC.setInt(1, idPersona);
+            psC.executeUpdate();
+
+            // 2. Borrar de TBL_EMPLEADO si existe (hijo antes que el padre)
+            PreparedStatement psE = con.prepareStatement(
+                    "DELETE FROM TBL_EMPLEADO WHERE id_persona=?");
+            psE.setInt(1, idPersona);
+            psE.executeUpdate();
+
+            // 3. Ahora sí borrar de TBL_PERSONA
+            PreparedStatement psP = con.prepareStatement(
+                    "DELETE FROM TBL_PERSONA WHERE id_persona=?");
+            psP.setInt(1, idPersona);
+            psP.executeUpdate();
+
             JOptionPane.showMessageDialog(null, "Persona eliminada.");
             actualizarTabla();
             Limpiar();

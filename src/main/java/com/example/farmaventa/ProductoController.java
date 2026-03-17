@@ -120,12 +120,48 @@ public class ProductoController {
         int confirm = JOptionPane.showConfirmDialog(null, "¿Eliminar este producto?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        String sql = "DELETE FROM TBL_PRODUCTO WHERE id_producto=?";
-        try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        int idProducto = Integer.parseInt(txtId.getText().trim());
 
-            ps.setInt(1, Integer.parseInt(txtId.getText().trim()));
-            ps.executeUpdate();
+        try (Connection con = conexion.establecerConexion()) {
+
+            // Borrar nietos primero: TBL_MEDICAMENTO_ENF_APL referencia a TBL_MEDICAMENTO
+            // Primero obtenemos los ids de medicamento de este producto
+            PreparedStatement psMedIds = con.prepareStatement(
+                    "SELECT id_medicamento FROM TBL_MEDICAMENTO WHERE id_producto=?");
+            psMedIds.setInt(1, idProducto);
+            ResultSet rsMed = psMedIds.executeQuery();
+            while (rsMed.next()) {
+                int idMed = rsMed.getInt("id_medicamento");
+                PreparedStatement psEnf = con.prepareStatement(
+                        "DELETE FROM TBL_MEDICAMENTO_ENF_APL WHERE id_medicamento=?");
+                psEnf.setInt(1, idMed);
+                psEnf.executeUpdate();
+            }
+
+            // Ahora borrar hijos directos de TBL_PRODUCTO
+            String[] hijos = {
+                    "DELETE FROM TBL_VENTA_PRODUCTO              WHERE id_producto=?",
+                    "DELETE FROM TBL_COMPRA_PRODUCTO             WHERE id_producto=?",
+                    "DELETE FROM TBL_PRODUCTO_RECLAMACION_VENTA  WHERE id_producto=?",
+                    "DELETE FROM TBL_PRODUCTO_RECLAMACION_COMPRA WHERE id_producto=?",
+                    "DELETE FROM TBL_PRESENTACION_PRODUCTO       WHERE id_producto=?",
+                    "DELETE FROM TBL_PRODUCTO_OFERTA             WHERE id_producto=?",
+                    "DELETE FROM TBL_PERDIDA                     WHERE id_producto=?",
+                    "DELETE FROM TBL_DETALLE_PEDIDO_C            WHERE id_producto=?",
+                    "DELETE FROM TBL_CONVENIO                    WHERE id_producto=?",
+                    "DELETE FROM TBL_MEDICAMENTO                 WHERE id_producto=?"
+            };
+            for (String s : hijos) {
+                PreparedStatement ps2 = con.prepareStatement(s);
+                ps2.setInt(1, idProducto);
+                ps2.executeUpdate();
+            }
+
+            // Ahora sí borrar el producto
+            PreparedStatement psP = con.prepareStatement("DELETE FROM TBL_PRODUCTO WHERE id_producto=?");
+            psP.setInt(1, idProducto);
+            psP.executeUpdate();
+
             JOptionPane.showMessageDialog(null, "Producto eliminado.");
             actualizarTabla();
             Limpiar();

@@ -4,10 +4,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!--
-    Personas.fxml — Gestión de Clientes y Empleados
-    Controlador: com.example.farmaventa.PersonaController
--->
 <VBox spacing="0"
       style="-fx-background-color: #F4F6F8;"
       minHeight="650"
@@ -15,7 +11,6 @@
       xmlns="http://javafx.com/javafx/17.0.12"
       fx:controller="com.example.farmaventa.PersonaController">
 
-    <!-- ── Encabezado de sección ── -->
     <HBox alignment="CENTER_LEFT" spacing="10"
           style="-fx-background-color: #FFFFFF;
                  -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
@@ -28,11 +23,10 @@
         </VBox>
     </HBox>
 
-    <!-- ── Cuerpo ── -->
     <HBox spacing="16" VBox.vgrow="ALWAYS" minHeight="580">
         <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-        <!-- ────  FORMULARIO  ──── -->
+        <!-- FORMULARIO -->
         <VBox spacing="12" prefWidth="290"
               style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
@@ -42,15 +36,12 @@
             <Label text="Registro de Información"
                    style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
 
-            <!-- Tipo de persona -->
-            <HBox spacing="0"
-                  style="-fx-background-color: #F5F5F5; -fx-background-radius: 8;">
+            <HBox spacing="0" style="-fx-background-color: #F5F5F5; -fx-background-radius: 8;">
                 <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
                 <RadioButton fx:id="rbCliente" text="Cliente" selected="true"
                              HBox.hgrow="ALWAYS"
                              style="-fx-background-color: #FFFFFF; -fx-background-radius: 6;
-                                    -fx-padding: 7 0 7 12; -fx-text-fill: #1B5E20;
-                                    -fx-font-weight: bold;">
+                                    -fx-padding: 7 0 7 12; -fx-text-fill: #1B5E20; -fx-font-weight: bold;">
                     <toggleGroup><ToggleGroup fx:id="tgTipo"/></toggleGroup>
                 </RadioButton>
                 <RadioButton fx:id="rbEmpleado" text="Empleado" toggleGroup="$tgTipo"
@@ -63,7 +54,7 @@
 
             <VBox spacing="4">
                 <Label text="ID Persona" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
-                <TextField fx:id="txtId" promptText="Automático o manual"
+                <TextField fx:id="txtId" promptText="Automático"
                            style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
             </VBox>
 
@@ -98,7 +89,6 @@
                            style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
             </VBox>
 
-            <!-- Datos adicionales de Empleado (visibles según selección) -->
             <VBox fx:id="vboxDatosEmpleado" spacing="10" managed="false" visible="false"
                   style="-fx-background-color: #E8F5E9; -fx-background-radius: 8;">
                 <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
@@ -111,8 +101,7 @@
                 </VBox>
                 <VBox spacing="4">
                     <Label text="Fecha de Contratación" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
-                    <DatePicker fx:id="dpHorario" maxWidth="Infinity"
-                                style="-fx-background-radius: 6;"/>
+                    <DatePicker fx:id="dpHorario" maxWidth="Infinity" style="-fx-background-radius: 6;"/>
                 </VBox>
             </VBox>
 
@@ -120,19 +109,22 @@
             <Separator/>
 
             <HBox spacing="8">
+                <!-- onAction conectado al método del controlador -->
                 <Button text="💾  Guardar"
+                        onAction="#onGuardar"
                         HBox.hgrow="ALWAYS" maxWidth="Infinity"
                         style="-fx-background-color: #388E3C; -fx-text-fill: white;
                                -fx-font-weight: bold; -fx-background-radius: 6;
                                -fx-cursor: hand; -fx-padding: 10 0 10 0;"/>
                 <Button text="✖"
+                        onAction="#Limpiar"
                         style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
                                -fx-background-radius: 6; -fx-cursor: hand;
                                -fx-padding: 10 14 10 14;"/>
             </HBox>
         </VBox>
 
-        <!-- ────  TABLA  ──── -->
+        <!-- TABLA -->
         <VBox spacing="12" HBox.hgrow="ALWAYS"
               style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
@@ -143,9 +135,6 @@
                 <Label text="Listado General"
                        style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <!-- Filtro de tipo -->
-                <ComboBox promptText="Todos"
-                          style="-fx-background-radius: 6;" prefWidth="110"/>
                 <TextField fx:id="txtBusqueda" prefWidth="210"
                            promptText="🔍 Buscar..."
                            style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
@@ -169,11 +158,14 @@
             </TableView>
 
             <HBox alignment="CENTER_RIGHT" spacing="10">
+                <!-- onAction conectados -->
                 <Button text="✏  Editar Seleccionado"
+                        onAction="#onEditar"
                         style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;
                                -fx-font-size: 12px; -fx-background-radius: 6;
                                -fx-cursor: hand; -fx-padding: 8 14 8 14;"/>
                 <Button text="🗑  Eliminar"
+                        onAction="#onEliminar"
                         style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
                                -fx-border-color: #FFCDD2; -fx-font-size: 12px;
                                -fx-background-radius: 6; -fx-cursor: hand;
