@@ -4,6 +4,7 @@ import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Producto;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -37,16 +38,17 @@ public class ProductoController {
 
     @FXML private Spinner<Integer> spinCantidad;
 
+    // ── Lista maestra + filtrada ──────────────────────────────────────────
+    private final ObservableList<Producto> listaProductos = FXCollections.observableArrayList();
+    private FilteredList<Producto>         listaFiltrada;
+
     @FXML
     public void initialize() {
         spinCantidad.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 999, 1));
 
         cargarComboCategorias();
 
-        tablaProductos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel != null) cargarEnFormulario(sel);
-        });
-
+        // Columnas
         colId.setCellValueFactory(c -> c.getValue().idProductoProperty());
         colNombre.setCellValueFactory(c -> c.getValue().nombreProperty());
         colCategoria.setCellValueFactory(c -> c.getValue().categoriaProperty());
@@ -54,15 +56,33 @@ public class ProductoController {
         colMinimo.setCellValueFactory(c -> c.getValue().stockMinimoProperty());
         colDescuento.setCellValueFactory(c -> c.getValue().descuentoProperty());
         colUbicacion.setCellValueFactory(c -> c.getValue().ubicacionProperty());
-
-        // colPrecio no está en TBL_PRODUCTO, se deja vacío por ahora
         if (colPrecio != null) colPrecio.setCellValueFactory(c -> c.getValue().descuentoProperty());
+
+        // FilteredList conectado a la tabla
+        listaFiltrada = new FilteredList<>(listaProductos, p -> true);
+        tablaProductos.setItems(listaFiltrada);
+
+        // Búsqueda en tiempo real
+        txtBusqueda.textProperty().addListener((obs, o, n) ->
+                listaFiltrada.setPredicate(p -> {
+                    if (n == null || n.isBlank()) return true;
+                    String lower = n.toLowerCase();
+                    return p.getNombre().toLowerCase().contains(lower)
+                            || p.getCategoria().toLowerCase().contains(lower)
+                            || String.valueOf(p.getIdProducto()).contains(lower);
+                })
+        );
+
+        // Clic en fila → cargar formulario
+        tablaProductos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            if (sel != null) cargarEnFormulario(sel);
+        });
 
         actualizarTabla();
     }
 
     private void cargarComboCategorias() {
-        String sql = "SELECT nombre_categoria FROM TBL_CATEGORIA_DE_PRODUCTO";
+        String sql = "SELECT nombre_categoria FROM TBL_CATEGORIA_DE_PRODUCTO ORDER BY nombre_categoria";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -72,27 +92,31 @@ public class ProductoController {
         }
     }
 
-    // Botón "💾 Guardar Producto" → onAction="#onGuardarProductoClick"
     @FXML
     public void onGuardarProductoClick(ActionEvent event) {
         if (txtNombre.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "El nombre del producto es obligatorio.");
-            return;
+            JOptionPane.showMessageDialog(null, "El nombre del producto es obligatorio."); return;
         }
         if (cmbCategoria.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona una categoría.");
-            return;
+            JOptionPane.showMessageDialog(null, "Selecciona una categoría."); return;
         }
 
         int idCategoria = obtenerIdCategoria(cmbCategoria.getValue());
         if (idCategoria == -1) return;
 
+        // Si hay ID → editar, si no → insertar
+        if (!txtId.getText().isBlank()) {
+            editarProducto(idCategoria);
+        } else {
+            insertarProducto(idCategoria);
+        }
+    }
+
+    private void insertarProducto(int idCategoria) {
         String sql = "INSERT INTO TBL_PRODUCTO (nombre, descuento, cantidad_minima, cantidad_disponible, ubicacion, id_categoria) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
-
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, txtNombre.getText().trim());
             ps.setDouble(2, txtDescuento.getText().isBlank() ? 0 : Double.parseDouble(txtDescuento.getText().trim()));
             ps.setInt(3,    txtStockMinimo.getText().isBlank() ? 0 : Integer.parseInt(txtStockMinimo.getText().trim()));
@@ -100,46 +124,55 @@ public class ProductoController {
             ps.setString(5, txtUbicacion.getText().trim());
             ps.setInt(6,    idCategoria);
             ps.executeUpdate();
-
-            JOptionPane.showMessageDialog(null, "Producto guardado correctamente.");
+            JOptionPane.showMessageDialog(null, "✔ Producto guardado correctamente.");
             actualizarTabla();
             Limpiar();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al guardar: " + e.getMessage());
         }
     }
 
-    // Botón "🗑 Eliminar Producto" → onAction="#onCancelarClick"
+    private void editarProducto(int idCategoria) {
+        String sql = "UPDATE TBL_PRODUCTO SET nombre=?, descuento=?, cantidad_minima=?, cantidad_disponible=?, ubicacion=?, id_categoria=? WHERE id_producto=?";
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, txtNombre.getText().trim());
+            ps.setDouble(2, txtDescuento.getText().isBlank() ? 0 : Double.parseDouble(txtDescuento.getText().trim()));
+            ps.setInt(3,    txtStockMinimo.getText().isBlank() ? 0 : Integer.parseInt(txtStockMinimo.getText().trim()));
+            ps.setInt(4,    txtStockActual.getText().isBlank() ? 0 : Integer.parseInt(txtStockActual.getText().trim()));
+            ps.setString(5, txtUbicacion.getText().trim());
+            ps.setInt(6,    idCategoria);
+            ps.setInt(7,    Integer.parseInt(txtId.getText().trim()));
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(null, "✔ Producto actualizado.");
+            actualizarTabla();
+            Limpiar();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error al editar: " + e.getMessage());
+        }
+    }
+
     @FXML
     public void onCancelarClick(ActionEvent event) {
         if (txtId.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Selecciona un producto de la tabla primero.");
-            return;
+            JOptionPane.showMessageDialog(null, "Selecciona un producto de la tabla primero."); return;
         }
         int confirm = JOptionPane.showConfirmDialog(null, "¿Eliminar este producto?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
         int idProducto = Integer.parseInt(txtId.getText().trim());
-
         try (Connection con = conexion.establecerConexion()) {
-
-            // Borrar nietos primero: TBL_MEDICAMENTO_ENF_APL referencia a TBL_MEDICAMENTO
-            // Primero obtenemos los ids de medicamento de este producto
             PreparedStatement psMedIds = con.prepareStatement(
                     "SELECT id_medicamento FROM TBL_MEDICAMENTO WHERE id_producto=?");
             psMedIds.setInt(1, idProducto);
             ResultSet rsMed = psMedIds.executeQuery();
             while (rsMed.next()) {
-                int idMed = rsMed.getInt("id_medicamento");
                 PreparedStatement psEnf = con.prepareStatement(
                         "DELETE FROM TBL_MEDICAMENTO_ENF_APL WHERE id_medicamento=?");
-                psEnf.setInt(1, idMed);
+                psEnf.setInt(1, rsMed.getInt("id_medicamento"));
                 psEnf.executeUpdate();
             }
-
-            // Ahora borrar hijos directos de TBL_PRODUCTO
-            String[] hijos = {
+            for (String s : new String[]{
                     "DELETE FROM TBL_VENTA_PRODUCTO              WHERE id_producto=?",
                     "DELETE FROM TBL_COMPRA_PRODUCTO             WHERE id_producto=?",
                     "DELETE FROM TBL_PRODUCTO_RECLAMACION_VENTA  WHERE id_producto=?",
@@ -149,54 +182,43 @@ public class ProductoController {
                     "DELETE FROM TBL_PERDIDA                     WHERE id_producto=?",
                     "DELETE FROM TBL_DETALLE_PEDIDO_C            WHERE id_producto=?",
                     "DELETE FROM TBL_CONVENIO                    WHERE id_producto=?",
-                    "DELETE FROM TBL_MEDICAMENTO                 WHERE id_producto=?"
-            };
-            for (String s : hijos) {
+                    "DELETE FROM TBL_MEDICAMENTO                 WHERE id_producto=?"}) {
                 PreparedStatement ps2 = con.prepareStatement(s);
                 ps2.setInt(1, idProducto);
                 ps2.executeUpdate();
             }
-
-            // Ahora sí borrar el producto
-            PreparedStatement psP = con.prepareStatement("DELETE FROM TBL_PRODUCTO WHERE id_producto=?");
-            psP.setInt(1, idProducto);
-            psP.executeUpdate();
-
+            con.prepareStatement("DELETE FROM TBL_PRODUCTO WHERE id_producto=" + idProducto).executeUpdate();
             JOptionPane.showMessageDialog(null, "Producto eliminado.");
             actualizarTabla();
             Limpiar();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
         }
     }
 
-    // Botón "🛒 Añadir a Venta" → onAction="#onAñadirClick"
     @FXML
     public void onAñadirClick(ActionEvent event) {
         Producto sel = tablaProductos.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un producto primero."); return; }
-        int cantidad = spinCantidad.getValue();
-        JOptionPane.showMessageDialog(null, "\"" + sel.getNombre() + "\" x" + cantidad + " listo para agregar.");
+        JOptionPane.showMessageDialog(null, "\"" + sel.getNombre() + "\" x" + spinCantidad.getValue() + " listo para agregar.");
     }
 
     @FXML
     public void Limpiar() {
-        txtId.clear();
-        txtNombre.clear();
-        txtStockActual.clear();
-        txtStockMinimo.clear();
-        txtDescuento.clear();
-        txtUbicacion.clear();
+        txtId.clear(); txtNombre.clear(); txtStockActual.clear();
+        txtStockMinimo.clear(); txtDescuento.clear(); txtUbicacion.clear();
+        txtBusqueda.clear();
         if (txtPrecio != null) txtPrecio.clear();
         cmbCategoria.setValue(null);
         tablaProductos.getSelectionModel().clearSelection();
+        // Restablecer filtro
+        if (listaFiltrada != null) listaFiltrada.setPredicate(p -> true);
     }
 
     private int obtenerIdCategoria(String nombre) {
-        String sql = "SELECT id_categoria FROM TBL_CATEGORIA_DE_PRODUCTO WHERE nombre_categoria = ?";
         try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id_categoria FROM TBL_CATEGORIA_DE_PRODUCTO WHERE nombre_categoria=?")) {
             ps.setString(1, nombre);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt("id_categoria");
@@ -207,31 +229,24 @@ public class ProductoController {
     }
 
     private void actualizarTabla() {
+        listaProductos.clear();
         String sql = "SELECT p.id_producto, p.nombre, c.nombre_categoria, "
                 + "p.cantidad_disponible, p.cantidad_minima, p.descuento, p.ubicacion "
                 + "FROM TBL_PRODUCTO p "
-                + "JOIN TBL_CATEGORIA_DE_PRODUCTO c ON c.id_categoria = p.id_categoria";
-
+                + "JOIN TBL_CATEGORIA_DE_PRODUCTO c ON c.id_categoria = p.id_categoria "
+                + "ORDER BY p.id_producto DESC";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
-            ObservableList<Producto> lista = FXCollections.observableArrayList();
             while (rs.next()) {
-                lista.add(new Producto(
-                        rs.getInt("id_producto"),
-                        rs.getString("nombre"),
-                        rs.getString("nombre_categoria"),
-                        rs.getInt("cantidad_disponible"),
-                        rs.getInt("cantidad_minima"),
-                        rs.getDouble("descuento"),
-                        rs.getString("ubicacion")
-                ));
+                listaProductos.add(new Producto(
+                        rs.getInt("id_producto"), rs.getString("nombre"),
+                        rs.getString("nombre_categoria"), rs.getInt("cantidad_disponible"),
+                        rs.getInt("cantidad_minima"), rs.getDouble("descuento"),
+                        rs.getString("ubicacion")));
             }
-            tablaProductos.setItems(lista);
-
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error al cargar productos: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error al cargar: " + e.getMessage());
         }
     }
 

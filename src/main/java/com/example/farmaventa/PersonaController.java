@@ -283,9 +283,11 @@ public class PersonaController {
             JOptionPane.showMessageDialog(null, "Selecciona una persona de la tabla primero."); return;
         }
         if (!validarFormulario()) return;
-        try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(
-                     "UPDATE TBL_PERSONA SET nombre=?,apellido=?,genero=?,numero_telefono=?,correo_electronico=? WHERE id_persona=?")) {
+        try (Connection con = conexion.establecerConexion()) {
+
+            // 1. Actualizar TBL_PERSONA
+            PreparedStatement ps = con.prepareStatement(
+                    "UPDATE TBL_PERSONA SET nombre=?,apellido=?,genero=?,numero_telefono=?,correo_electronico=? WHERE id_persona=?");
             ps.setString(1, txtNombre.getText().trim());
             ps.setString(2, txtApellido.getText().trim());
             ps.setString(3, cmbGenero.getValue());
@@ -293,8 +295,50 @@ public class PersonaController {
             ps.setString(5, txtCorreo.getText().trim());
             ps.setInt(6, idPersonaSeleccionada);
             ps.executeUpdate();
+
+            // 2. Actualizar seguro en TBL_CLIENTE si es cliente
+            if (rbCliente.isSelected()) {
+                if (cmbSeguro.getValue() != null) {
+                    int idSeguro = Integer.parseInt(cmbSeguro.getValue().split(" - ")[0]);
+                    PreparedStatement psCli = con.prepareStatement(
+                            "UPDATE TBL_CLIENTE SET id_seguro=? WHERE id_persona=?");
+                    psCli.setInt(1, idSeguro);
+                    psCli.setInt(2, idPersonaSeleccionada);
+                    psCli.executeUpdate();
+                } else {
+                    PreparedStatement psCli = con.prepareStatement(
+                            "UPDATE TBL_CLIENTE SET id_seguro=NULL WHERE id_persona=?");
+                    psCli.setInt(1, idPersonaSeleccionada);
+                    psCli.executeUpdate();
+                }
+            }
+
+            // 3. Actualizar dirección si hay datos
+            if (idMunicipio > 0 && !txtSector.getText().isBlank() && !txtCalle.getText().isBlank()) {
+                int idCalle = obtenerOCrearCalle(con,
+                        txtSector.getText().trim(), txtCalle.getText().trim(), idMunicipio);
+                if (idCalle > 0) {
+                    PreparedStatement psCheck = con.prepareStatement(
+                            "SELECT id_direccion FROM TBL_DIRECCION WHERE id_persona=?");
+                    psCheck.setInt(1, idPersonaSeleccionada);
+                    ResultSet rs = psCheck.executeQuery();
+                    if (rs.next()) {
+                        PreparedStatement psUpd = con.prepareStatement(
+                                "UPDATE TBL_DIRECCION SET descripcion=?, id_calle=? WHERE id_direccion=?");
+                        psUpd.setString(1, txtDescripcionDireccion.getText().trim());
+                        psUpd.setInt(2, idCalle);
+                        psUpd.setInt(3, rs.getInt("id_direccion"));
+                        psUpd.executeUpdate();
+                    } else {
+                        insertarDireccion(con, idPersonaSeleccionada, idCalle,
+                                txtDescripcionDireccion.getText().trim());
+                    }
+                }
+            }
+
             JOptionPane.showMessageDialog(null, "✔ Persona actualizada.");
             limpiar(); cargarPersonas();
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
         }
@@ -380,6 +424,108 @@ public class PersonaController {
         cmbGenero.setValue(p.getGenero());
         txtTelefono.setText(p.getTelefono());
         txtCorreo.setText(p.getCorreo());
+
+        // Cargar datos adicionales desde BD
+        try (Connection con = conexion.establecerConexion()) {
+
+            // ¿Es cliente o empleado?
+            PreparedStatement psCli = con.prepareStatement(
+                    "SELECT id_seguro FROM TBL_CLIENTE WHERE id_persona=?");
+            psCli.setInt(1, p.getId());
+            ResultSet rsCli = psCli.executeQuery();
+            if (rsCli.next()) {
+                rbCliente.setSelected(true);
+                // Cargar seguro si tiene
+                int idSeguro = rsCli.getInt("id_seguro");
+                if (!rsCli.wasNull() && idSeguro > 0) {
+                    // Buscar aseguradora del seguro para encadenar el combo
+                    PreparedStatement psSeg = con.prepareStatement(
+                            "SELECT sm.id_seguro, sm.nombre_seguro, sm.id_aseguradora, a.nombre " +
+                                    "FROM TBL_SEGURO_MEDICO sm " +
+                                    "JOIN TBL_ASEGURADORA a ON a.id_aseguradora = sm.id_aseguradora " +
+                                    "WHERE sm.id_seguro=?");
+                    psSeg.setInt(1, idSeguro);
+                    ResultSet rsSeg = psSeg.executeQuery();
+                    if (rsSeg.next()) {
+                        int idAseg = rsSeg.getInt("id_aseguradora");
+                        String nombreAseg = rsSeg.getString("nombre");
+                        // Seleccionar aseguradora en el combo
+                        for (String item : cmbAseguradora.getItems()) {
+                            if (item.startsWith(idAseg + " - ")) {
+                                cmbAseguradora.setValue(item);
+                                break;
+                            }
+                        }
+                        // Cargar seguros de esa aseguradora y seleccionar el correcto
+                        cargarSegurosPorAseguradora();
+                        for (String item : cmbSeguro.getItems()) {
+                            if (item.startsWith(idSeguro + " - ")) {
+                                cmbSeguro.setValue(item);
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Es empleado
+                rbEmpleado.setSelected(true);
+                PreparedStatement psEmp = con.prepareStatement(
+                        "SELECT e.id_cargo, c.nombre FROM TBL_EMPLEADO e " +
+                                "JOIN TBL_CARGO c ON c.id_cargo = e.id_cargo WHERE e.id_persona=?");
+                psEmp.setInt(1, p.getId());
+                ResultSet rsEmp = psEmp.executeQuery();
+                if (rsEmp.next()) {
+                    int idCargo = rsEmp.getInt("id_cargo");
+                    for (String item : cmbCargo.getItems()) {
+                        if (item.startsWith(idCargo + " - ")) {
+                            cmbCargo.setValue(item);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Cargar dirección si tiene
+            PreparedStatement psDir = con.prepareStatement(
+                    "SELECT d.descripcion, ca.nombre AS calle, se.nombre AS sector, " +
+                            "mu.id_municipio, mu.nombre AS municipio, " +
+                            "pr.id_provincia, pr.nombre AS provincia, " +
+                            "re.id_region, re.nombre AS region " +
+                            "FROM TBL_DIRECCION d " +
+                            "JOIN TBL_CALLE ca ON ca.id_calle = d.id_calle " +
+                            "JOIN TBL_SECTOR se ON se.id_sector = ca.id_sector " +
+                            "JOIN TBL_DISTRITO_MUNICIPAL dm ON dm.id_dm = se.id_dm " +
+                            "JOIN TBL_MUNICIPIO mu ON mu.id_municipio = dm.id_municipio " +
+                            "JOIN TBL_PROVINCIA pr ON pr.id_provincia = mu.id_provincia " +
+                            "JOIN TBL_REGION re ON re.id_region = pr.id_region " +
+                            "WHERE d.id_persona=?");
+            psDir.setInt(1, p.getId());
+            ResultSet rsDir = psDir.executeQuery();
+            if (rsDir.next()) {
+                txtDescripcionDireccion.setText(rsDir.getString("descripcion"));
+                txtSector.setText(rsDir.getString("sector"));
+                txtCalle.setText(rsDir.getString("calle"));
+                idMunicipio = rsDir.getInt("id_municipio");
+
+                // Seleccionar región → carga provincias → seleccionar provincia → carga municipios → seleccionar municipio
+                int idRegion = rsDir.getInt("id_region");
+                int idProvincia = rsDir.getInt("id_provincia");
+                for (String item : cmbRegion.getItems()) {
+                    if (item.startsWith(idRegion + " - ")) { cmbRegion.setValue(item); break; }
+                }
+                cargarProvinciasPorRegion();
+                for (String item : cmbProvincia.getItems()) {
+                    if (item.startsWith(idProvincia + " - ")) { cmbProvincia.setValue(item); break; }
+                }
+                cargarMunicipiosPorProvincia();
+                for (String item : cmbMunicipio.getItems()) {
+                    if (item.startsWith(idMunicipio + " - ")) { cmbMunicipio.setValue(item); break; }
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error cargando formulario: " + e.getMessage());
+        }
     }
 
     private boolean validarFormulario() {
