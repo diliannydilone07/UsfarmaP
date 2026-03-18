@@ -23,7 +23,7 @@ public class EnvioController {
     @FXML private ComboBox<String> cmbMetodoEnvio;
     @FXML private ComboBox<String> cmbEstado;
     @FXML private DatePicker       dpFechaEnvio;
-    @FXML private Label            lblInfoVenta;   // muestra datos de la venta al buscar
+    @FXML private Label            lblInfoVenta;
 
     // ── Tabla ─────────────────────────────────────────────────────────────
     @FXML private TextField                    txtBuscar;
@@ -36,7 +36,6 @@ public class EnvioController {
     @FXML private TableColumn<Envio, String>   colFecha;
     @FXML private TableColumn<Envio, String>   colEstado;
 
-    // ── Datos ─────────────────────────────────────────────────────────────
     private final ObservableList<Envio> listaEnvios = FXCollections.observableArrayList();
     private FilteredList<Envio>         listaFiltrada;
     private int idEnvioSeleccionado = -1;
@@ -45,7 +44,7 @@ public class EnvioController {
     @FXML
     public void initialize() {
         dpFechaEnvio.setValue(java.time.LocalDate.now());
-        cmbMetodoEnvio.getItems().addAll("Domicilio", "Recogida en tienda", "Mensajería", "Courier");
+        cmbMetodoEnvio.getItems().addAll("Envío Estándar", "Envío Premium", "Delivery Express", "Recogida en tienda");
         cmbEstado.getItems().addAll("EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO");
         cmbEstado.setValue("EN_PREPARACION");
 
@@ -58,7 +57,7 @@ public class EnvioController {
         colFecha.setCellValueFactory(c -> c.getValue().fechaEnvioProperty());
         colEstado.setCellValueFactory(c -> c.getValue().estadoEnvioProperty());
 
-        // Color en columna Estado
+        // Color por estado
         colEstado.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -93,21 +92,12 @@ public class EnvioController {
         tablaEnvios.getSelectionModel().selectedItemProperty().addListener(
                 (obs, o, n) -> { if (n != null) cargarEnFormulario(n); });
 
-        // Al escribir ID venta → buscar info
-        txtIdVenta.focusedProperty().addListener((obs, o, n) -> {
-            if (!n && !txtIdVenta.getText().isBlank()) buscarInfoVenta();
-        });
-
         cargarEnvios();
     }
 
-    // ── Buscar info de la venta por ID ────────────────────────────────────
+    // ── Buscar venta por ID ───────────────────────────────────────────────
     @FXML
     public void onBuscarVenta(ActionEvent event) {
-        buscarInfoVenta();
-    }
-
-    private void buscarInfoVenta() {
         if (txtIdVenta.getText().isBlank()) return;
         try {
             int idVenta = Integer.parseInt(txtIdVenta.getText().trim());
@@ -115,7 +105,6 @@ public class EnvioController {
                     SELECT v.id_venta,
                            CONVERT(VARCHAR(10), v.fecha_transaccion, 120) AS fecha,
                            v.monto_total,
-                           v.tipo_venta,
                            CONCAT(p.nombre, ' ', p.apellido) AS cliente
                     FROM TBL_VENTA v
                     JOIN TBL_CLIENTE cl ON cl.id_cliente = v.id_cliente
@@ -127,11 +116,9 @@ public class EnvioController {
                 ps.setInt(1, idVenta);
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
-                    String info = "Venta #" + rs.getInt("id_venta")
-                            + " | " + rs.getString("cliente")
-                            + " | " + rs.getString("fecha")
-                            + " | RD$ " + String.format("%.2f", rs.getDouble("monto_total"));
-                    lblInfoVenta.setText(info);
+                    lblInfoVenta.setText("Venta #" + rs.getInt("id_venta")
+                            + " - " + rs.getString("cliente")
+                            + " | RD$ " + String.format("%.2f", rs.getDouble("monto_total")));
                     lblInfoVenta.setStyle("-fx-text-fill: #2E7D32; -fx-font-size: 11px;");
                 } else {
                     lblInfoVenta.setText("Venta no encontrada.");
@@ -140,6 +127,7 @@ public class EnvioController {
             }
         } catch (NumberFormatException e) {
             lblInfoVenta.setText("ID inválido.");
+            lblInfoVenta.setStyle("-fx-text-fill: #C62828; -fx-font-size: 11px;");
         } catch (SQLException e) {
             lblInfoVenta.setText("Error: " + e.getMessage());
         }
@@ -157,10 +145,10 @@ public class EnvioController {
                        e.costo_servicio,
                        e.persona_recibe,
                        e.metodo_envio,
+                       e.estado,
                        e.id_venta,
                        CONCAT('Venta #', v.id_venta, ' - ',
-                              p.nombre, ' ', p.apellido) AS info_venta,
-                       ISNULL(e.metodo_envio, 'EN_PREPARACION') AS estado_envio
+                              p.nombre, ' ', p.apellido) AS info_venta
                 FROM TBL_ENVIO e
                 JOIN TBL_VENTA   v  ON v.id_venta   = e.id_venta
                 JOIN TBL_CLIENTE cl ON cl.id_cliente = v.id_cliente
@@ -181,7 +169,7 @@ public class EnvioController {
                         rs.getString("metodo_envio"),
                         rs.getInt("id_venta"),
                         rs.getString("info_venta"),
-                        rs.getString("estado_envio")
+                        rs.getString("estado")          // ← columna real
                 ));
             }
         } catch (SQLException e) {
@@ -189,14 +177,15 @@ public class EnvioController {
         }
     }
 
-    // ── Guardar nuevo envío ───────────────────────────────────────────────
+    // ── Guardar nuevo ─────────────────────────────────────────────────────
     @FXML
     public void onGuardarEnvio(ActionEvent event) {
         if (!validarFormulario()) return;
 
         String sql = """
-                INSERT INTO TBL_ENVIO (fecha_envio, id_venta, costo_servicio, persona_recibe, metodo_envio)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO TBL_ENVIO
+                    (fecha_envio, id_venta, costo_servicio, persona_recibe, metodo_envio, estado)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -206,6 +195,7 @@ public class EnvioController {
             ps.setDouble(3, Double.parseDouble(txtCostoServicio.getText().trim()));
             ps.setString(4, txtPersonaRecibe.getText().trim());
             ps.setString(5, cmbMetodoEnvio.getValue());
+            ps.setString(6, cmbEstado.getValue());
             ps.executeUpdate();
 
             JOptionPane.showMessageDialog(null, "✔ Envío registrado correctamente.");
@@ -217,7 +207,7 @@ public class EnvioController {
         }
     }
 
-    // ── Editar envío seleccionado ─────────────────────────────────────────
+    // ── Editar seleccionado ───────────────────────────────────────────────
     @FXML
     public void onEditarEnvio(ActionEvent event) {
         if (idEnvioSeleccionado == -1) {
@@ -228,7 +218,8 @@ public class EnvioController {
 
         String sql = """
                 UPDATE TBL_ENVIO
-                SET fecha_envio = ?, costo_servicio = ?, persona_recibe = ?, metodo_envio = ?
+                SET fecha_envio = ?, costo_servicio = ?, persona_recibe = ?,
+                    metodo_envio = ?, estado = ?
                 WHERE id_envio = ?
                 """;
         try (Connection con = conexion.establecerConexion();
@@ -238,7 +229,8 @@ public class EnvioController {
             ps.setDouble(2, Double.parseDouble(txtCostoServicio.getText().trim()));
             ps.setString(3, txtPersonaRecibe.getText().trim());
             ps.setString(4, cmbMetodoEnvio.getValue());
-            ps.setInt(5,    idEnvioSeleccionado);
+            ps.setString(5, cmbEstado.getValue());
+            ps.setInt(6,    idEnvioSeleccionado);
             ps.executeUpdate();
 
             JOptionPane.showMessageDialog(null, "✔ Envío #" + idEnvioSeleccionado + " actualizado.");
@@ -250,35 +242,7 @@ public class EnvioController {
         }
     }
 
-    // ── Cambiar estado del envío ──────────────────────────────────────────
-    @FXML
-    public void onCambiarEstado(ActionEvent event) {
-        if (idEnvioSeleccionado == -1) {
-            JOptionPane.showMessageDialog(null, "Selecciona un envío de la tabla primero.");
-            return;
-        }
-        if (cmbEstado.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona un estado.");
-            return;
-        }
-        // El estado se guarda en metodo_envio como campo extra ya que TBL_ENVIO
-        // no tiene columna estado — si quieres agregar una columna estado a la BD:
-        // ALTER TABLE TBL_ENVIO ADD estado VARCHAR(20) DEFAULT 'EN_PREPARACION'
-        // Por ahora actualizamos metodo_envio como indicador de estado
-        String sql = "UPDATE TBL_ENVIO SET metodo_envio = ? WHERE id_envio = ?";
-        try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, cmbEstado.getValue());
-            ps.setInt(2, idEnvioSeleccionado);
-            ps.executeUpdate();
-            JOptionPane.showMessageDialog(null, "Estado actualizado a: " + cmbEstado.getValue());
-            cargarEnvios();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
-        }
-    }
-
-    // ── Eliminar envío ────────────────────────────────────────────────────
+    // ── Eliminar ──────────────────────────────────────────────────────────
     @FXML
     public void onEliminarEnvio(ActionEvent event) {
         if (idEnvioSeleccionado == -1) {
@@ -303,7 +267,7 @@ public class EnvioController {
         }
     }
 
-    // ── Limpiar formulario ────────────────────────────────────────────────
+    // ── Limpiar ───────────────────────────────────────────────────────────
     @FXML
     public void limpiar() {
         txtIdVenta.clear();
@@ -313,7 +277,7 @@ public class EnvioController {
         cmbMetodoEnvio.setValue(null);
         cmbEstado.setValue("EN_PREPARACION");
         dpFechaEnvio.setValue(java.time.LocalDate.now());
-        lblInfoVenta.setText("");
+        if (lblInfoVenta != null) lblInfoVenta.setText("");
         idEnvioSeleccionado = -1;
         tablaEnvios.getSelectionModel().clearSelection();
     }
@@ -325,7 +289,7 @@ public class EnvioController {
         txtPersonaRecibe.setText(e.getPersonaRecibe());
         txtCostoServicio.setText(String.valueOf(e.getCostoServicio()));
         cmbMetodoEnvio.setValue(e.getMetodoEnvio());
-        cmbEstado.setValue(e.getEstadoEnvio());
+        cmbEstado.setValue(e.getEstadoEnvio());     // ← estado real
         lblInfoVenta.setText(e.getInfoVenta());
         lblInfoVenta.setStyle("-fx-text-fill: #2E7D32; -fx-font-size: 11px;");
         try {
@@ -353,7 +317,7 @@ public class EnvioController {
             Integer.parseInt(txtIdVenta.getText().trim());
             Double.parseDouble(txtCostoServicio.getText().trim());
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "ID Venta debe ser número entero y Costo debe ser decimal.");
+            JOptionPane.showMessageDialog(null, "ID Venta debe ser número y Costo debe ser decimal.");
             return false;
         }
         return true;
