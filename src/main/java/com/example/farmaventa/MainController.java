@@ -19,6 +19,7 @@ public class MainController implements Initializable {
 
     @FXML private Button btnInicio;
     @FXML private Button btnVentas;
+    @FXML private Button btnCompras;        // ← NUEVO
     @FXML private Button btnPersonas;
     @FXML private Button btnInventario;
     @FXML private Button btnReclamaciones;
@@ -45,14 +46,14 @@ public class MainController implements Initializable {
         cargarVista("Dashboard.fxml", btnInicio);
     }
 
-    // Nombres exactos según la imagen de tu proyecto
     @FXML private void onMenuInicio()        { cargarVista("Dashboard.fxml",        btnInicio); }
     @FXML private void onMenuVentas()        { cargarVista("Ventas.fxml",           btnVentas); }
+    @FXML private void onMenuCompras()       { cargarVista("Compra.fxml",           btnCompras); } // ← NUEVO
     @FXML private void onMenuPersonas()      { cargarVista("Personas.fxml",         btnPersonas); }
     @FXML private void onMenuInventario()    { cargarVista("Inventario.fxml",       btnInventario); }
-    @FXML private void onMenuReclamaciones() { cargarVista("Reclamacionventa.fxml", btnReclamaciones); } // v minúscula
+    @FXML private void onMenuReclamaciones() { cargarVista("Reclamacionventa.fxml", btnReclamaciones); }
     @FXML private void onMenuConvenios()     { cargarVista("Convenio.fxml",         btnConvenios); }
-    @FXML private void onMenuEnvios()        { cargarVista("Envio.fxml",             btnEnvios); }
+    @FXML private void onMenuEnvios()        { cargarVista("Envio.fxml",            btnEnvios); }
 
     private void cargarVista(String nombreFxml, Button boton) {
         try {
@@ -72,7 +73,7 @@ public class MainController implements Initializable {
     }
 
     private void resetarTodosLosBotones() {
-        List.of(btnInicio, btnVentas, btnPersonas,
+        List.of(btnInicio, btnVentas, btnCompras, btnPersonas,
                         btnInventario, btnReclamaciones, btnConvenios, btnEnvios)
                 .forEach(b -> b.setStyle(ESTILO_INACTIVO));
         btnActivo = null;
@@ -90,6 +91,7 @@ public class MainController implements Initializable {
 
     public Button getBtnInicio()          { return btnInicio; }
     public Button getBtnVentas()          { return btnVentas; }
+    public Button getBtnCompras()         { return btnCompras; }       // ← NUEVO
     public Button getBtnPersonas()        { return btnPersonas; }
     public Button getBtnInventario()      { return btnInventario; }
     public Button getBtnReclamaciones()   { return btnReclamaciones; }

@@ -62,6 +62,15 @@
                                -fx-font-size: 13px; -fx-background-radius: 6;
                                -fx-cursor: hand; -fx-padding: 10 10 10 10;"/>
 
+                <!-- NUEVO: Compras -->
+                <Button fx:id="btnCompras"
+                        text="📥  Compras"
+                        maxWidth="Infinity" alignment="CENTER_LEFT"
+                        onAction="#onMenuCompras"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242;
+                               -fx-font-size: 13px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 10 10 10 10;"/>
+
                 <Button fx:id="btnPersonas"
                         text="👥  Personas"
                         maxWidth="Infinity" alignment="CENTER_LEFT"
@@ -86,7 +95,6 @@
                                -fx-font-size: 13px; -fx-background-radius: 6;
                                -fx-cursor: hand; -fx-padding: 10 10 10 10;"/>
 
-                <!-- NUEVO: Convenios -->
                 <Button fx:id="btnConvenios"
                         text="🤝  Convenios"
                         maxWidth="Infinity" alignment="CENTER_LEFT"
@@ -95,8 +103,6 @@
                                -fx-font-size: 13px; -fx-background-radius: 6;
                                -fx-cursor: hand; -fx-padding: 10 10 10 10;"/>
 
-
-                <!-- NUEVO: Envíos -->
                 <Button fx:id="btnEnvios"
                         text="🚚  Envíos"
                         maxWidth="Infinity" alignment="CENTER_LEFT"
