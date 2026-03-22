@@ -13,7 +13,7 @@ public class HelloApplication extends Application {
                 HelloApplication.class.getResource("MainLayout.fxml")
         );
         Scene scene = new Scene(loader.load(), 1000, 600);
-        stage.setTitle("FarmaVenta");
+        stage.setTitle("UsFarma");
         stage.setScene(scene);
         stage.show();
     }
