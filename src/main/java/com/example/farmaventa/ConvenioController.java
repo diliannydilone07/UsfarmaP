@@ -4,7 +4,6 @@ import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Convenio;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -34,12 +33,11 @@ public class ConvenioController {
     @FXML private TableColumn<Convenio, String> colFechaFin;
     @FXML private TableColumn<Convenio, String> colVigencia;
 
-    // ── Datos ─────────────────────────────────────────────────────────────
-    private final ObservableList<Convenio> listaConvenios = FXCollections.observableArrayList();
-    private FilteredList<Convenio>         listaFiltrada;
+    // ── Lista de datos ────────────────────────────────────────────────────
+    private ObservableList<Convenio> listaConvenios = FXCollections.observableArrayList();
     private int idConvenioSeleccionado = -1;
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         dpFechaInicio.setValue(java.time.LocalDate.now());
@@ -52,37 +50,13 @@ public class ConvenioController {
         colFechaFin.setCellValueFactory(c -> c.getValue().fechaFinProperty());
         colVigencia.setCellValueFactory(c -> c.getValue().vigenciaProperty());
 
-        // Color en columna Estado
-        colVigencia.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); setStyle(""); return; }
-                setText(item);
-                setStyle("Vigente".equals(item)
-                        ? "-fx-text-fill: #2E7D32; -fx-font-weight: bold;"
-                        : "-fx-text-fill: #C62828; -fx-font-weight: bold;");
-            }
-        });
-
-        listaFiltrada = new FilteredList<>(listaConvenios, p -> true);
-        tablaConvenios.setItems(listaFiltrada);
-
-        txtBuscar.textProperty().addListener((obs, oldVal, newVal) ->
-                listaFiltrada.setPredicate(c -> {
-                    if (newVal == null || newVal.isBlank()) return true;
-                    String lower = newVal.toLowerCase();
-                    return c.getProveedor().toLowerCase().contains(lower)
-                            || c.getProducto().toLowerCase().contains(lower)
-                            || c.getAcuerdo().toLowerCase().contains(lower);
-                })
-        );
+        tablaConvenios.setItems(listaConvenios);
 
         // Clic en fila → carga datos en formulario
         tablaConvenios.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldSel, newSel) -> { if (newSel != null) cargarEnFormulario(newSel); });
-
-        dpFechaFin.valueProperty().addListener((obs, o, n) -> actualizarEtiquetaVigencia());
+                (obs, oldSel, newSel) -> {
+                    if (newSel != null) cargarEnFormulario(newSel);
+                });
 
         cargarConvenios();
     }
@@ -93,24 +67,21 @@ public class ConvenioController {
         listaConvenios.clear();
         idConvenioSeleccionado = -1;
 
-        String sql = """
-                SELECT c.id_convenio,
-                       CONVERT(VARCHAR(10), c.fecha_inicio, 120) AS fecha_inicio,
-                       CONVERT(VARCHAR(10), c.fecha_fin,    120) AS fecha_fin,
-                       c.acuerdo,
-                       p.nombre   AS nombre_proveedor,
-                       pr.nombre  AS nombre_producto,
-                       c.id_proveedor,
-                       c.id_producto
-                FROM TBL_CONVENIO c
-                JOIN TBL_PROVEEDOR p  ON p.id_proveedor = c.id_proveedor
-                JOIN TBL_PRODUCTO  pr ON pr.id_producto  = c.id_producto
-                ORDER BY c.id_convenio DESC
-                """;
+        String sql = "SELECT c.id_convenio, " +
+                "CONVERT(VARCHAR(10), c.fecha_inicio, 120) AS fecha_inicio, " +
+                "CONVERT(VARCHAR(10), c.fecha_fin, 120) AS fecha_fin, " +
+                "c.acuerdo, " +
+                "p.nombre AS nombre_proveedor, " +
+                "pr.nombre AS nombre_producto, " +
+                "c.id_proveedor, c.id_producto " +
+                "FROM TBL_CONVENIO c " +
+                "JOIN TBL_PROVEEDOR p  ON p.id_proveedor = c.id_proveedor " +
+                "JOIN TBL_PRODUCTO  pr ON pr.id_producto  = c.id_producto " +
+                "ORDER BY c.id_convenio DESC";
 
         try (Connection con = conexion.establecerConexion();
-             Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 listaConvenios.add(new Convenio(
@@ -124,20 +95,41 @@ public class ConvenioController {
                         rs.getInt("id_producto")
                 ));
             }
+            tablaConvenios.setItems(listaConvenios);
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar convenios: " + e.getMessage());
         }
     }
 
-    // ── Botón "Guardar Nuevo" → solo INSERT ───────────────────────────────
+    // ── Buscar por proveedor o producto ───────────────────────────────────
+    @FXML
+    public void fnBuscar(ActionEvent event) {
+        String busqueda = txtBuscar.getText().trim().toLowerCase();
+        if (busqueda.isEmpty()) {
+            cargarConvenios();
+            return;
+        }
+
+        ObservableList<Convenio> listaFiltrada = FXCollections.observableArrayList();
+        for (Convenio c : listaConvenios) {
+            if (c.getProveedor().toLowerCase().contains(busqueda)
+                    || c.getProducto().toLowerCase().contains(busqueda)
+                    || c.getAcuerdo().toLowerCase().contains(busqueda)) {
+                listaFiltrada.add(c);
+            }
+        }
+        tablaConvenios.setItems(listaFiltrada);
+    }
+
+    // ── Guardar nuevo ─────────────────────────────────────────────────────
     @FXML
     public void onGuardarConvenio(ActionEvent event) {
         if (!validarFormulario()) return;
 
-        String sql = """
-                INSERT INTO TBL_CONVENIO (fecha_inicio, fecha_fin, acuerdo, id_proveedor, id_producto)
-                VALUES (?, ?, ?, ?, ?)
-                """;
+        String sql = "INSERT INTO TBL_CONVENIO (fecha_inicio, fecha_fin, acuerdo, id_proveedor, id_producto) " +
+                "VALUES (?, ?, ?, ?, ?)";
+
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -148,7 +140,7 @@ public class ConvenioController {
             ps.setInt(5,    Integer.parseInt(txtIdProducto.getText().trim()));
             ps.executeUpdate();
 
-            JOptionPane.showMessageDialog(null, "✔ Convenio registrado correctamente.");
+            JOptionPane.showMessageDialog(null, "Convenio registrado correctamente.");
             limpiar();
             cargarConvenios();
 
@@ -157,7 +149,7 @@ public class ConvenioController {
         }
     }
 
-    // ── Botón "Editar Convenio" → solo UPDATE ─────────────────────────────
+    // ── Editar convenio seleccionado ──────────────────────────────────────
     @FXML
     public void onEditarConvenio(ActionEvent event) {
         if (idConvenioSeleccionado == -1) {
@@ -166,12 +158,10 @@ public class ConvenioController {
         }
         if (!validarFormulario()) return;
 
-        String sql = """
-                UPDATE TBL_CONVENIO
-                SET fecha_inicio = ?, fecha_fin = ?, acuerdo = ?,
-                    id_proveedor = ?, id_producto = ?
-                WHERE id_convenio = ?
-                """;
+        String sql = "UPDATE TBL_CONVENIO " +
+                "SET fecha_inicio = ?, fecha_fin = ?, acuerdo = ?, id_proveedor = ?, id_producto = ? " +
+                "WHERE id_convenio = ?";
+
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -183,7 +173,7 @@ public class ConvenioController {
             ps.setInt(6,    idConvenioSeleccionado);
             ps.executeUpdate();
 
-            JOptionPane.showMessageDialog(null, "✔ Convenio #" + idConvenioSeleccionado + " actualizado.");
+            JOptionPane.showMessageDialog(null, "Convenio #" + idConvenioSeleccionado + " actualizado.");
             limpiar();
             cargarConvenios();
 
@@ -192,7 +182,7 @@ public class ConvenioController {
         }
     }
 
-    // ── Botón Eliminar ────────────────────────────────────────────────────
+    // ── Eliminar ──────────────────────────────────────────────────────────
     @FXML
     public void onEliminarConvenio(ActionEvent event) {
         if (idConvenioSeleccionado == -1) {
@@ -206,6 +196,7 @@ public class ConvenioController {
         if (confirm != JOptionPane.YES_OPTION) return;
 
         String sql = "DELETE FROM TBL_CONVENIO WHERE id_convenio = ?";
+
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -220,7 +211,7 @@ public class ConvenioController {
         }
     }
 
-    // ── Botón Limpiar ─────────────────────────────────────────────────────
+    // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void limpiar() {
         txtIdProveedor.clear();
@@ -231,31 +222,33 @@ public class ConvenioController {
         dpFechaFin.setValue(java.time.LocalDate.now().plusMonths(6));
         idConvenioSeleccionado = -1;
         tablaConvenios.getSelectionModel().clearSelection();
-        actualizarEtiquetaVigencia();
+        tablaConvenios.setItems(listaConvenios);
+        if (lblVigencia != null) lblVigencia.setText("");
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Convenio c) {
         idConvenioSeleccionado = c.getIdConvenio();
         txtIdProveedor.setText(String.valueOf(c.getIdProveedor()));
         txtIdProducto.setText(String.valueOf(c.getIdProducto()));
         taAcuerdo.setText(c.getAcuerdo());
+
         try {
             dpFechaInicio.setValue(java.time.LocalDate.parse(c.getFechaInicio().substring(0, 10)));
             dpFechaFin.setValue(java.time.LocalDate.parse(c.getFechaFin().substring(0, 10)));
         } catch (Exception ignored) {}
-        actualizarEtiquetaVigencia();
+
+        // Actualizar etiqueta vigencia
+        if (lblVigencia != null && dpFechaFin.getValue() != null) {
+            boolean vigente = !dpFechaFin.getValue().isBefore(java.time.LocalDate.now());
+            lblVigencia.setText(vigente ? "Vigente" : "Vencido");
+            lblVigencia.setStyle(vigente
+                    ? "-fx-text-fill: #2E7D32; -fx-font-weight: bold;"
+                    : "-fx-text-fill: #C62828; -fx-font-weight: bold;");
+        }
     }
 
-    private void actualizarEtiquetaVigencia() {
-        if (dpFechaFin.getValue() == null) return;
-        boolean vigente = !dpFechaFin.getValue().isBefore(java.time.LocalDate.now());
-        lblVigencia.setText(vigente ? "● Vigente" : "● Vencido");
-        lblVigencia.setStyle(vigente
-                ? "-fx-text-fill: #2E7D32; -fx-font-weight: bold; -fx-font-size: 12px;"
-                : "-fx-text-fill: #C62828; -fx-font-weight: bold; -fx-font-size: 12px;");
-    }
-
+    // ── Validaciones ──────────────────────────────────────────────────────
     private boolean validarFormulario() {
         if (txtIdProveedor.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El ID del Proveedor es obligatorio."); return false;

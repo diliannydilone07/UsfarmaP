@@ -52,7 +52,7 @@
             </VBox>
 
             <!-- CONTENT AREA -->
-            <ScrollPane fitToWidth="true" style="-fx-background-color: #F4F6F8; -fx-background: #F4F6F8;                                -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" prefWidth="924.0" style="-fx-background-color: #F4F6F8; -fx-background: #F4F6F8;                                -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
                 <StackPane fx:id="contentArea" style="-fx-background-color: #F4F6F8;" />
             </ScrollPane>
 
