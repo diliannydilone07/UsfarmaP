@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="0"
+      style="-fx-background-color: #F4F6F8;"
+      xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      fx:controller="com.example.farmaventa.DevolucionCompraController">
+
+    <!-- ══════  ENCABEZADO  ══════ -->
+    <HBox alignment="CENTER_LEFT" spacing="14"
+          style="-fx-background-color: #FFFFFF;
+                 -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+        <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
+        <VBox spacing="2">
+            <Label text="Devoluciones de Compra"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;"/>
+            <Label text="Registra, revisa y gestiona devoluciones a proveedores y notas de débito"
+                   style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="lblContPendiente" text="⏳  0  Pendientes"
+               style="-fx-background-color: #FFF8E1; -fx-text-fill: #F57F17;
+                      -fx-background-radius: 20; -fx-padding: 5 14 5 14;
+                      -fx-font-size: 12px; -fx-font-weight: bold;"/>
+        <Label fx:id="lblContCompletada" text="✔  0  Completadas"
+               style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32;
+                      -fx-background-radius: 20; -fx-padding: 5 14 5 14;
+                      -fx-font-size: 12px; -fx-font-weight: bold;"/>
+        <Label fx:id="lblContAnulada" text="✖  0  Anuladas"
+               style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
+                      -fx-background-radius: 20; -fx-padding: 5 14 5 14;
+                      -fx-font-size: 12px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- ══════  FORMULARIO  ══════ -->
+    <VBox style="-fx-background-color: #FFFFFF;
+                 -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+
+        <Label text="Nueva Devolución de Compra"
+               style="-fx-font-weight: bold; -fx-font-size: 14px;
+                      -fx-text-fill: #2E7D32; -fx-padding: 0 0 12 0;"/>
+
+        <HBox spacing="16">
+            <!-- ID Devolución -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="ID Devolución" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtIdDevolucion" promptText="Automático" editable="false"
+                           style="-fx-background-color: #F5F5F5; -fx-background-radius: 6;
+                                  -fx-border-color: #E0E0E0; -fx-border-radius: 6;
+                                  -fx-text-fill: #9E9E9E; -fx-pref-height: 34;"/>
+            </VBox>
+
+            <!-- ID Compra + buscar -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="ID Compra *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <HBox spacing="6">
+                    <TextField fx:id="txtIdCompra" promptText="Ej. 10" HBox.hgrow="ALWAYS"
+                               style="-fx-background-radius: 6; -fx-border-color: #E0E0E0;
+                                      -fx-border-radius: 6; -fx-pref-height: 34;"/>
+                    <Button text="🔎  Buscar" onAction="#onBuscarCompra"
+                            style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;
+                                   -fx-background-radius: 6; -fx-cursor: hand;
+                                   -fx-font-size: 12px; -fx-pref-height: 34; -fx-padding: 0 14 0 14;"/>
+                </HBox>
+            </VBox>
+
+            <!-- Proveedor (solo lectura) -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Proveedor" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtProveedor" promptText="Se llena al buscar la compra" editable="false"
+                           style="-fx-background-color: #F5F5F5; -fx-background-radius: 6;
+                                  -fx-border-color: #E0E0E0; -fx-border-radius: 6; -fx-pref-height: 34;"/>
+            </VBox>
+
+            <!-- Monto (solo lectura) -->
+            <VBox spacing="5" prefWidth="140">
+                <Label text="Monto Compra (RD$)" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtMontoCompra" promptText="0.00" editable="false"
+                           style="-fx-background-color: #F5F5F5; -fx-background-radius: 6;
+                                  -fx-border-color: #E0E0E0; -fx-border-radius: 6; -fx-pref-height: 34;
+                                  -fx-text-fill: #1565C0; -fx-font-weight: bold;"/>
+            </VBox>
+
+            <!-- Fecha -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Fecha *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <DatePicker fx:id="dpFechaDevolucion" maxWidth="Infinity"
+                            style="-fx-background-radius: 6; -fx-pref-height: 34;"/>
+            </VBox>
+
+            <!-- Estado -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Estado *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <ComboBox fx:id="cmbEstado" maxWidth="Infinity" promptText="Seleccionar..."
+                          style="-fx-background-radius: 6; -fx-pref-height: 34;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Segunda fila: Razón + Botones -->
+        <HBox spacing="16" style="-fx-padding: 14 0 0 0;">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <Label text="Razón / Motivo de la Devolución *"
+                       style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextArea fx:id="txtRazon" promptText="Describe el motivo de la devolución al proveedor..."
+                          prefRowCount="2" wrapText="true"
+                          style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+            </VBox>
+            <HBox spacing="10" alignment="BOTTOM_RIGHT">
+                <Button text="📋  Registrar" onAction="#onRegistrarDevolucion"
+                        style="-fx-background-color: #388E3C; -fx-text-fill: white;
+                               -fx-font-weight: bold; -fx-font-size: 13px;
+                               -fx-background-radius: 6; -fx-cursor: hand;
+                               -fx-pref-height: 34; -fx-padding: 0 20 0 20;"/>
+                <Button text="✖  Limpiar" onAction="#onLimpiarFormulario"
+                        style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
+                               -fx-background-radius: 6; -fx-cursor: hand;
+                               -fx-pref-height: 34; -fx-padding: 0 16 0 16;"/>
+            </HBox>
+        </HBox>
+    </VBox>
+
+    <!-- ══════  TABLA + PANEL NOTAS DE DÉBITO  ══════ -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS" minHeight="400">
+        <padding><Insets top="18" right="20" bottom="20" left="20"/></padding>
+
+        <!-- ── Tabla ── -->
+        <VBox spacing="12" HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                     -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.07),8,0,0,2);
+                     -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="Listado de Devoluciones de Compra"
+                       style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="cmbFiltroEstado" promptText="Todos los estados"
+                          style="-fx-background-radius: 6;" prefWidth="160"/>
+                <TextField fx:id="txtBusqueda" prefWidth="220"
+                           promptText="🔍 Buscar por ID, proveedor..."
+                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+            </HBox>
+            <Separator/>
+
+            <TableView fx:id="tablaDevolucion" VBox.vgrow="ALWAYS"
+                       style="-fx-background-color: transparent;">
+                <columns>
+                    <TableColumn fx:id="colId"        text="ID"          prefWidth="55"/>
+                    <TableColumn fx:id="colCompra"    text="Compra"      prefWidth="75"/>
+                    <TableColumn fx:id="colProveedor" text="Proveedor"   prefWidth="180"/>
+                    <TableColumn fx:id="colFecha"     text="Fecha"       prefWidth="100"/>
+                    <TableColumn fx:id="colEstado"    text="Estado"      prefWidth="110"/>
+                    <TableColumn fx:id="colMonto"     text="Monto (RD$)" prefWidth="120"/>
+                </columns>
+                <placeholder>
+                    <Label text="No hay devoluciones de compra registradas"
+                           style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;"/>
+                </placeholder>
+            </TableView>
+
+            <!-- Botones de acción -->
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button text="📄  Ver Notas de Débito" onAction="#onVerNotas"
+                        style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;
+                               -fx-font-size: 12px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 8 16 8 16;"/>
+                <Button text="✔  Completar" onAction="#onCompletar"
+                        style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32;
+                               -fx-font-weight: bold; -fx-font-size: 12px;
+                               -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;"/>
+                <Button text="✖  Anular" onAction="#onAnular"
+                        style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
+                               -fx-border-color: #FFCDD2; -fx-font-size: 12px;
+                               -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;"/>
+                <Button text="🗑  Eliminar" onAction="#onEliminar"
+                        style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
+                               -fx-font-size: 12px; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 8 16 8 16;"/>
+            </HBox>
+        </VBox>
+
+        <!-- ── Panel Notas de Débito ── -->
+        <VBox spacing="12" prefWidth="330" minWidth="300"
+              style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                     -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.07),8,0,0,2);
+                     -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+
+            <HBox alignment="CENTER_LEFT">
+                <VBox spacing="2">
+                    <Label text="Notas de Débito"
+                           style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;"/>
+                    <Label text="TBL_NOTA_DEBITO"
+                           style="-fx-font-size: 10px; -fx-text-fill: #BDBDBD;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblNotaDe" text="—"
+                       style="-fx-font-size: 11px; -fx-text-fill: #9E9E9E;
+                              -fx-background-color: #F5F5F5; -fx-background-radius: 12;
+                              -fx-padding: 3 10 3 10;"/>
+            </HBox>
+            <Separator/>
+
+            <!-- Lista de notas -->
+            <ListView fx:id="listNotas" VBox.vgrow="ALWAYS"
+                      style="-fx-background-color: transparent; -fx-border-color: #F0F0F0;
+                             -fx-border-radius: 6; -fx-background-radius: 6;">
+                <placeholder>
+                    <VBox alignment="CENTER" spacing="8">
+                        <Label text="📄" style="-fx-font-size: 28px;"/>
+                        <Label text="Selecciona una devolución"
+                               style="-fx-text-fill: #BDBDBD; -fx-font-size: 12px;"/>
+                    </VBox>
+                </placeholder>
+            </ListView>
+
+            <!-- Info panel -->
+            <VBox spacing="6"
+                  style="-fx-background-color: #E3F2FD; -fx-background-radius: 8;
+                         -fx-border-color: #BBDEFB; -fx-border-radius: 8; -fx-border-width: 1;">
+                <padding><Insets top="10" right="12" bottom="10" left="12"/></padding>
+                <Label text="ℹ️  Sobre las Notas de Débito"
+                       style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1565C0;"/>
+                <Label text="Se genera una nota automáticamente al registrar. Puedes agregar notas adicionales manualmente."
+                       wrapText="true"
+                       style="-fx-font-size: 11px; -fx-text-fill: #1565C0;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Agregar nota manual -->
+            <Label text="Agregar Nota de Débito Manual"
+                   style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #424242;"/>
+            <TextArea fx:id="txtRazonNota"
+                      promptText="Razón de la nota de débito adicional..."
+                      prefRowCount="3" wrapText="true"
+                      style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"/>
+            <Button text="➕  Agregar Nota de Débito" onAction="#onAgregarNota" maxWidth="Infinity"
+                    style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;
+                           -fx-font-weight: bold; -fx-background-radius: 6;
+                           -fx-cursor: hand; -fx-padding: 9 0 9 0;"/>
+        </VBox>
+
+    </HBox>
+</VBox>

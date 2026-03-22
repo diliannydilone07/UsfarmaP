@@ -19,10 +19,14 @@ public class MainController implements Initializable {
 
     @FXML private Button btnInicio;
     @FXML private Button btnVentas;
-    @FXML private Button btnCompras;        // ← NUEVO
+    @FXML private Button btnCompras;
     @FXML private Button btnPersonas;
     @FXML private Button btnInventario;
     @FXML private Button btnReclamaciones;
+    @FXML private Button btnReclamacionesCompra;
+    @FXML private Button btnDevoluciones;
+    @FXML private Button btnDevolucionesCompra;
+    @FXML private Button btnFidelizacion;
     @FXML private Button btnConvenios;
     @FXML private Button btnEnvios;
 
@@ -46,14 +50,18 @@ public class MainController implements Initializable {
         cargarVista("Dashboard.fxml", btnInicio);
     }
 
-    @FXML private void onMenuInicio()        { cargarVista("Dashboard.fxml",        btnInicio); }
-    @FXML private void onMenuVentas()        { cargarVista("Ventas.fxml",           btnVentas); }
-    @FXML private void onMenuCompras()       { cargarVista("Compra.fxml",           btnCompras); } // ← NUEVO
-    @FXML private void onMenuPersonas()      { cargarVista("Personas.fxml",         btnPersonas); }
-    @FXML private void onMenuInventario()    { cargarVista("Inventario.fxml",       btnInventario); }
-    @FXML private void onMenuReclamaciones() { cargarVista("Reclamacionventa.fxml", btnReclamaciones); }
-    @FXML private void onMenuConvenios()     { cargarVista("Convenio.fxml",         btnConvenios); }
-    @FXML private void onMenuEnvios()        { cargarVista("Envio.fxml",            btnEnvios); }
+    @FXML private void onMenuInicio()              { cargarVista("Dashboard.fxml",          btnInicio); }
+    @FXML private void onMenuVentas()              { cargarVista("Ventas.fxml",              btnVentas); }
+    @FXML private void onMenuCompras()             { cargarVista("Compra.fxml",              btnCompras); }
+    @FXML private void onMenuPersonas()            { cargarVista("Personas.fxml",            btnPersonas); }
+    @FXML private void onMenuInventario()          { cargarVista("Inventario.fxml",          btnInventario); }
+    @FXML private void onMenuReclamaciones()       { cargarVista("Reclamacionventa.fxml",    btnReclamaciones); }
+    @FXML private void onMenuReclamacionesCompra() { cargarVista("reclamacion_compra.fxml",  btnReclamacionesCompra); }
+    @FXML private void onMenuDevoluciones()        { cargarVista("devolucion_venta.fxml",    btnDevoluciones); }
+    @FXML private void onMenuDevolucionesCompra()  { cargarVista("devolucion_compra.fxml",   btnDevolucionesCompra); }
+    @FXML private void onMenuFidelizacion()        { cargarVista("fidelizacion.fxml",        btnFidelizacion); }
+    @FXML private void onMenuConvenios()           { cargarVista("Convenio.fxml",            btnConvenios); }
+    @FXML private void onMenuEnvios()              { cargarVista("Envio.fxml",               btnEnvios); }
 
     private void cargarVista(String nombreFxml, Button boton) {
         try {
@@ -74,7 +82,9 @@ public class MainController implements Initializable {
 
     private void resetarTodosLosBotones() {
         List.of(btnInicio, btnVentas, btnCompras, btnPersonas,
-                        btnInventario, btnReclamaciones, btnConvenios, btnEnvios)
+                        btnInventario, btnReclamaciones, btnReclamacionesCompra,
+                        btnDevoluciones, btnDevolucionesCompra,
+                        btnFidelizacion, btnConvenios, btnEnvios)
                 .forEach(b -> b.setStyle(ESTILO_INACTIVO));
         btnActivo = null;
     }
@@ -89,12 +99,16 @@ public class MainController implements Initializable {
         cargarVista(nombreFxml, boton != null ? boton : btnInicio);
     }
 
-    public Button getBtnInicio()          { return btnInicio; }
-    public Button getBtnVentas()          { return btnVentas; }
-    public Button getBtnCompras()         { return btnCompras; }       // ← NUEVO
-    public Button getBtnPersonas()        { return btnPersonas; }
-    public Button getBtnInventario()      { return btnInventario; }
-    public Button getBtnReclamaciones()   { return btnReclamaciones; }
-    public Button getBtnConvenios()       { return btnConvenios; }
-    public Button getBtnEnvios()          { return btnEnvios; }
+    public Button getBtnInicio()               { return btnInicio; }
+    public Button getBtnVentas()               { return btnVentas; }
+    public Button getBtnCompras()              { return btnCompras; }
+    public Button getBtnPersonas()             { return btnPersonas; }
+    public Button getBtnInventario()           { return btnInventario; }
+    public Button getBtnReclamaciones()        { return btnReclamaciones; }
+    public Button getBtnReclamacionesCompra()  { return btnReclamacionesCompra; }
+    public Button getBtnDevoluciones()         { return btnDevoluciones; }
+    public Button getBtnDevolucionesCompra()   { return btnDevolucionesCompra; }
+    public Button getBtnFidelizacion()         { return btnFidelizacion; }
+    public Button getBtnConvenios()            { return btnConvenios; }
+    public Button getBtnEnvios()               { return btnEnvios; }
 }
