@@ -8,14 +8,14 @@
 
     <!-- TOP BAR -->
     <top>
-        <HBox alignment="CENTER_LEFT" minHeight="52" spacing="12" style="-fx-background-color: #1B5E20;                      -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.3),6,0,0,3);">
+        <HBox alignment="CENTER_LEFT" minHeight="52" spacing="12" style="-fx-background-color: #1B5E20; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.3),6,0,0,3);">
             <padding><Insets bottom="10" left="20" right="20" top="10" /></padding>
             <Label style="-fx-font-size: 22px;" text="💊" />
             <Label style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" text="UsFarma" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="lblUsuario" style="-fx-text-fill: #C8E6C9; -fx-font-size: 13px;" text="👤  Administrador" />
             <Separator orientation="VERTICAL" prefHeight="24" style="-fx-background-color: #4CAF50;" />
-            <Button style="-fx-background-color: transparent; -fx-text-fill: #FFCDD2;                            -fx-font-size: 12px; -fx-cursor: hand;" text="Cerrar sesión" />
+            <Button style="-fx-background-color: transparent; -fx-text-fill: #FFCDD2; -fx-font-size: 12px; -fx-cursor: hand;" text="Cerrar sesión" />
         </HBox>
     </top>
 
@@ -24,35 +24,90 @@
         <HBox>
 
             <!-- SIDEBAR -->
-            <VBox maxWidth="200" minWidth="200" prefWidth="200" spacing="4" style="-fx-background-color: #FFFFFF;                          -fx-border-color: #E0E0E0; -fx-border-width: 0 1 0 0;">
+            <VBox maxWidth="200" minWidth="200" prefWidth="200" spacing="4" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0E0E0; -fx-border-width: 0 1 0 0;">
                 <padding><Insets bottom="20" left="10" right="10" top="20" /></padding>
 
-                <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E;                               -fx-font-weight: bold; -fx-padding: 0 0 8 4;" text="MENÚ PRINCIPAL" />
+                <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold; -fx-padding: 0 0 8 4;" text="MENÚ PRINCIPAL" />
 
-                <Button fx:id="btnInicio" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuInicio" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="🏠  Inicio" />
+                <Button fx:id="btnInicio"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuInicio"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="🏠  Inicio" />
 
-                <Button fx:id="btnVentas" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuVentas" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="🛒  Ventas" />
+                <Button fx:id="btnVentas"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuVentas"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="🛒  Ventas" />
 
-                <!-- NUEVO: Compras -->
-                <Button fx:id="btnCompras" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuCompras" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="📥  Compras" />
+                <Button fx:id="btnCompras"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuCompras"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="📥  Compras" />
 
-                <Button fx:id="btnPersonas" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuPersonas" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="👥  Personas" />
+                <Button fx:id="btnPersonas"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuPersonas"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="👥  Personas" />
 
-                <Button fx:id="btnInventario" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuInventario" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="📦  Inventario" />
+                <Button fx:id="btnInventario"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuInventario"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="📦  Inventario" />
 
-                <Button fx:id="btnReclamaciones" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuReclamaciones" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="📋  Reclamaciones" />
+                <Button fx:id="btnReclamaciones"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuReclamaciones"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="📋  Reclamaciones Venta" />
 
-                <Button fx:id="btnConvenios" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuConvenios" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="🤝  Convenios" />
+                <Button fx:id="btnReclamacionesCompra"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuReclamacionesCompra"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="📋  Reclamaciones Compra" />
 
-                <Button fx:id="btnEnvios" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuEnvios" style="-fx-background-color: transparent; -fx-text-fill: #424242;                                -fx-font-size: 13px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 10 10 10;" text="🚚  Envíos" />
+                <Button fx:id="btnDevoluciones"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuDevoluciones"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="↩  Devoluciones Venta" />
+
+                <Button fx:id="btnDevolucionesCompra"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuDevolucionesCompra"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="↩  Devoluciones Compra" />
+
+                <Button fx:id="btnFidelizacion"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuFidelizacion"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="⭐  Fidelización" />
+
+                <Button fx:id="btnConvenios"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuConvenios"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="🤝  Convenios" />
+
+                <Button fx:id="btnEnvios"
+                        alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuEnvios"
+                        style="-fx-background-color: transparent; -fx-text-fill: #424242; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 10 10 10;"
+                        text="🚚  Envíos" />
 
                 <Region VBox.vgrow="ALWAYS" />
                 <Separator />
-                <Label style="-fx-font-size: 10px; -fx-text-fill: #BDBDBD;                               -fx-padding: 6 0 0 4;" text="v1.0.0  •  FarmaVenta" />
+                <Label style="-fx-font-size: 10px; -fx-text-fill: #BDBDBD; -fx-padding: 6 0 0 4;" text="v1.0.0  •  FarmaVenta" />
             </VBox>
 
             <!-- CONTENT AREA -->
-            <ScrollPane fitToWidth="true" style="-fx-background-color: #F4F6F8; -fx-background: #F4F6F8;                                -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" style="-fx-background-color: #F4F6F8; -fx-background: #F4F6F8; -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
                 <StackPane fx:id="contentArea" style="-fx-background-color: #F4F6F8;" />
             </ScrollPane>
 

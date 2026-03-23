@@ -4,7 +4,6 @@ import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.SistemaFidelizacion;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -28,8 +27,8 @@ public class FidelizacionController implements Initializable {
     @FXML private DatePicker dpFechaCaducidad;
 
     // ── Panel canjear ─────────────────────────────────────────────────────────
-    @FXML private TextField  txtPuntosACanjear;
-    @FXML private Label      lblPuntosRestantes;
+    @FXML private TextField txtPuntosACanjear;
+    @FXML private Label     lblPuntosRestantes;
 
     // ── Tabla ─────────────────────────────────────────────────────────────────
     @FXML private TableView<SistemaFidelizacion>              tablaFidelizacion;
@@ -53,23 +52,31 @@ public class FidelizacionController implements Initializable {
     @FXML private Label lblContVencido;
     @FXML private Label lblTotalPuntos;
 
-    // ── Listas ────────────────────────────────────────────────────────────────
-    private final ObservableList<SistemaFidelizacion> listaFidelizacion = FXCollections.observableArrayList();
-    private final ObservableList<String>              listaHistorial    = FXCollections.observableArrayList();
-    private FilteredList<SistemaFidelizacion>         listaFiltrada;
+    // ── Lista de datos ────────────────────────────────────────────────────────
+    private ObservableList<SistemaFidelizacion> listaFidelizacion = FXCollections.observableArrayList();
+    private ObservableList<String>              listaHistorial    = FXCollections.observableArrayList();
 
     private static final String ACTIVO  = "ACTIVO";
     private static final String VENCIDO = "VENCIDO";
 
-    // ── Inicialización ────────────────────────────────────────────────────────
+    // ── Inicializar ───────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        configurarColumnas();
-        configurarCombos();
-        configurarFiltros();
+        colId.setCellValueFactory(new PropertyValueFactory<>("idFidelizacion"));
+        colCliente.setCellValueFactory(new PropertyValueFactory<>("idCliente"));
+        colNombre.setCellValueFactory(new PropertyValueFactory<>("nombreCliente"));
+        colPuntos.setCellValueFactory(new PropertyValueFactory<>("puntosAcumulados"));
+        colCaducidad.setCellValueFactory(new PropertyValueFactory<>("fechaCaducidad"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoPuntos"));
+
+        tablaFidelizacion.setItems(listaFidelizacion);
+
+        cmbFiltroEstado.getItems().addAll("Todos", ACTIVO, VENCIDO);
+        cmbFiltroEstado.setValue("Todos");
 
         listHistorial.setItems(listaHistorial);
 
+        // Clic en fila → cargar formulario e historial
         tablaFidelizacion.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) { cargarEnFormulario(sel); cargarHistorial(sel); }
         });
@@ -78,100 +85,49 @@ public class FidelizacionController implements Initializable {
         actualizarTabla();
     }
 
-    // ── Configuraciones internas ──────────────────────────────────────────────
-    private void configurarColumnas() {
-        colId.setCellValueFactory(new PropertyValueFactory<>("idFidelizacion"));
-        colCliente.setCellValueFactory(new PropertyValueFactory<>("idCliente"));
-        colNombre.setCellValueFactory(new PropertyValueFactory<>("nombreCliente"));
-        colPuntos.setCellValueFactory(new PropertyValueFactory<>("puntosAcumulados"));
-        colCaducidad.setCellValueFactory(new PropertyValueFactory<>("fechaCaducidad"));
-        colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoPuntos"));
-
-        // Colores por estado
-        colEstado.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(String estado, boolean empty) {
-                super.updateItem(estado, empty);
-                if (empty || estado == null) { setText(null); setStyle(""); return; }
-                setText(estado);
-                switch (estado) {
-                    case ACTIVO  -> setStyle("-fx-text-fill: #2E7D32; -fx-font-weight: bold;");
-                    case VENCIDO -> setStyle("-fx-text-fill: #C62828; -fx-font-weight: bold;");
-                    default      -> setStyle("");
-                }
-            }
-        });
-
-        // Color en columna puntos (verde si alto, naranja si bajo)
-        colPuntos.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(Integer puntos, boolean empty) {
-                super.updateItem(puntos, empty);
-                if (empty || puntos == null) { setText(null); setStyle(""); return; }
-                setText(String.valueOf(puntos));
-                if (puntos >= 500)       setStyle("-fx-text-fill: #2E7D32; -fx-font-weight: bold;");
-                else if (puntos >= 100)  setStyle("-fx-text-fill: #F57F17; -fx-font-weight: bold;");
-                else                     setStyle("-fx-text-fill: #C62828; -fx-font-weight: bold;");
-            }
-        });
-
-        listaFiltrada = new FilteredList<>(listaFidelizacion, p -> true);
-        tablaFidelizacion.setItems(listaFiltrada);
-    }
-
-    private void configurarCombos() {
-        cmbFiltroEstado.setItems(FXCollections.observableArrayList("Todos", ACTIVO, VENCIDO));
-        cmbFiltroEstado.setValue("Todos");
-    }
-
-    private void configurarFiltros() {
-        cmbFiltroEstado.valueProperty().addListener((o, v, n) -> aplicarFiltros());
-        txtBusqueda.textProperty().addListener((o, v, n) -> aplicarFiltros());
-    }
-
-    private void aplicarFiltros() {
-        String estado = cmbFiltroEstado.getValue();
-        String busq   = txtBusqueda.getText().toLowerCase();
-        listaFiltrada.setPredicate(f -> {
-            boolean okEstado = "Todos".equals(estado) || estado == null || f.getEstadoPuntos().equals(estado);
-            boolean okBusq   = busq.isEmpty()
-                    || String.valueOf(f.getIdFidelizacion()).contains(busq)
-                    || f.getNombreCliente().toLowerCase().contains(busq)
-                    || String.valueOf(f.getIdCliente()).contains(busq);
-            return okEstado && okBusq;
-        });
-    }
-
-    // ── Botón "🔎 Buscar cliente" ─────────────────────────────────────────────
+    // ── Buscar cliente por ID ─────────────────────────────────────────────────
     @FXML
-    private void onBuscarCliente() {
+    public void onBuscarCliente() {
         String idC = txtIdCliente.getText().trim();
         if (idC.isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa un ID de cliente."); return; }
 
-        String sql = "SELECT p.nombre + ' ' + p.apellido AS nombre_cliente "
-                + "FROM TBL_CLIENTE c "
-                + "JOIN TBL_PERSONA p ON p.id_persona = c.id_persona "
-                + "WHERE c.id_cliente = ?";
+        String sql = "SELECT p.nombre + ' ' + p.apellido AS nombre_cliente " +
+                "FROM TBL_CLIENTE c " +
+                "JOIN TBL_PERSONA p ON p.id_persona = c.id_persona " +
+                "WHERE c.id_cliente = ?";
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, Integer.parseInt(idC));
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                txtNombreCliente.setText(rs.getString("nombre_cliente"));
-            } else {
-                JOptionPane.showMessageDialog(null, "No se encontró el cliente #" + idC);
-            }
-
+            if (rs.next()) txtNombreCliente.setText(rs.getString("nombre_cliente"));
+            else JOptionPane.showMessageDialog(null, "No se encontro el cliente #" + idC);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al buscar: " + e.getMessage());
         }
     }
 
-    // ── Botón "📋 Registrar" ──────────────────────────────────────────────────
+    // ── Buscar en tabla ───────────────────────────────────────────────────────
     @FXML
-    private void onRegistrar() {
+    public void fnBuscar() {
+        String busqueda = txtBusqueda.getText().trim().toLowerCase();
+        String estado   = cmbFiltroEstado.getValue();
+
+        ObservableList<SistemaFidelizacion> listaFiltrada = FXCollections.observableArrayList();
+        for (SistemaFidelizacion f : listaFidelizacion) {
+            boolean okEstado = "Todos".equals(estado) || estado == null || f.getEstadoPuntos().equals(estado);
+            boolean okBusq   = busqueda.isEmpty()
+                    || String.valueOf(f.getIdFidelizacion()).contains(busqueda)
+                    || f.getNombreCliente().toLowerCase().contains(busqueda)
+                    || String.valueOf(f.getIdCliente()).contains(busqueda);
+            if (okEstado && okBusq) listaFiltrada.add(f);
+        }
+        tablaFidelizacion.setItems(listaFiltrada);
+    }
+
+    // ── Registrar nueva fidelización ──────────────────────────────────────────
+    @FXML
+    public void onRegistrar() {
         if (txtIdCliente.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El ID de Cliente es obligatorio."); return;
         }
@@ -182,163 +138,139 @@ public class FidelizacionController implements Initializable {
             JOptionPane.showMessageDialog(null, "Selecciona la fecha de caducidad."); return;
         }
 
-        // Verificar si el cliente ya tiene fidelización
+        // Verificar si el cliente ya tiene fidelizacion
         String sqlCheck = "SELECT id_fidelizacion FROM TBL_SISTEMA_FIDELIZACION WHERE id_cliente = ?";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement psCheck = con.prepareStatement(sqlCheck)) {
-
             psCheck.setInt(1, Integer.parseInt(txtIdCliente.getText().trim()));
             ResultSet rs = psCheck.executeQuery();
             if (rs.next()) {
                 JOptionPane.showMessageDialog(null,
-                        "Este cliente ya tiene un registro de fidelización.\n" +
-                                "Selecciónalo en la tabla y usa '➕ Agregar Puntos'.");
+                        "Este cliente ya tiene un registro de fidelizacion.\n" +
+                                "Seleccionalo en la tabla y usa Agregar Puntos.");
                 return;
             }
-
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error al verificar: " + e.getMessage());
-            return;
+            JOptionPane.showMessageDialog(null, "Error al verificar: " + e.getMessage()); return;
         }
 
-        String sql = "INSERT INTO TBL_SISTEMA_FIDELIZACION (id_cliente, puntos_acumulados, fecha_caducidad) "
-                + "VALUES (?, ?, ?)";
+        String sql = "INSERT INTO TBL_SISTEMA_FIDELIZACION (id_cliente, puntos_acumulados, fecha_caducidad) " +
+                "VALUES (?, ?, ?)";
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1,  Integer.parseInt(txtIdCliente.getText().trim()));
             ps.setInt(2,  Integer.parseInt(txtPuntos.getText().trim()));
             ps.setDate(3, Date.valueOf(dpFechaCaducidad.getValue()));
             ps.executeUpdate();
-
-            JOptionPane.showMessageDialog(null, "Fidelización registrada correctamente.");
+            JOptionPane.showMessageDialog(null, "Fidelizacion registrada correctamente.");
             actualizarTabla();
             limpiar();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al registrar: " + e.getMessage());
         }
     }
 
-    // ── Botón "➕ Agregar Puntos" ─────────────────────────────────────────────
+    // ── Agregar puntos al cliente seleccionado ────────────────────────────────
     @FXML
-    private void onAgregarPuntos() {
+    public void onAgregarPuntos() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un cliente."); return; }
-
-        String puntosStr = txtPuntos.getText().trim();
-        if (puntosStr.isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa los puntos a agregar."); return; }
+        if (txtPuntos.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa los puntos a agregar."); return; }
 
         int puntosAAgregar;
-        try { puntosAAgregar = Integer.parseInt(puntosStr); }
-        catch (NumberFormatException e) { JOptionPane.showMessageDialog(null, "Los puntos deben ser un número."); return; }
-
+        try { puntosAAgregar = Integer.parseInt(txtPuntos.getText().trim()); }
+        catch (NumberFormatException e) { JOptionPane.showMessageDialog(null, "Los puntos deben ser un numero."); return; }
         if (puntosAAgregar <= 0) { JOptionPane.showMessageDialog(null, "Los puntos deben ser mayores a 0."); return; }
 
-        String sql = "UPDATE TBL_SISTEMA_FIDELIZACION SET puntos_acumulados = puntos_acumulados + ? "
-                + "WHERE id_fidelizacion = ?";
+        String sql = "UPDATE TBL_SISTEMA_FIDELIZACION SET puntos_acumulados = puntos_acumulados + ? " +
+                "WHERE id_fidelizacion = ?";
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, puntosAAgregar);
             ps.setInt(2, sel.getIdFidelizacion());
             ps.executeUpdate();
-
             JOptionPane.showMessageDialog(null, "Se agregaron " + puntosAAgregar + " puntos correctamente.");
             actualizarTabla();
             txtPuntos.clear();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al agregar puntos: " + e.getMessage());
         }
     }
 
-    // ── Botón "🔄 Canjear Puntos" ─────────────────────────────────────────────
+    // ── Canjear puntos ────────────────────────────────────────────────────────
     @FXML
-    private void onCanjearPuntos() {
+    public void onCanjearPuntos() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un cliente."); return; }
 
         if (VENCIDO.equals(sel.getEstadoPuntos())) {
-            JOptionPane.showMessageDialog(null, "Los puntos de este cliente están VENCIDOS y no se pueden canjear.");
+            JOptionPane.showMessageDialog(null, "Los puntos de este cliente estan VENCIDOS y no se pueden canjear.");
             return;
         }
 
-        String canjearStr = txtPuntosACanjear.getText().trim();
-        if (canjearStr.isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa los puntos a canjear."); return; }
+        if (txtPuntosACanjear.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa los puntos a canjear."); return; }
 
         int puntosACanjear;
-        try { puntosACanjear = Integer.parseInt(canjearStr); }
-        catch (NumberFormatException e) { JOptionPane.showMessageDialog(null, "Los puntos deben ser un número."); return; }
+        try { puntosACanjear = Integer.parseInt(txtPuntosACanjear.getText().trim()); }
+        catch (NumberFormatException e) { JOptionPane.showMessageDialog(null, "Los puntos deben ser un numero."); return; }
 
-        if (puntosACanjear <= 0) {
-            JOptionPane.showMessageDialog(null, "Los puntos a canjear deben ser mayores a 0."); return;
-        }
+        if (puntosACanjear <= 0) { JOptionPane.showMessageDialog(null, "Los puntos a canjear deben ser mayores a 0."); return; }
         if (puntosACanjear > sel.getPuntosAcumulados()) {
-            JOptionPane.showMessageDialog(null,
-                    "No tiene suficientes puntos.\nDisponibles: " + sel.getPuntosAcumulados());
+            JOptionPane.showMessageDialog(null, "No tiene suficientes puntos.\nDisponibles: " + sel.getPuntosAcumulados());
             return;
         }
 
-        String sql = "UPDATE TBL_SISTEMA_FIDELIZACION SET puntos_acumulados = puntos_acumulados - ? "
-                + "WHERE id_fidelizacion = ?";
+        String sql = "UPDATE TBL_SISTEMA_FIDELIZACION SET puntos_acumulados = puntos_acumulados - ? " +
+                "WHERE id_fidelizacion = ?";
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, puntosACanjear);
             ps.setInt(2, sel.getIdFidelizacion());
             ps.executeUpdate();
-
             int restantes = sel.getPuntosAcumulados() - puntosACanjear;
             JOptionPane.showMessageDialog(null,
-                    "Canje exitoso ✔\nPuntos canjeados: " + puntosACanjear +
+                    "Canje exitoso\nPuntos canjeados: " + puntosACanjear +
                             "\nPuntos restantes: " + restantes);
             actualizarTabla();
             txtPuntosACanjear.clear();
-            lblPuntosRestantes.setText("Restantes: —");
-
+            if (lblPuntosRestantes != null) lblPuntosRestantes.setText("Restantes: -");
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al canjear: " + e.getMessage());
         }
     }
 
-    // ── Botón "📅 Renovar Caducidad" ──────────────────────────────────────────
+    // ── Renovar fecha de caducidad ────────────────────────────────────────────
     @FXML
-    private void onRenovarCaducidad() {
+    public void onRenovarCaducidad() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un cliente."); return; }
-        if (dpFechaCaducidad.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona la nueva fecha de caducidad."); return;
-        }
+        if (dpFechaCaducidad.getValue() == null) { JOptionPane.showMessageDialog(null, "Selecciona la nueva fecha de caducidad."); return; }
 
         String sql = "UPDATE TBL_SISTEMA_FIDELIZACION SET fecha_caducidad = ? WHERE id_fidelizacion = ?";
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setDate(1, Date.valueOf(dpFechaCaducidad.getValue()));
             ps.setInt(2,  sel.getIdFidelizacion());
             ps.executeUpdate();
-
             JOptionPane.showMessageDialog(null, "Fecha de caducidad actualizada.");
             actualizarTabla();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al renovar: " + e.getMessage());
         }
     }
 
-    // ── Botón "🗑 Eliminar" ───────────────────────────────────────────────────
+    // ── Eliminar ──────────────────────────────────────────────────────────────
     @FXML
-    private void onEliminar() {
+    public void onEliminar() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un registro."); return; }
 
         int confirm = JOptionPane.showConfirmDialog(null,
-                "¿Eliminar fidelización del cliente " + sel.getNombreCliente() + "?",
+                "Eliminar fidelizacion del cliente " + sel.getNombreCliente() + "?",
                 "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
@@ -346,24 +278,21 @@ public class FidelizacionController implements Initializable {
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, sel.getIdFidelizacion());
             ps.executeUpdate();
-
             listaHistorial.clear();
-            lblHistorialDe.setText("—");
+            if (lblHistorialDe != null) lblHistorialDe.setText("-");
             actualizarTabla();
             limpiar();
             JOptionPane.showMessageDialog(null, "Registro eliminado.");
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
         }
     }
 
-    // ── Botón "✖ Limpiar" ────────────────────────────────────────────────────
+    // ── Limpiar formulario ────────────────────────────────────────────────────
     @FXML
-    private void onLimpiar() { limpiar(); }
+    public void onLimpiar() { limpiar(); }
 
     @FXML
     public void limpiar() {
@@ -373,24 +302,40 @@ public class FidelizacionController implements Initializable {
         txtPuntos.clear();
         txtPuntosACanjear.clear();
         dpFechaCaducidad.setValue(LocalDate.now().plusYears(1));
-        lblPuntosRestantes.setText("Restantes: —");
+        if (lblPuntosRestantes != null) lblPuntosRestantes.setText("Restantes: -");
+        if (txtBusqueda != null) txtBusqueda.clear();
         tablaFidelizacion.getSelectionModel().clearSelection();
+        tablaFidelizacion.setItems(listaFidelizacion);
+    }
+
+    // ── Listener campo canjear → mostrar restantes ────────────────────────────
+    @FXML
+    public void onCanjearInput() {
+        SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        try {
+            int canjear   = Integer.parseInt(txtPuntosACanjear.getText().trim());
+            int restantes = sel.getPuntosAcumulados() - canjear;
+            if (lblPuntosRestantes != null)
+                lblPuntosRestantes.setText("Restantes: " + (restantes >= 0 ? restantes : "Insuficientes") + " pts");
+        } catch (NumberFormatException e) {
+            if (lblPuntosRestantes != null) lblPuntosRestantes.setText("Restantes: -");
+        }
     }
 
     // ── Cargar tabla desde BD ─────────────────────────────────────────────────
     private void actualizarTabla() {
-        String sql = "SELECT f.id_fidelizacion, f.id_cliente, "
-                + "p.nombre + ' ' + p.apellido AS nombre_cliente, "
-                + "f.puntos_acumulados, f.fecha_caducidad "
-                + "FROM TBL_SISTEMA_FIDELIZACION f "
-                + "JOIN TBL_CLIENTE c ON c.id_cliente = f.id_cliente "
-                + "JOIN TBL_PERSONA p ON p.id_persona = c.id_persona";
+        listaFidelizacion.clear();
+        String sql = "SELECT f.id_fidelizacion, f.id_cliente, " +
+                "p.nombre + ' ' + p.apellido AS nombre_cliente, " +
+                "f.puntos_acumulados, f.fecha_caducidad " +
+                "FROM TBL_SISTEMA_FIDELIZACION f " +
+                "JOIN TBL_CLIENTE c ON c.id_cliente = f.id_cliente " +
+                "JOIN TBL_PERSONA p ON p.id_persona = c.id_persona";
 
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
-            listaFidelizacion.clear();
             while (rs.next()) {
                 listaFidelizacion.add(new SistemaFidelizacion(
                         rs.getInt("id_fidelizacion"),
@@ -400,55 +345,40 @@ public class FidelizacionController implements Initializable {
                         rs.getDate("fecha_caducidad").toLocalDate()
                 ));
             }
+            tablaFidelizacion.setItems(listaFidelizacion);
             actualizarContadores();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar: " + e.getMessage());
         }
     }
 
-    // ── Historial simulado (movimientos de puntos del cliente) ────────────────
+    // ── Cargar historial del cliente seleccionado ─────────────────────────────
     private void cargarHistorial(SistemaFidelizacion f) {
         listaHistorial.clear();
-        lblHistorialDe.setText(f.getNombreCliente());
-        listaHistorial.add("📋  ID Fidelización   : " + f.getIdFidelizacion());
-        listaHistorial.add("👤  ID Cliente        : " + f.getIdCliente());
-        listaHistorial.add("⭐  Puntos acumulados : " + f.getPuntosAcumulados());
-        listaHistorial.add("📅  Fecha caducidad   : " + f.getFechaCaducidad());
-        listaHistorial.add("🔵  Estado            : " + f.getEstadoPuntos());
-        listaHistorial.add("──────────────────────────────");
+        if (lblHistorialDe != null) lblHistorialDe.setText(f.getNombreCliente());
 
-        // Calcular cuánto vale en descuento (ejemplo: 100 puntos = RD$50)
+        listaHistorial.add("ID Fidelizacion   : " + f.getIdFidelizacion());
+        listaHistorial.add("ID Cliente        : " + f.getIdCliente());
+        listaHistorial.add("Puntos acumulados : " + f.getPuntosAcumulados());
+        listaHistorial.add("Fecha caducidad   : " + f.getFechaCaducidad());
+        listaHistorial.add("Estado            : " + f.getEstadoPuntos());
+        listaHistorial.add("------------------------------");
+
         double descuento = f.getPuntosAcumulados() * 0.50;
-        listaHistorial.add("💰  Valor en descuento: RD$ " + String.format("%.2f", descuento));
+        listaHistorial.add("Valor en descuento: RD$ " + String.format("%.2f", descuento));
 
-        // Nivel del cliente según puntos
         String nivel;
-        if      (f.getPuntosAcumulados() >= 1000) nivel = "🥇 ORO";
-        else if (f.getPuntosAcumulados() >= 500)  nivel = "🥈 PLATA";
-        else if (f.getPuntosAcumulados() >= 100)  nivel = "🥉 BRONCE";
-        else                                       nivel = "⚪ BÁSICO";
-        listaHistorial.add("🏆  Nivel del cliente : " + nivel);
+        if      (f.getPuntosAcumulados() >= 1000) nivel = "ORO";
+        else if (f.getPuntosAcumulados() >= 500)  nivel = "PLATA";
+        else if (f.getPuntosAcumulados() >= 100)  nivel = "BRONCE";
+        else                                       nivel = "BASICO";
+        listaHistorial.add("Nivel del cliente : " + nivel);
 
-        // Actualizar label puntos restantes al seleccionar
-        lblPuntosRestantes.setText("Disponibles: " + f.getPuntosAcumulados() + " pts");
+        if (lblPuntosRestantes != null)
+            lblPuntosRestantes.setText("Disponibles: " + f.getPuntosAcumulados() + " pts");
     }
 
-    // ── Listener en campo canjear para mostrar restantes en tiempo real ────────
-    @FXML
-    private void onCanjearInput() {
-        SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
-        if (sel == null) return;
-        try {
-            int canjear    = Integer.parseInt(txtPuntosACanjear.getText().trim());
-            int restantes  = sel.getPuntosAcumulados() - canjear;
-            lblPuntosRestantes.setText("Restantes: " + (restantes >= 0 ? restantes : "⚠ Insuficientes") + " pts");
-        } catch (NumberFormatException e) {
-            lblPuntosRestantes.setText("Restantes: —");
-        }
-    }
-
-    // ── Cargar formulario al seleccionar fila ─────────────────────────────────
+    // ── Cargar fila en formulario ─────────────────────────────────────────────
     private void cargarEnFormulario(SistemaFidelizacion f) {
         txtIdFidelizacion.setText(String.valueOf(f.getIdFidelizacion()));
         txtIdCliente.setText(String.valueOf(f.getIdCliente()));
@@ -459,11 +389,14 @@ public class FidelizacionController implements Initializable {
 
     // ── Pastillas de conteo ───────────────────────────────────────────────────
     private void actualizarContadores() {
-        long activos  = listaFidelizacion.stream().filter(f -> ACTIVO.equals(f.getEstadoPuntos())).count();
-        long vencidos = listaFidelizacion.stream().filter(f -> VENCIDO.equals(f.getEstadoPuntos())).count();
-        long totalPts = listaFidelizacion.stream().mapToLong(SistemaFidelizacion::getPuntosAcumulados).sum();
-        lblContActivo.setText("✔  "  + activos  + "  Activos");
-        lblContVencido.setText("✖  " + vencidos + "  Vencidos");
-        lblTotalPuntos.setText("⭐  " + totalPts + "  Puntos totales");
+        int activos = 0, vencidos = 0, totalPts = 0;
+        for (SistemaFidelizacion f : listaFidelizacion) {
+            if (ACTIVO.equals(f.getEstadoPuntos()))  activos++;
+            if (VENCIDO.equals(f.getEstadoPuntos())) vencidos++;
+            totalPts += f.getPuntosAcumulados();
+        }
+        if (lblContActivo  != null) lblContActivo.setText(activos  + "  Activos");
+        if (lblContVencido != null) lblContVencido.setText(vencidos + "  Vencidos");
+        if (lblTotalPuntos != null) lblTotalPuntos.setText(totalPts + "  Puntos totales");
     }
 }

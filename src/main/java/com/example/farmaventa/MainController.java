@@ -56,9 +56,9 @@ public class MainController implements Initializable {
     @FXML private void onMenuPersonas()            { cargarVista("Personas.fxml",            btnPersonas); }
     @FXML private void onMenuInventario()          { cargarVista("Inventario.fxml",          btnInventario); }
     @FXML private void onMenuReclamaciones()       { cargarVista("Reclamacionventa.fxml",    btnReclamaciones); }
-    @FXML private void onMenuReclamacionesCompra() { cargarVista("reclamacion_compra.fxml",  btnReclamacionesCompra); }
-    @FXML private void onMenuDevoluciones()        { cargarVista("devolucion_venta.fxml",    btnDevoluciones); }
-    @FXML private void onMenuDevolucionesCompra()  { cargarVista("devolucion_compra.fxml",   btnDevolucionesCompra); }
+    @FXML private void onMenuReclamacionesCompra() { cargarVista("ReclamacionCompra.fxml",  btnReclamacionesCompra); }
+    @FXML private void onMenuDevoluciones()        { cargarVista("DevolucionVenta.fxml",    btnDevoluciones); }
+    @FXML private void onMenuDevolucionesCompra()  { cargarVista("DevolucionCompra.fxml",   btnDevolucionesCompra); }
     @FXML private void onMenuFidelizacion()        { cargarVista("fidelizacion.fxml",        btnFidelizacion); }
     @FXML private void onMenuConvenios()           { cargarVista("Convenio.fxml",            btnConvenios); }
     @FXML private void onMenuEnvios()              { cargarVista("Envio.fxml",               btnEnvios); }
