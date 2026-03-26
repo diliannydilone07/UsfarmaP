@@ -6,32 +6,31 @@
 
 <VBox minHeight="650" spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.HelloController">
 
-    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
         <padding><Insets bottom="18" left="24" right="24" top="18" /></padding>
         <VBox spacing="2">
             <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Registro de Venta" />
             <Label style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;" text="Crea y gestiona las ventas de la farmacia" />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
-        <Label style="-fx-text-fill: #2E7D32; -fx-font-size: 12px;                       -fx-background-color: #E8F5E9; -fx-background-radius: 20;                       -fx-padding: 4 12 4 12;" text="● Nueva venta" />
+        <Label style="-fx-text-fill: #2E7D32; -fx-font-size: 12px; -fx-background-color: #E8F5E9; -fx-background-radius: 20; -fx-padding: 4 12 4 12;" text="Nueva venta" />
     </HBox>
 
     <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
         <!-- COLUMNA IZQUIERDA: Datos de la venta -->
-        <VBox prefWidth="290" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);                      -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+        <VBox prefWidth="290" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
             <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Datos de la Venta" />
             <Separator />
 
-            <!-- ID Venta con botón buscar -->
             <VBox spacing="4">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="ID Venta (buscar existente)" />
                 <HBox spacing="8">
                     <TextField fx:id="txtIdVenta" promptText="Ej. 5" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" HBox.hgrow="ALWAYS" />
-                    <Button onAction="#onBuscarVenta" prefHeight="27.0" prefWidth="40.0" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                    -fx-font-weight: bold; -fx-font-size: 12px;                                    -fx-background-radius: 6; -fx-cursor: hand;                                    -fx-padding: 0 12 0 12;" text="🔍" />
+                    <Button onAction="#onBuscarVenta" style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 4 10 4 10;" text="Buscar" />
                 </HBox>
                 <Label fx:id="lblInfoVenta" style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
             </VBox>
@@ -57,13 +56,13 @@
             </VBox>
 
             <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Condición de pago" />
-                <TextField fx:id="txtCondicion" promptText="Contado / Crédito" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Condicion de pago" />
+                <TextField fx:id="txtCondicion" promptText="Contado / Credito" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
             </VBox>
 
             <VBox spacing="4">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Monto Pagado (RD$)" />
-                <TextField fx:id="txtMontoPagado" promptText="0.00 = pago total" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <TextField fx:id="txtMontoPagado" promptText="0.00" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
             </VBox>
 
             <Region VBox.vgrow="ALWAYS" />
@@ -82,24 +81,61 @@
 
             <Separator />
 
-            <!-- Botones principales -->
             <HBox spacing="8">
-                <Button maxWidth="Infinity" onAction="#onRegistrarVenta" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                -fx-font-weight: bold; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="💾  Registrar Venta" HBox.hgrow="ALWAYS" />
-                <Button onAction="#Limpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                -fx-background-radius: 6; -fx-cursor: hand;                                -fx-padding: 10 14 10 14;" text="✖" />
+                <Button maxWidth="Infinity" onAction="#onRegistrarVenta" style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="Registrar Venta" HBox.hgrow="ALWAYS" />
+                <Button onAction="#Limpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 14 10 14;" text="Limpiar" />
             </HBox>
         </VBox>
 
-        <!-- COLUMNA CENTRAL: tabla de productos -->
-        <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);                      -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
+        <!-- COLUMNA DERECHA: agregar producto + tabla -->
+        <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Productos en esta Venta" />
+            <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Productos en esta Venta" />
+            <Separator />
+
+            <!-- Seccion para agregar producto con campos normales -->
+            <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-background-color: #F9FBF9; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1;">
+                <padding><Insets bottom="10" left="12" right="12" top="10" /></padding>
+
+                <VBox spacing="3" prefWidth="90">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="ID Producto" />
+                    <TextField fx:id="txtIdProducto" promptText="Ej. 5" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                </VBox>
+
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Nombre del Producto" />
+                    <TextField fx:id="txtNombreProducto" editable="false" promptText="Se llena al buscar" style="-fx-background-color: #F5F5F5; -fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                </VBox>
+
+                <VBox spacing="3" prefWidth="70">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Cantidad" />
+                    <TextField fx:id="txtCantidadProducto" promptText="1" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                </VBox>
+
+                <VBox spacing="3" prefWidth="90">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Precio (RD$)" />
+                    <TextField fx:id="txtPrecioProducto" promptText="0.00" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                </VBox>
+
+                <VBox spacing="3" alignment="BOTTOM_LEFT">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: transparent;" text="x" />
+                    <Button onAction="#onBuscarProductoId" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 10 6 10;" text="Buscar" />
+                </VBox>
+
+                <VBox spacing="3" alignment="BOTTOM_LEFT">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: transparent;" text="x" />
+                    <Button onAction="#onAgregarProducto" style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 10 6 10;" text="Agregar" />
+                </VBox>
+            </HBox>
+
+            <!-- Buscador en la tabla -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="txtBuscarProducto" prefWidth="220" promptText="Buscar en la tabla..." style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <Button onAction="#fnBuscarProducto" style="-fx-background-color: #F5F5F5; -fx-text-fill: #424242; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10 5 10;" text="Buscar" />
                 <Region HBox.hgrow="ALWAYS" />
-                <TextField fx:id="txtBuscarProducto" prefWidth="200" promptText="🔍 Buscar producto..." style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                 <Label fx:id="lblCantProductos" style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;" text="0 productos" />
             </HBox>
-            <Separator />
 
             <TableView fx:id="tablaVentaProducto" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
                 <columns>
@@ -111,15 +147,13 @@
                     <TableColumn fx:id="colProductoSubtotal" prefWidth="100" text="Subtotal" />
                 </columns>
                 <placeholder>
-                    <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="Aún no has agregado productos 🛒" />
+                    <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="Aun no has agregado productos" />
                 </placeholder>
             </TableView>
 
-            <!-- Botones inferiores igual que Inventario/Envío -->
             <HBox alignment="CENTER_RIGHT" spacing="10">
-                <Button onAction="#onAgregarProducto" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                                -fx-font-weight: bold; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-cursor: hand;                                -fx-padding: 8 14 8 14;" text="➕  Agregar Producto" />
-                <Button onAction="#onEditarVenta" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                                -fx-font-weight: bold; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-border-color: #BBDEFB;                                -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="✏  Editar Venta" />
-                <Button onAction="#onQuitarProducto" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-border-color: #FFCDD2; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-cursor: hand;                                -fx-padding: 8 14 8 14;" text="✖  Quitar Producto" />
+                <Button onAction="#onEditarVenta" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-border-color: #BBDEFB; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="Editar Venta" />
+                <Button onAction="#onQuitarProducto" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828; -fx-border-color: #FFCDD2; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="Quitar Producto" />
             </HBox>
         </VBox>
     </HBox>
