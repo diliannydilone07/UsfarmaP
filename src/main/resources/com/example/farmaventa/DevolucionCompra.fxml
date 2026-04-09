@@ -55,18 +55,27 @@
                                   -fx-text-fill: #9E9E9E; -fx-pref-height: 34;"/>
             </VBox>
 
-            <!-- ID Compra + buscar -->
+            <!-- ID Reclamacion Compra + botón buscar -->
             <VBox spacing="5" HBox.hgrow="ALWAYS">
-                <Label text="ID Compra *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <Label text="ID Reclamacion *" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
                 <HBox spacing="6">
-                    <TextField fx:id="txtIdCompra" promptText="Ej. 10" HBox.hgrow="ALWAYS"
+                    <TextField fx:id="txtIdReclamacion" promptText="Ej. 5" HBox.hgrow="ALWAYS"
                                style="-fx-background-radius: 6; -fx-border-color: #E0E0E0;
                                       -fx-border-radius: 6; -fx-pref-height: 34;"/>
-                    <Button text="🔎  Buscar" onAction="#onBuscarCompra"
+                    <Button text="🔎  Buscar" onAction="#onBuscarReclamacion"
                             style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;
                                    -fx-background-radius: 6; -fx-cursor: hand;
                                    -fx-font-size: 12px; -fx-pref-height: 34; -fx-padding: 0 14 0 14;"/>
                 </HBox>
+            </VBox>
+
+            <!-- ID Compra (solo lectura, se llena al buscar reclamacion) -->
+            <VBox spacing="5" prefWidth="100">
+                <Label text="ID Compra" style="-fx-font-size: 11px; -fx-text-fill: #757575;"/>
+                <TextField fx:id="txtIdCompra" editable="false"
+                           style="-fx-background-color: #F5F5F5; -fx-background-radius: 6;
+                                  -fx-border-color: #E0E0E0; -fx-border-radius: 6; -fx-pref-height: 34;
+                                  -fx-text-fill: #9E9E9E;"/>
             </VBox>
 
             <!-- Proveedor (solo lectura) -->
@@ -150,7 +159,8 @@
             <TableView fx:id="tablaDevolucion" VBox.vgrow="ALWAYS"
                        style="-fx-background-color: transparent;">
                 <columns>
-                    <TableColumn fx:id="colId"        text="ID"          prefWidth="55"/>
+                    <TableColumn fx:id="colId"          text="ID Dev."     prefWidth="60"/>
+                    <TableColumn fx:id="colReclamacion" text="ID Reclam."  prefWidth="80"/>
                     <TableColumn fx:id="colCompra"    text="Compra"      prefWidth="75"/>
                     <TableColumn fx:id="colProveedor" text="Proveedor"   prefWidth="180"/>
                     <TableColumn fx:id="colFecha"     text="Fecha"       prefWidth="100"/>

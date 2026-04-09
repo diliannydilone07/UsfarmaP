@@ -4,7 +4,6 @@ import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Envio;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -26,21 +25,21 @@ public class EnvioController {
     @FXML private Label            lblInfoVenta;
 
     // ── Tabla ─────────────────────────────────────────────────────────────
-    @FXML private TextField                    txtBuscar;
-    @FXML private TableView<Envio>             tablaEnvios;
-    @FXML private TableColumn<Envio, Number>   colId;
-    @FXML private TableColumn<Envio, String>   colInfoVenta;
-    @FXML private TableColumn<Envio, String>   colPersonaRecibe;
-    @FXML private TableColumn<Envio, String>   colMetodo;
-    @FXML private TableColumn<Envio, Number>   colCosto;
-    @FXML private TableColumn<Envio, String>   colFecha;
-    @FXML private TableColumn<Envio, String>   colEstado;
+    @FXML private TextField                  txtBuscar;
+    @FXML private TableView<Envio>           tablaEnvios;
+    @FXML private TableColumn<Envio, Number> colId;
+    @FXML private TableColumn<Envio, String> colInfoVenta;
+    @FXML private TableColumn<Envio, String> colPersonaRecibe;
+    @FXML private TableColumn<Envio, String> colMetodo;
+    @FXML private TableColumn<Envio, Number> colCosto;
+    @FXML private TableColumn<Envio, String> colFecha;
+    @FXML private TableColumn<Envio, String> colEstado;
 
-    private final ObservableList<Envio> listaEnvios = FXCollections.observableArrayList();
-    private FilteredList<Envio>         listaFiltrada;
+    // ── Lista de datos ────────────────────────────────────────────────────
+    private ObservableList<Envio> listaEnvios = FXCollections.observableArrayList();
     private int idEnvioSeleccionado = -1;
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         dpFechaEnvio.setValue(java.time.LocalDate.now());
@@ -48,7 +47,6 @@ public class EnvioController {
         cmbEstado.getItems().addAll("EN_PREPARACION", "EN_CAMINO", "ENTREGADO", "CANCELADO");
         cmbEstado.setValue("EN_PREPARACION");
 
-        // Columnas
         colId.setCellValueFactory(c -> c.getValue().idEnvioProperty());
         colInfoVenta.setCellValueFactory(c -> c.getValue().infoVentaProperty());
         colPersonaRecibe.setCellValueFactory(c -> c.getValue().personaRecibeProperty());
@@ -57,40 +55,13 @@ public class EnvioController {
         colFecha.setCellValueFactory(c -> c.getValue().fechaEnvioProperty());
         colEstado.setCellValueFactory(c -> c.getValue().estadoEnvioProperty());
 
-        // Color por estado
-        colEstado.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); setStyle(""); return; }
-                setText(item);
-                switch (item) {
-                    case "EN_PREPARACION" -> setStyle("-fx-text-fill: #E65100; -fx-font-weight: bold;");
-                    case "EN_CAMINO"      -> setStyle("-fx-text-fill: #1565C0; -fx-font-weight: bold;");
-                    case "ENTREGADO"      -> setStyle("-fx-text-fill: #2E7D32; -fx-font-weight: bold;");
-                    case "CANCELADO"      -> setStyle("-fx-text-fill: #C62828; -fx-font-weight: bold;");
-                    default               -> setStyle("");
-                }
-            }
-        });
+        tablaEnvios.setItems(listaEnvios);
 
-        // Filtro búsqueda
-        listaFiltrada = new FilteredList<>(listaEnvios, p -> true);
-        tablaEnvios.setItems(listaFiltrada);
-        txtBuscar.textProperty().addListener((obs, o, n) ->
-                listaFiltrada.setPredicate(e -> {
-                    if (n == null || n.isBlank()) return true;
-                    String lower = n.toLowerCase();
-                    return e.getPersonaRecibe().toLowerCase().contains(lower)
-                            || e.getInfoVenta().toLowerCase().contains(lower)
-                            || e.getMetodoEnvio().toLowerCase().contains(lower)
-                            || e.getEstadoEnvio().toLowerCase().contains(lower);
-                })
-        );
-
-        // Clic en fila → cargar en formulario
+        // Clic en fila → carga datos en formulario
         tablaEnvios.getSelectionModel().selectedItemProperty().addListener(
-                (obs, o, n) -> { if (n != null) cargarEnFormulario(n); });
+                (obs, oldSel, newSel) -> {
+                    if (newSel != null) cargarEnFormulario(newSel);
+                });
 
         cargarEnvios();
     }
@@ -99,32 +70,32 @@ public class EnvioController {
     @FXML
     public void onBuscarVenta(ActionEvent event) {
         if (txtIdVenta.getText().isBlank()) return;
-        try {
-            int idVenta = Integer.parseInt(txtIdVenta.getText().trim());
-            String sql = """
-                    SELECT v.id_venta,
-                           CONVERT(VARCHAR(10), v.fecha_transaccion, 120) AS fecha,
-                           v.monto_total,
-                           CONCAT(p.nombre, ' ', p.apellido) AS cliente
-                    FROM TBL_VENTA v
-                    JOIN TBL_CLIENTE cl ON cl.id_cliente = v.id_cliente
-                    JOIN TBL_PERSONA p  ON p.id_persona  = cl.id_persona
-                    WHERE v.id_venta = ?
-                    """;
-            try (Connection con = conexion.establecerConexion();
-                 PreparedStatement ps = con.prepareStatement(sql)) {
-                ps.setInt(1, idVenta);
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    lblInfoVenta.setText("Venta #" + rs.getInt("id_venta")
-                            + " - " + rs.getString("cliente")
-                            + " | RD$ " + String.format("%.2f", rs.getDouble("monto_total")));
-                    lblInfoVenta.setStyle("-fx-text-fill: #2E7D32; -fx-font-size: 11px;");
-                } else {
-                    lblInfoVenta.setText("Venta no encontrada.");
-                    lblInfoVenta.setStyle("-fx-text-fill: #C62828; -fx-font-size: 11px;");
-                }
+
+        String sql = "SELECT v.id_venta, " +
+                "CONVERT(VARCHAR(10), v.fecha_transaccion, 120) AS fecha, " +
+                "v.monto_total, " +
+                "p.nombre + ' ' + p.apellido AS cliente " +
+                "FROM TBL_VENTA v " +
+                "JOIN TBL_CLIENTE cl ON cl.id_cliente = v.id_cliente " +
+                "JOIN TBL_PERSONA p  ON p.id_persona  = cl.id_persona " +
+                "WHERE v.id_venta = ?";
+
+        try (Connection con = conexion.establecerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, Integer.parseInt(txtIdVenta.getText().trim()));
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                lblInfoVenta.setText("Venta #" + rs.getInt("id_venta")
+                        + " - " + rs.getString("cliente")
+                        + " | RD$ " + String.format("%.2f", rs.getDouble("monto_total")));
+                lblInfoVenta.setStyle("-fx-text-fill: #2E7D32; -fx-font-size: 11px;");
+            } else {
+                lblInfoVenta.setText("Venta no encontrada.");
+                lblInfoVenta.setStyle("-fx-text-fill: #C62828; -fx-font-size: 11px;");
             }
+
         } catch (NumberFormatException e) {
             lblInfoVenta.setText("ID inválido.");
             lblInfoVenta.setStyle("-fx-text-fill: #C62828; -fx-font-size: 11px;");
@@ -133,32 +104,46 @@ public class EnvioController {
         }
     }
 
+    // ── Buscar en tabla ───────────────────────────────────────────────────
+    @FXML
+    public void fnBuscar(ActionEvent event) {
+        String busqueda = txtBuscar.getText().trim().toLowerCase();
+        if (busqueda.isEmpty()) {
+            tablaEnvios.setItems(listaEnvios);
+            return;
+        }
+
+        ObservableList<Envio> listaFiltrada = FXCollections.observableArrayList();
+        for (Envio e : listaEnvios) {
+            if (e.getPersonaRecibe().toLowerCase().contains(busqueda)
+                    || e.getInfoVenta().toLowerCase().contains(busqueda)
+                    || e.getMetodoEnvio().toLowerCase().contains(busqueda)
+                    || e.getEstadoEnvio().toLowerCase().contains(busqueda)) {
+                listaFiltrada.add(e);
+            }
+        }
+        tablaEnvios.setItems(listaFiltrada);
+    }
+
     // ── Cargar tabla ──────────────────────────────────────────────────────
     @FXML
     public void cargarEnvios() {
         listaEnvios.clear();
         idEnvioSeleccionado = -1;
 
-        String sql = """
-                SELECT e.id_envio,
-                       CONVERT(VARCHAR(10), e.fecha_envio, 120) AS fecha_envio,
-                       e.costo_servicio,
-                       e.persona_recibe,
-                       e.metodo_envio,
-                       e.estado,
-                       e.id_venta,
-                       CONCAT('Venta #', v.id_venta, ' - ',
-                              p.nombre, ' ', p.apellido) AS info_venta
-                FROM TBL_ENVIO e
-                JOIN TBL_VENTA   v  ON v.id_venta   = e.id_venta
-                JOIN TBL_CLIENTE cl ON cl.id_cliente = v.id_cliente
-                JOIN TBL_PERSONA p  ON p.id_persona  = cl.id_persona
-                ORDER BY e.id_envio DESC
-                """;
+        String sql = "SELECT e.id_envio, " +
+                "CONVERT(VARCHAR(10), e.fecha_envio, 120) AS fecha_envio, " +
+                "e.costo_servicio, e.persona_recibe, e.metodo_envio, e.estado, e.id_venta, " +
+                "'Venta #' + CAST(v.id_venta AS VARCHAR) + ' - ' + p.nombre + ' ' + p.apellido AS info_venta " +
+                "FROM TBL_ENVIO e " +
+                "JOIN TBL_VENTA   v  ON v.id_venta   = e.id_venta " +
+                "JOIN TBL_CLIENTE cl ON cl.id_cliente = v.id_cliente " +
+                "JOIN TBL_PERSONA p  ON p.id_persona  = cl.id_persona " +
+                "ORDER BY e.id_envio DESC";
 
         try (Connection con = conexion.establecerConexion();
-             Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 listaEnvios.add(new Envio(
@@ -169,9 +154,11 @@ public class EnvioController {
                         rs.getString("metodo_envio"),
                         rs.getInt("id_venta"),
                         rs.getString("info_venta"),
-                        rs.getString("estado")          // ← columna real
+                        rs.getString("estado")
                 ));
             }
+            tablaEnvios.setItems(listaEnvios);
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar envíos: " + e.getMessage());
         }
@@ -182,11 +169,9 @@ public class EnvioController {
     public void onGuardarEnvio(ActionEvent event) {
         if (!validarFormulario()) return;
 
-        String sql = """
-                INSERT INTO TBL_ENVIO
-                    (fecha_envio, id_venta, costo_servicio, persona_recibe, metodo_envio, estado)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
+        String sql = "INSERT INTO TBL_ENVIO (fecha_envio, id_venta, costo_servicio, persona_recibe, metodo_envio, estado) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -198,7 +183,7 @@ public class EnvioController {
             ps.setString(6, cmbEstado.getValue());
             ps.executeUpdate();
 
-            JOptionPane.showMessageDialog(null, "✔ Envío registrado correctamente.");
+            JOptionPane.showMessageDialog(null, "Envío registrado correctamente.");
             limpiar();
             cargarEnvios();
 
@@ -207,7 +192,7 @@ public class EnvioController {
         }
     }
 
-    // ── Editar seleccionado ───────────────────────────────────────────────
+    // ── Editar envío seleccionado ─────────────────────────────────────────
     @FXML
     public void onEditarEnvio(ActionEvent event) {
         if (idEnvioSeleccionado == -1) {
@@ -216,12 +201,10 @@ public class EnvioController {
         }
         if (!validarFormulario()) return;
 
-        String sql = """
-                UPDATE TBL_ENVIO
-                SET fecha_envio = ?, costo_servicio = ?, persona_recibe = ?,
-                    metodo_envio = ?, estado = ?
-                WHERE id_envio = ?
-                """;
+        String sql = "UPDATE TBL_ENVIO " +
+                "SET fecha_envio = ?, costo_servicio = ?, persona_recibe = ?, metodo_envio = ?, estado = ? " +
+                "WHERE id_envio = ?";
+
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -233,7 +216,7 @@ public class EnvioController {
             ps.setInt(6,    idEnvioSeleccionado);
             ps.executeUpdate();
 
-            JOptionPane.showMessageDialog(null, "✔ Envío #" + idEnvioSeleccionado + " actualizado.");
+            JOptionPane.showMessageDialog(null, "Envío #" + idEnvioSeleccionado + " actualizado.");
             limpiar();
             cargarEnvios();
 
@@ -249,25 +232,29 @@ public class EnvioController {
             JOptionPane.showMessageDialog(null, "Selecciona un envío primero.");
             return;
         }
+
         int confirm = JOptionPane.showConfirmDialog(null,
                 "¿Eliminar el envío #" + idEnvioSeleccionado + "?",
                 "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
+        String sql = "DELETE FROM TBL_ENVIO WHERE id_envio = ?";
+
         try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(
-                     "DELETE FROM TBL_ENVIO WHERE id_envio = ?")) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setInt(1, idEnvioSeleccionado);
             ps.executeUpdate();
             JOptionPane.showMessageDialog(null, "Envío eliminado.");
             limpiar();
             cargarEnvios();
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
         }
     }
 
-    // ── Limpiar ───────────────────────────────────────────────────────────
+    // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void limpiar() {
         txtIdVenta.clear();
@@ -280,23 +267,27 @@ public class EnvioController {
         if (lblInfoVenta != null) lblInfoVenta.setText("");
         idEnvioSeleccionado = -1;
         tablaEnvios.getSelectionModel().clearSelection();
+        tablaEnvios.setItems(listaEnvios);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Envio e) {
         idEnvioSeleccionado = e.getIdEnvio();
         txtIdVenta.setText(String.valueOf(e.getIdVenta()));
         txtPersonaRecibe.setText(e.getPersonaRecibe());
         txtCostoServicio.setText(String.valueOf(e.getCostoServicio()));
         cmbMetodoEnvio.setValue(e.getMetodoEnvio());
-        cmbEstado.setValue(e.getEstadoEnvio());     // ← estado real
-        lblInfoVenta.setText(e.getInfoVenta());
-        lblInfoVenta.setStyle("-fx-text-fill: #2E7D32; -fx-font-size: 11px;");
+        cmbEstado.setValue(e.getEstadoEnvio());
+        if (lblInfoVenta != null) {
+            lblInfoVenta.setText(e.getInfoVenta());
+            lblInfoVenta.setStyle("-fx-text-fill: #2E7D32; -fx-font-size: 11px;");
+        }
         try {
             dpFechaEnvio.setValue(java.time.LocalDate.parse(e.getFechaEnvio().substring(0, 10)));
         } catch (Exception ignored) {}
     }
 
+    // ── Validaciones ──────────────────────────────────────────────────────
     private boolean validarFormulario() {
         if (txtIdVenta.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El ID de Venta es obligatorio."); return false;

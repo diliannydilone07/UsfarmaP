@@ -4,7 +4,6 @@ import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Persona;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -43,22 +42,22 @@ public class PersonaController {
     @FXML private TextField        txtDescripcionDireccion;
 
     // ── Tabla ─────────────────────────────────────────────────────────────
-    @FXML private TextField                      txtBuscar;
-    @FXML private TableView<Persona>             tablaPersonas;
-    @FXML private TableColumn<Persona, Number>   colId;
-    @FXML private TableColumn<Persona, String>   colNombre;
-    @FXML private TableColumn<Persona, String>   colApellido;
-    @FXML private TableColumn<Persona, String>   colGenero;
-    @FXML private TableColumn<Persona, String>   colTelefono;
-    @FXML private TableColumn<Persona, String>   colCorreo;
-    @FXML private TableColumn<Persona, String>   colDireccion;
+    @FXML private TextField                    txtBuscar;
+    @FXML private TableView<Persona>           tablaPersonas;
+    @FXML private TableColumn<Persona, Number> colId;
+    @FXML private TableColumn<Persona, String> colNombre;
+    @FXML private TableColumn<Persona, String> colApellido;
+    @FXML private TableColumn<Persona, String> colGenero;
+    @FXML private TableColumn<Persona, String> colTelefono;
+    @FXML private TableColumn<Persona, String> colCorreo;
+    @FXML private TableColumn<Persona, String> colDireccion;
 
-    private final ObservableList<Persona> listaPersonas = FXCollections.observableArrayList();
-    private FilteredList<Persona> listaFiltrada;
+    // ── Datos internos ────────────────────────────────────────────────────
+    private ObservableList<Persona> listaPersonas = FXCollections.observableArrayList();
     private int idPersonaSeleccionada = -1;
     private int idMunicipio = 0;
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         cmbGenero.getItems().addAll("Masculino", "Femenino", "Otro");
@@ -80,24 +79,14 @@ public class PersonaController {
         colCorreo.setCellValueFactory(c -> c.getValue().correoProperty());
         colDireccion.setCellValueFactory(c -> c.getValue().direccionProperty());
 
-        // Filtro búsqueda
-        listaFiltrada = new FilteredList<>(listaPersonas, p -> true);
-        tablaPersonas.setItems(listaFiltrada);
-        txtBuscar.textProperty().addListener((obs, o, n) ->
-                listaFiltrada.setPredicate(p -> {
-                    if (n == null || n.isBlank()) return true;
-                    String lower = n.toLowerCase();
-                    return p.getNombre().toLowerCase().contains(lower)
-                            || p.getApellido().toLowerCase().contains(lower)
-                            || p.getCorreo().toLowerCase().contains(lower);
-                })
-        );
+        tablaPersonas.setItems(listaPersonas);
 
-        // Clic en fila
-        tablaPersonas.getSelectionModel().selectedItemProperty().addListener(
-                (obs, o, n) -> { if (n != null) cargarEnFormulario(n); });
+        // Clic en fila → carga formulario
+        tablaPersonas.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
+            if (n != null) cargarEnFormulario(n);
+        });
 
-        // Combos dirección encadenados
+        // Combos encadenados: región → provincia → municipio
         cmbRegion.setOnAction(e -> cargarProvinciasPorRegion());
         cmbProvincia.setOnAction(e -> cargarMunicipiosPorProvincia());
         cmbMunicipio.setOnAction(e -> {
@@ -105,17 +94,18 @@ public class PersonaController {
                 idMunicipio = Integer.parseInt(cmbMunicipio.getValue().split(" - ")[0]);
         });
 
-        // Aseguradora encadena seguro
+        // Aseguradora → seguro
         cmbAseguradora.setOnAction(e -> cargarSegurosPorAseguradora());
 
-        // Cargar datos iniciales
+        // Cargar combos iniciales
         cargarCombo("SELECT id_region, nombre FROM TBL_REGION ORDER BY nombre", cmbRegion);
         cargarCombo("SELECT id_cargo, nombre FROM TBL_CARGO ORDER BY nombre", cmbCargo);
         cargarCombo("SELECT id_aseguradora, nombre FROM TBL_ASEGURADORA WHERE estado=1 ORDER BY nombre", cmbAseguradora);
+
         cargarPersonas();
     }
 
-    // ── Utilidad: cargar cualquier combo desde una query ──────────────────
+    // ── Cargar cualquier combo desde BD ───────────────────────────────────
     private void cargarCombo(String sql, ComboBox<String> combo) {
         combo.getItems().clear();
         try (Connection con = conexion.establecerConexion();
@@ -128,6 +118,7 @@ public class PersonaController {
         }
     }
 
+    // ── Combos encadenados ────────────────────────────────────────────────
     private void cargarProvinciasPorRegion() {
         cmbProvincia.getItems().clear();
         cmbMunicipio.getItems().clear();
@@ -174,23 +165,23 @@ public class PersonaController {
     public void cargarPersonas() {
         listaPersonas.clear();
         idPersonaSeleccionada = -1;
-        String sql = """
-                SELECT p.id_persona, p.nombre, p.apellido, p.genero,
-                       p.numero_telefono, p.correo_electronico,
-                       ISNULL(d.descripcion,'')  AS descripcion,
-                       ISNULL(ca.nombre,'')      AS calle,
-                       ISNULL(se.nombre,'')      AS sector,
-                       ISNULL(mu.nombre,'')      AS municipio,
-                       ISNULL(pr.nombre,'')      AS provincia
-                FROM TBL_PERSONA p
-                LEFT JOIN TBL_DIRECCION          d  ON d.id_persona    = p.id_persona
-                LEFT JOIN TBL_CALLE              ca ON ca.id_calle     = d.id_calle
-                LEFT JOIN TBL_SECTOR             se ON se.id_sector    = ca.id_sector
-                LEFT JOIN TBL_DISTRITO_MUNICIPAL dm ON dm.id_dm        = se.id_dm
-                LEFT JOIN TBL_MUNICIPIO          mu ON mu.id_municipio = dm.id_municipio
-                LEFT JOIN TBL_PROVINCIA          pr ON pr.id_provincia = mu.id_provincia
-                ORDER BY p.id_persona DESC
-                """;
+
+        String sql = "SELECT p.id_persona, p.nombre, p.apellido, p.genero, " +
+                "p.numero_telefono, p.correo_electronico, " +
+                "ISNULL(d.descripcion,'') AS descripcion, " +
+                "ISNULL(ca.nombre,'') AS calle, " +
+                "ISNULL(se.nombre,'') AS sector, " +
+                "ISNULL(mu.nombre,'') AS municipio, " +
+                "ISNULL(pr.nombre,'') AS provincia " +
+                "FROM TBL_PERSONA p " +
+                "LEFT JOIN TBL_DIRECCION          d  ON d.id_persona    = p.id_persona " +
+                "LEFT JOIN TBL_CALLE              ca ON ca.id_calle     = d.id_calle " +
+                "LEFT JOIN TBL_SECTOR             se ON se.id_sector    = ca.id_sector " +
+                "LEFT JOIN TBL_DISTRITO_MUNICIPAL dm ON dm.id_dm        = se.id_dm " +
+                "LEFT JOIN TBL_MUNICIPIO          mu ON mu.id_municipio = dm.id_municipio " +
+                "LEFT JOIN TBL_PROVINCIA          pr ON pr.id_provincia = mu.id_provincia " +
+                "ORDER BY p.id_persona DESC";
+
         try (Connection con = conexion.establecerConexion();
              Statement st = con.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -200,24 +191,50 @@ public class PersonaController {
                                 + ", " + rs.getString("sector") + ", "
                                 + rs.getString("municipio") + ", " + rs.getString("provincia");
                 listaPersonas.add(new Persona(
-                        rs.getInt("id_persona"), rs.getString("nombre"),
-                        rs.getString("apellido"), rs.getString("genero"),
-                        rs.getString("numero_telefono"), rs.getString("correo_electronico"), dir));
+                        rs.getInt("id_persona"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido"),
+                        rs.getString("genero"),
+                        rs.getString("numero_telefono"),
+                        rs.getString("correo_electronico"),
+                        dir));
             }
+            tablaPersonas.setItems(listaPersonas);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar: " + e.getMessage());
         }
     }
 
-    // ── Guardar ───────────────────────────────────────────────────────────
+    // ── Buscar en tabla ───────────────────────────────────────────────────
+    @FXML
+    public void fnBuscar(ActionEvent event) {
+        String busqueda = txtBuscar.getText().trim().toLowerCase();
+        if (busqueda.isEmpty()) {
+            tablaPersonas.setItems(listaPersonas);
+            return;
+        }
+
+        ObservableList<Persona> listaFiltrada = FXCollections.observableArrayList();
+        for (Persona p : listaPersonas) {
+            if (p.getNombre().toLowerCase().contains(busqueda)
+                    || p.getApellido().toLowerCase().contains(busqueda)
+                    || p.getCorreo().toLowerCase().contains(busqueda)) {
+                listaFiltrada.add(p);
+            }
+        }
+        tablaPersonas.setItems(listaFiltrada);
+    }
+
+    // ── Guardar nueva persona ─────────────────────────────────────────────
     @FXML
     public void onGuardarPersona(ActionEvent event) {
         if (!validarFormulario()) return;
+
         try (Connection con = conexion.establecerConexion()) {
 
-            // 1. Insertar persona
+            // 1. Insertar en TBL_PERSONA
             PreparedStatement ps = con.prepareStatement(
-                    "INSERT INTO TBL_PERSONA (nombre,apellido,genero,numero_telefono,correo_electronico) VALUES(?,?,?,?,?)",
+                    "INSERT INTO TBL_PERSONA (nombre, apellido, genero, numero_telefono, correo_electronico) VALUES(?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, txtNombre.getText().trim());
             ps.setString(2, txtApellido.getText().trim());
@@ -225,12 +242,13 @@ public class PersonaController {
             ps.setString(4, txtTelefono.getText().trim());
             ps.setString(5, txtCorreo.getText().trim());
             ps.executeUpdate();
+
             int idPersona = -1;
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) idPersona = keys.getInt(1);
             if (idPersona == -1) return;
 
-            // 2. Insertar en rol correspondiente
+            // 2. Insertar en rol
             if (rbCliente.isSelected()) {
                 if (cmbSeguro.getValue() != null) {
                     int idSeguro = Integer.parseInt(cmbSeguro.getValue().split(" - ")[0]);
@@ -259,15 +277,15 @@ public class PersonaController {
                 psEmp.executeUpdate();
             }
 
-            // 3. Dirección (opcional)
+            // 3. Dirección opcional
             if (idMunicipio > 0 && !txtSector.getText().isBlank() && !txtCalle.getText().isBlank()) {
                 int idCalle = obtenerOCrearCalle(con,
                         txtSector.getText().trim(), txtCalle.getText().trim(), idMunicipio);
-                if (idCalle > 0) insertarDireccion(con, idPersona, idCalle,
-                        txtDescripcionDireccion.getText().trim());
+                if (idCalle > 0)
+                    insertarDireccion(con, idPersona, idCalle, txtDescripcionDireccion.getText().trim());
             }
 
-            JOptionPane.showMessageDialog(null, "✔ " + (rbCliente.isSelected() ? "Cliente" : "Empleado") + " registrado.");
+            JOptionPane.showMessageDialog(null, (rbCliente.isSelected() ? "Cliente" : "Empleado") + " registrado correctamente.");
             limpiar();
             cargarPersonas();
 
@@ -276,18 +294,19 @@ public class PersonaController {
         }
     }
 
-    // ── Editar ────────────────────────────────────────────────────────────
+    // ── Editar persona seleccionada ───────────────────────────────────────
     @FXML
     public void onEditarPersona(ActionEvent event) {
         if (idPersonaSeleccionada == -1) {
             JOptionPane.showMessageDialog(null, "Selecciona una persona de la tabla primero."); return;
         }
         if (!validarFormulario()) return;
+
         try (Connection con = conexion.establecerConexion()) {
 
             // 1. Actualizar TBL_PERSONA
             PreparedStatement ps = con.prepareStatement(
-                    "UPDATE TBL_PERSONA SET nombre=?,apellido=?,genero=?,numero_telefono=?,correo_electronico=? WHERE id_persona=?");
+                    "UPDATE TBL_PERSONA SET nombre=?, apellido=?, genero=?, numero_telefono=?, correo_electronico=? WHERE id_persona=?");
             ps.setString(1, txtNombre.getText().trim());
             ps.setString(2, txtApellido.getText().trim());
             ps.setString(3, cmbGenero.getValue());
@@ -296,7 +315,7 @@ public class PersonaController {
             ps.setInt(6, idPersonaSeleccionada);
             ps.executeUpdate();
 
-            // 2. Actualizar seguro en TBL_CLIENTE si es cliente
+            // 2. Actualizar seguro si es cliente
             if (rbCliente.isSelected()) {
                 if (cmbSeguro.getValue() != null) {
                     int idSeguro = Integer.parseInt(cmbSeguro.getValue().split(" - ")[0]);
@@ -336,55 +355,74 @@ public class PersonaController {
                 }
             }
 
-            JOptionPane.showMessageDialog(null, "✔ Persona actualizada.");
-            limpiar(); cargarPersonas();
+            JOptionPane.showMessageDialog(null, "Persona actualizada correctamente.");
+            limpiar();
+            cargarPersonas();
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
         }
     }
 
-    // ── Eliminar ──────────────────────────────────────────────────────────
+    // ── Eliminar persona seleccionada ─────────────────────────────────────
     @FXML
     public void onEliminarPersona(ActionEvent event) {
         if (idPersonaSeleccionada == -1) {
             JOptionPane.showMessageDialog(null, "Selecciona una persona primero."); return;
         }
+
         int ok = JOptionPane.showConfirmDialog(null,
-                "¿Eliminar persona #" + idPersonaSeleccionada + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+                "¿Eliminar persona #" + idPersonaSeleccionada + "?",
+                "Confirmar", JOptionPane.YES_NO_OPTION);
         if (ok != JOptionPane.YES_OPTION) return;
+
         try (Connection con = conexion.establecerConexion()) {
             for (String q : new String[]{
                     "DELETE FROM TBL_DIRECCION WHERE id_persona=" + idPersonaSeleccionada,
                     "DELETE FROM TBL_CLIENTE   WHERE id_persona=" + idPersonaSeleccionada,
                     "DELETE FROM TBL_EMPLEADO  WHERE id_persona=" + idPersonaSeleccionada,
-                    "DELETE FROM TBL_PERSONA   WHERE id_persona=" + idPersonaSeleccionada})
+                    "DELETE FROM TBL_PERSONA   WHERE id_persona=" + idPersonaSeleccionada}) {
                 con.prepareStatement(q).executeUpdate();
+            }
             JOptionPane.showMessageDialog(null, "Persona eliminada.");
-            limpiar(); cargarPersonas();
+            limpiar();
+            cargarPersonas();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
         }
     }
 
-    // ── Limpiar ───────────────────────────────────────────────────────────
+    // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void limpiar() {
-        txtNombre.clear(); txtApellido.clear(); txtTelefono.clear();
-        txtCorreo.clear(); txtSector.clear(); txtCalle.clear();
-        txtDescripcionDireccion.clear(); txtBuscar.clear();
-        cmbGenero.setValue(null); cmbCargo.setValue(null);
-        dpHorario.setValue(null); cmbAseguradora.setValue(null);
-        cmbSeguro.getItems().clear(); cmbRegion.setValue(null);
-        cmbProvincia.getItems().clear(); cmbMunicipio.getItems().clear();
+        txtNombre.clear();
+        txtApellido.clear();
+        txtTelefono.clear();
+        txtCorreo.clear();
+        txtSector.clear();
+        txtCalle.clear();
+        txtDescripcionDireccion.clear();
+        txtBuscar.clear();
+        cmbGenero.setValue(null);
+        cmbCargo.setValue(null);
+        dpHorario.setValue(null);
+        cmbAseguradora.setValue(null);
+        cmbSeguro.getItems().clear();
+        cmbRegion.setValue(null);
+        cmbProvincia.getItems().clear();
+        cmbMunicipio.getItems().clear();
         rbCliente.setSelected(true);
-        vboxEmpleado.setVisible(false); vboxEmpleado.setManaged(false);
-        vboxCliente.setVisible(true);   vboxCliente.setManaged(true);
-        idPersonaSeleccionada = -1; idMunicipio = 0;
+        vboxEmpleado.setVisible(false);
+        vboxEmpleado.setManaged(false);
+        vboxCliente.setVisible(true);
+        vboxCliente.setManaged(true);
+        idPersonaSeleccionada = -1;
+        idMunicipio = 0;
         tablaPersonas.getSelectionModel().clearSelection();
+        tablaPersonas.setItems(listaPersonas);
     }
 
-    // ── Helpers dirección ─────────────────────────────────────────────────
+    // ── Helpers de dirección ──────────────────────────────────────────────
     private int obtenerOCrearCalle(Connection con, String sector, String calle, int idMun) throws SQLException {
         int idDm = obtenerOCrear(con,
                 "SELECT id_dm FROM TBL_DISTRITO_MUNICIPAL WHERE id_municipio=? AND nombre=?",
@@ -399,11 +437,13 @@ public class PersonaController {
 
     private int obtenerOCrear(Connection con, String sel, String ins, int pid, String nombre) throws SQLException {
         PreparedStatement ps = con.prepareStatement(sel);
-        ps.setInt(1, pid); ps.setString(2, nombre);
+        ps.setInt(1, pid);
+        ps.setString(2, nombre);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) return rs.getInt(1);
         PreparedStatement psI = con.prepareStatement(ins, Statement.RETURN_GENERATED_KEYS);
-        psI.setString(1, nombre); psI.setInt(2, pid);
+        psI.setString(1, nombre);
+        psI.setInt(2, pid);
         psI.executeUpdate();
         ResultSet k = psI.getGeneratedKeys();
         return k.next() ? k.getInt(1) : -1;
@@ -411,12 +451,14 @@ public class PersonaController {
 
     private void insertarDireccion(Connection con, int idPersona, int idCalle, String desc) throws SQLException {
         PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO TBL_DIRECCION (descripcion,id_calle,id_persona) VALUES(?,?,?)");
+                "INSERT INTO TBL_DIRECCION (descripcion, id_calle, id_persona) VALUES(?,?,?)");
         ps.setString(1, desc.isBlank() ? "-" : desc);
-        ps.setInt(2, idCalle); ps.setInt(3, idPersona);
+        ps.setInt(2, idCalle);
+        ps.setInt(3, idPersona);
         ps.executeUpdate();
     }
 
+    // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Persona p) {
         idPersonaSeleccionada = p.getId();
         txtNombre.setText(p.getNombre());
@@ -425,20 +467,19 @@ public class PersonaController {
         txtTelefono.setText(p.getTelefono());
         txtCorreo.setText(p.getCorreo());
 
-        // Cargar datos adicionales desde BD
+        // Cargar datos adicionales de BD
         try (Connection con = conexion.establecerConexion()) {
 
-            // ¿Es cliente o empleado?
+            // ¿Cliente o empleado?
             PreparedStatement psCli = con.prepareStatement(
                     "SELECT id_seguro FROM TBL_CLIENTE WHERE id_persona=?");
             psCli.setInt(1, p.getId());
             ResultSet rsCli = psCli.executeQuery();
+
             if (rsCli.next()) {
                 rbCliente.setSelected(true);
-                // Cargar seguro si tiene
                 int idSeguro = rsCli.getInt("id_seguro");
                 if (!rsCli.wasNull() && idSeguro > 0) {
-                    // Buscar aseguradora del seguro para encadenar el combo
                     PreparedStatement psSeg = con.prepareStatement(
                             "SELECT sm.id_seguro, sm.nombre_seguro, sm.id_aseguradora, a.nombre " +
                                     "FROM TBL_SEGURO_MEDICO sm " +
@@ -448,15 +489,12 @@ public class PersonaController {
                     ResultSet rsSeg = psSeg.executeQuery();
                     if (rsSeg.next()) {
                         int idAseg = rsSeg.getInt("id_aseguradora");
-                        String nombreAseg = rsSeg.getString("nombre");
-                        // Seleccionar aseguradora en el combo
                         for (String item : cmbAseguradora.getItems()) {
                             if (item.startsWith(idAseg + " - ")) {
                                 cmbAseguradora.setValue(item);
                                 break;
                             }
                         }
-                        // Cargar seguros de esa aseguradora y seleccionar el correcto
                         cargarSegurosPorAseguradora();
                         for (String item : cmbSeguro.getItems()) {
                             if (item.startsWith(idSeguro + " - ")) {
@@ -467,7 +505,6 @@ public class PersonaController {
                     }
                 }
             } else {
-                // Es empleado
                 rbEmpleado.setSelected(true);
                 PreparedStatement psEmp = con.prepareStatement(
                         "SELECT e.id_cargo, c.nombre FROM TBL_EMPLEADO e " +
@@ -485,7 +522,7 @@ public class PersonaController {
                 }
             }
 
-            // Cargar dirección si tiene
+            // Cargar dirección
             PreparedStatement psDir = con.prepareStatement(
                     "SELECT d.descripcion, ca.nombre AS calle, se.nombre AS sector, " +
                             "mu.id_municipio, mu.nombre AS municipio, " +
@@ -506,10 +543,9 @@ public class PersonaController {
                 txtSector.setText(rsDir.getString("sector"));
                 txtCalle.setText(rsDir.getString("calle"));
                 idMunicipio = rsDir.getInt("id_municipio");
-
-                // Seleccionar región → carga provincias → seleccionar provincia → carga municipios → seleccionar municipio
-                int idRegion = rsDir.getInt("id_region");
+                int idRegion   = rsDir.getInt("id_region");
                 int idProvincia = rsDir.getInt("id_provincia");
+
                 for (String item : cmbRegion.getItems()) {
                     if (item.startsWith(idRegion + " - ")) { cmbRegion.setValue(item); break; }
                 }
@@ -528,13 +564,17 @@ public class PersonaController {
         }
     }
 
+    // ── Validaciones ──────────────────────────────────────────────────────
     private boolean validarFormulario() {
         if (txtNombre.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "El nombre es obligatorio."); return false; }
+            JOptionPane.showMessageDialog(null, "El nombre es obligatorio."); return false;
+        }
         if (txtApellido.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "El apellido es obligatorio."); return false; }
+            JOptionPane.showMessageDialog(null, "El apellido es obligatorio."); return false;
+        }
         if (cmbGenero.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona el género."); return false; }
+            JOptionPane.showMessageDialog(null, "Selecciona el género."); return false;
+        }
         return true;
     }
 }
