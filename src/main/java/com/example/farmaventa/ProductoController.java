@@ -288,6 +288,18 @@ public class ProductoController {
         return -1;
     }
 
+    // ── Precargar producto por ID (llamado desde otras vistas) ────────────
+    public void precargarProducto(int idProducto) {
+        for (Producto p : listaProductos) {
+            if (p.getIdProducto() == idProducto) {
+                cargarEnFormulario(p);
+                tablaProductos.getSelectionModel().select(p);
+                tablaProductos.scrollTo(p);
+                return;
+            }
+        }
+    }
+
     // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Producto p) {
         txtId.setText(String.valueOf(p.getIdProducto()));
