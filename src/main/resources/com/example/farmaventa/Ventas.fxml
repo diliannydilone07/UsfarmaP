@@ -152,7 +152,6 @@
             </TableView>
 
             <HBox alignment="CENTER_RIGHT" spacing="10">
-                <Button onAction="#onVerDetallesProducto" style="-fx-background-color: #FFF8E1; -fx-text-fill: #E65100; -fx-border-color: #FFE082; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="Ver Detalles" />
                 <Button onAction="#onEditarVenta" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-border-color: #BBDEFB; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="Editar Venta" />
                 <Button onAction="#onQuitarProducto" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828; -fx-border-color: #FFCDD2; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="Quitar Producto" />
             </HBox>

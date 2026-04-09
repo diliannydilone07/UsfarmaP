@@ -6,14 +6,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.StackPane;
 
 import javax.swing.JOptionPane;
-import java.io.IOException;
-import java.net.URL;
 import java.sql.*;
 
 public class HelloController {
@@ -370,33 +365,6 @@ public class HelloController {
         lblMontoTotal.setText("RD$ 0.00");
         lblMontoPendiente.setText("RD$ 0.00");
         lblCantProductos.setText("0 productos");
-    }
-
-    // ── Ver detalles del producto seleccionado en la tabla ───────────────
-    @FXML
-    public void onVerDetallesProducto(ActionEvent event) {
-        Venta sel = tablaVentaProducto.getSelectionModel().getSelectedItem();
-        if (sel == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona un producto de la tabla primero.");
-            return;
-        }
-        int idProducto = sel.getIdVenta(); // idVenta almacena idProducto en las filas de esta tabla
-
-        try {
-            URL ruta = getClass().getResource("/com/example/farmaventa/Inventario.fxml");
-            FXMLLoader loader = new FXMLLoader(ruta);
-            Node vista = loader.load();
-
-            ProductoController productoCtrl = loader.getController();
-            productoCtrl.precargarProducto(idProducto);
-
-            StackPane contentArea = (StackPane) tablaVentaProducto.getScene().lookup("#contentArea");
-            if (contentArea != null) {
-                contentArea.getChildren().setAll(vista);
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Error al abrir detalles: " + e.getMessage());
-        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
