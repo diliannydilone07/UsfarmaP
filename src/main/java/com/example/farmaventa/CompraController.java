@@ -522,64 +522,109 @@ public class CompraController {
             try { idCompraTarget = Integer.parseInt(txtIdCompraPago.getText().trim()); }
             catch (NumberFormatException ignored) {}
         }
-        if (idCompraTarget == -1) { JOptionPane.showMessageDialog(null, "Primero busca una compra por ID."); return; }
-        if (txtMontoPago.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa el monto del pago."); return; }
-        if (cmbMetodoPago.getValue() == null) { JOptionPane.showMessageDialog(null, "Selecciona el metodo de pago."); return; }
+
+        if (idCompraTarget == -1) {
+            JOptionPane.showMessageDialog(null, "Primero busca una compra por ID.");
+            return;
+        }
+
+        if (txtMontoPago.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Ingresa el monto del pago.");
+            return;
+        }
+
+        if (cmbMetodoPago.getValue() == null) {
+            JOptionPane.showMessageDialog(null, "Selecciona el metodo de pago.");
+            return;
+        }
+
         if (cmbCuenta.getValue() == null || !mapaCuentas.containsKey(cmbCuenta.getValue())) {
-            JOptionPane.showMessageDialog(null, "Selecciona una cuenta bancaria valida."); return;
+            JOptionPane.showMessageDialog(null, "Selecciona una cuenta bancaria valida.");
+            return;
         }
 
         double montoPago;
-        try { montoPago = Double.parseDouble(txtMontoPago.getText().trim()); }
-        catch (NumberFormatException e) { JOptionPane.showMessageDialog(null, "El monto debe ser un numero valido."); return; }
-        if (montoPago <= 0) { JOptionPane.showMessageDialog(null, "El monto debe ser mayor a cero."); return; }
+        try {
+            montoPago = Double.parseDouble(txtMontoPago.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "El monto debe ser un numero valido.");
+            return;
+        }
+
+        if (montoPago <= 0) {
+            JOptionPane.showMessageDialog(null, "El monto debe ser mayor a cero.");
+            return;
+        }
 
         int idCuenta = mapaCuentas.get(cmbCuenta.getValue());
+
         try (Connection con = conexion.establecerConexion()) {
-            PreparedStatement psCheck = con.prepareStatement("SELECT monto_total, monto_pendiente FROM TBL_COMPRA WHERE id_compra = ?");
+
+            PreparedStatement psCheck = con.prepareStatement(
+                    "SELECT monto_total, monto_pendiente FROM TBL_COMPRA WHERE id_compra = ?");
             psCheck.setInt(1, idCompraTarget);
             ResultSet rsCheck = psCheck.executeQuery();
-            if (!rsCheck.next()) { JOptionPane.showMessageDialog(null, "Compra #" + idCompraTarget + " no encontrada."); return; }
-            double montoTotal     = rsCheck.getDouble("monto_total");
+
+            if (!rsCheck.next()) {
+                JOptionPane.showMessageDialog(null, "Compra #" + idCompraTarget + " no encontrada.");
+                return;
+            }
+
+            double montoTotal = rsCheck.getDouble("monto_total");
             double montoPendiente = rsCheck.getDouble("monto_pendiente");
 
             if (montoPago > montoPendiente) {
-                int resp = JOptionPane.showConfirmDialog(null,
-                        "El monto supera el pendiente (RD$ " + String.format("%.2f", montoPendiente) + ").\nContinuar?",
-                        "Monto excede pendiente", JOptionPane.YES_NO_OPTION);
-                if (resp != JOptionPane.YES_OPTION) return;
+                JOptionPane.showMessageDialog(null,
+                        "El monto excede el pendiente. Pendiente actual: RD$ " + String.format("%.2f", montoPendiente),
+                        "Error de pago",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
             }
 
             PreparedStatement psPago = con.prepareStatement(
                     "INSERT INTO TBL_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) VALUES (?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
-            psPago.setString(1, "Compra"); psPago.setDate(2, Date.valueOf(dpFechaPago.getValue()));
-            psPago.setDouble(3, montoPago); psPago.setString(4, cmbMetodoPago.getValue()); psPago.setBoolean(5, true);
+
+            psPago.setString(1, "Compra");
+            psPago.setDate(2, Date.valueOf(dpFechaPago.getValue()));
+            psPago.setDouble(3, montoPago);
+            psPago.setString(4, cmbMetodoPago.getValue());
+            psPago.setBoolean(5, true);
             psPago.executeUpdate();
+
             int idPago = -1;
             ResultSet keys = psPago.getGeneratedKeys();
             if (keys.next()) idPago = keys.getInt(1);
 
-            PreparedStatement psPagoC = con.prepareStatement("INSERT INTO TBL_PAGO_COMPRA (id_compra, id_cuenta, id_pago) VALUES (?,?,?)");
-            psPagoC.setInt(1, idCompraTarget); psPagoC.setInt(2, idCuenta); psPagoC.setInt(3, idPago);
+            PreparedStatement psPagoC = con.prepareStatement(
+                    "INSERT INTO TBL_PAGO_COMPRA (id_compra, id_cuenta, id_pago) VALUES (?,?,?)");
+
+            psPagoC.setInt(1, idCompraTarget);
+            psPagoC.setInt(2, idCuenta);
+            psPagoC.setInt(3, idPago);
             psPagoC.executeUpdate();
 
-            double nuevoPendiente = Math.max(0, montoPendiente - montoPago);
-            PreparedStatement psUpd = con.prepareStatement("UPDATE TBL_COMPRA SET monto_pendiente = ? WHERE id_compra = ?");
-            psUpd.setDouble(1, nuevoPendiente); psUpd.setInt(2, idCompraTarget); psUpd.executeUpdate();
+            double nuevoPendiente = montoPendiente - montoPago;
 
-            JOptionPane.showMessageDialog(null, "Pago #" + idPago + " registrado.\n" +
-                    "Monto: RD$ " + String.format("%.2f", montoPago) +
-                    " | Nuevo pendiente: RD$ " + String.format("%.2f", nuevoPendiente));
+            PreparedStatement psUpd = con.prepareStatement(
+                    "UPDATE TBL_COMPRA SET monto_pendiente = ? WHERE id_compra = ?");
+            psUpd.setDouble(1, nuevoPendiente);
+            psUpd.setInt(2, idCompraTarget);
+            psUpd.executeUpdate();
+
+            JOptionPane.showMessageDialog(null,
+                    "Pago #" + idPago + " registrado.\n" +
+                            "Monto: RD$ " + String.format("%.2f", montoPago) +
+                            " | Nuevo pendiente: RD$ " + String.format("%.2f", nuevoPendiente));
 
             cargarPagosDeCompra(con, idCompraTarget);
             actualizarResumenPago(montoTotal, nuevoPendiente);
             limpiarFormularioPago();
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al registrar pago: " + e.getMessage());
         }
     }
-
     // ── Eliminar pago ─────────────────────────────────────────────────────
     @FXML
     public void onEliminarPago(ActionEvent event) {
