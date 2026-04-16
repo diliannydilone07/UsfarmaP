@@ -27,7 +27,7 @@ public class DevolucionCompraController implements Initializable {
     @FXML private TextField        txtMontoCompra;
     @FXML private DatePicker       dpFechaDevolucion;
     @FXML private ComboBox<String> cmbEstado;
-    @FXML private TextArea         txtRazon;
+    @FXML private TextField txtRazon;
 
     // ── Tabla ─────────────────────────────────────────────────────────────────
     @FXML private TableView<DevolucionCompra>              tablaDevolucion;
