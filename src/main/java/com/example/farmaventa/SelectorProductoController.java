@@ -316,8 +316,8 @@ public class SelectorProductoController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/example/farmaventa/Inventario.fxml"));
-            Node vista = loader.load();
-            contentArea.getChildren().setAll(vista);
+            Node inventarioVista = loader.load();
+            contentArea.getChildren().setAll(inventarioVista);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error al abrir Inventario: " + e.getMessage());
         }
