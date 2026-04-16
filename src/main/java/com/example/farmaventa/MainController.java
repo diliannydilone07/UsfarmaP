@@ -7,108 +7,201 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
 
     @FXML private StackPane contentArea;
+    @FXML private Label     lblUsuario;
+    @FXML private Label     lblFecha;
+    @FXML private Label     lblModuloActual;
+    @FXML private Label     lblSubtituloActual;
 
     @FXML private Button btnInicio;
     @FXML private Button btnVentas;
     @FXML private Button btnCompras;
     @FXML private Button btnPersonas;
     @FXML private Button btnInventario;
-    @FXML private Button btnReclamaciones;
-    @FXML private Button btnReclamacionesCompra;
-    @FXML private Button btnDevoluciones;
-    @FXML private Button btnDevolucionesCompra;
     @FXML private Button btnFidelizacion;
     @FXML private Button btnConvenios;
     @FXML private Button btnEnvios;
 
-    @FXML private Label lblUsuario;
+    @FXML private Button btnReclamacionesToggle;
+    @FXML private Button btnDevolucionesToggle;
+    @FXML private VBox   vboxReclamaciones;
+    @FXML private VBox   vboxDevoluciones;
+    @FXML private Button btnReclamaciones;
+    @FXML private Button btnReclamacionesCompra;
+    @FXML private Button btnDevoluciones;
+    @FXML private Button btnDevolucionesCompra;
 
-    private Button btnActivo;
+    private Button  btnActivo;
+    private boolean reclamacionesExpandido = false;
+    private boolean devolucionesExpandido  = false;
 
-    private static final String ESTILO_ACTIVO =
-            "-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; " +
-                    "-fx-font-weight: bold; -fx-font-size: 13px; " +
-                    "-fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 12 10 12;";
+    // ── Estilos ───────────────────────────────────────────────────────────
+    private static final String S_NORMAL =
+            "-fx-background-color: transparent; -fx-text-fill: #BBF7D0; " +
+                    "-fx-font-size: 12.5px; -fx-background-radius: 7; " +
+                    "-fx-cursor: hand; -fx-padding: 8 10 8 10;";
 
-    private static final String ESTILO_INACTIVO =
-            "-fx-background-color: transparent; -fx-text-fill: #424242; " +
-                    "-fx-font-size: 13px; -fx-background-radius: 6; " +
-                    "-fx-cursor: hand; -fx-padding: 10 12 10 12;";
+    private static final String S_ACTIVO =
+            "-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: #FFFFFF; " +
+                    "-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 7; " +
+                    "-fx-cursor: hand; -fx-padding: 8 10 8 10; " +
+                    "-fx-border-color: rgba(255,255,255,0.22); -fx-border-radius: 7; -fx-border-width: 1;";
 
+    private static final String S_TOGGLE_ABIERTO =
+            "-fx-background-color: rgba(0,0,0,0.15); -fx-text-fill: #FFFFFF; " +
+                    "-fx-font-size: 12.5px; -fx-background-radius: 7; " +
+                    "-fx-cursor: hand; -fx-padding: 8 10 8 10;";
+
+    private static final String S_SUB_NORMAL =
+            "-fx-background-color: transparent; -fx-text-fill: #6EE7B7; " +
+                    "-fx-font-size: 11.5px; -fx-background-radius: 6; " +
+                    "-fx-cursor: hand; -fx-padding: 6 10 6 10;";
+
+    private static final String S_SUB_ACTIVO =
+            "-fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: #FFFFFF; " +
+                    "-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 6; " +
+                    "-fx-cursor: hand; -fx-padding: 6 10 6 10;";
+
+    // ─────────────────────────────────────────────────────────────────────
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        resetarTodosLosBotones();
-        cargarVista("Dashboard.fxml", btnInicio);
+    public void initialize(URL url, ResourceBundle rb) {
+        if (lblFecha != null)
+            lblFecha.setText(LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        resetarTodos();
+        cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema");
     }
 
-    @FXML private void onMenuInicio()              { cargarVista("Dashboard.fxml",          btnInicio); }
-    @FXML private void onMenuVentas()              { cargarVista("Ventas.fxml",              btnVentas); }
-    @FXML private void onMenuCompras()             { cargarVista("Compra.fxml",              btnCompras); }
-    @FXML private void onMenuPersonas()            { cargarVista("Personas.fxml",            btnPersonas); }
-    @FXML private void onMenuInventario()          { cargarVista("Inventario.fxml",          btnInventario); }
-    @FXML private void onMenuReclamaciones()       { cargarVista("Reclamacionventa.fxml",    btnReclamaciones); }
-    @FXML private void onMenuReclamacionesCompra() { cargarVista("ReclamacionCompra.fxml",  btnReclamacionesCompra); }
-    @FXML private void onMenuDevoluciones()        { cargarVista("DevolucionVenta.fxml",    btnDevoluciones); }
-    @FXML private void onMenuDevolucionesCompra()  { cargarVista("DevolucionCompra.fxml",   btnDevolucionesCompra); }
-    @FXML private void onMenuFidelizacion()        { cargarVista("fidelizacion.fxml",        btnFidelizacion); }
-    @FXML private void onMenuConvenios()           { cargarVista("Convenio.fxml",            btnConvenios); }
-    @FXML private void onMenuEnvios()              { cargarVista("Envio.fxml",               btnEnvios); }
+    // ── Navegación ────────────────────────────────────────────────────────
+    @FXML private void onMenuInicio() {
+        cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema"); }
+    @FXML private void onMenuVentas() {
+        cargarVista("Ventas.fxml", btnVentas, "Ventas", "Registra y gestiona ventas"); }
+    @FXML private void onMenuCompras() {
+        cargarVista("Compra.fxml", btnCompras, "Compras", "Gestiona compras a proveedores"); }
+    @FXML private void onMenuPersonas() {
+        cargarVista("Personas.fxml", btnPersonas, "Personas", "Clientes, empleados y proveedores"); }
+    @FXML private void onMenuInventario() {
+        cargarVista("Inventario.fxml", btnInventario, "Inventario", "Control de productos y stock"); }
+    @FXML private void onMenuFidelizacion() {
+        cargarVista("fidelizacion.fxml", btnFidelizacion, "Fidelización", "Programa de puntos y beneficios"); }
+    @FXML private void onMenuConvenios() {
+        cargarVista("Convenio.fxml", btnConvenios, "Convenios", "Acuerdos con proveedores"); }
+    @FXML private void onMenuEnvios() {
+        cargarVista("Envio.fxml", btnEnvios, "Envíos", "Seguimiento y gestión de envíos"); }
 
-    private void cargarVista(String nombreFxml, Button boton) {
+    // ── Submenús ──────────────────────────────────────────────────────────
+    @FXML
+    private void onToggleReclamaciones() {
+        reclamacionesExpandido = !reclamacionesExpandido;
+        vboxReclamaciones.setVisible(reclamacionesExpandido);
+        vboxReclamaciones.setManaged(reclamacionesExpandido);
+        btnReclamacionesToggle.setText(reclamacionesExpandido
+                ? "📋  Reclamaciones  ∨" : "📋  Reclamaciones  ›");
+        btnReclamacionesToggle.setStyle(reclamacionesExpandido ? S_TOGGLE_ABIERTO : S_NORMAL);
+    }
+
+    @FXML private void onMenuReclamaciones() {
+        cargarVista("Reclamacionventa.fxml", null,
+                "Reclamaciones · Ventas", "Gestión de reclamaciones de ventas");
+        activarSub(btnReclamaciones);
+    }
+    @FXML private void onMenuReclamacionesCompra() {
+        cargarVista("ReclamacionCompra.fxml", null,
+                "Reclamaciones · Compras", "Gestión de reclamaciones de compras");
+        activarSub(btnReclamacionesCompra);
+    }
+
+    @FXML
+    private void onToggleDevoluciones() {
+        devolucionesExpandido = !devolucionesExpandido;
+        vboxDevoluciones.setVisible(devolucionesExpandido);
+        vboxDevoluciones.setManaged(devolucionesExpandido);
+        btnDevolucionesToggle.setText(devolucionesExpandido
+                ? "↩  Devoluciones  ∨" : "↩  Devoluciones  ›");
+        btnDevolucionesToggle.setStyle(devolucionesExpandido ? S_TOGGLE_ABIERTO : S_NORMAL);
+    }
+
+    @FXML private void onMenuDevoluciones() {
+        cargarVista("DevolucionVenta.fxml", null,
+                "Devoluciones · Ventas", "Procesamiento de devoluciones de ventas");
+        activarSub(btnDevoluciones);
+    }
+    @FXML private void onMenuDevolucionesCompra() {
+        cargarVista("DevolucionCompra.fxml", null,
+                "Devoluciones · Compras", "Procesamiento de devoluciones de compras");
+        activarSub(btnDevolucionesCompra);
+    }
+
+    @FXML private void onCerrarSesion() {
+        System.out.println("Cerrando sesión...");
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    private void cargarVista(String fxml, Button boton, String titulo, String subtitulo) {
         try {
-            URL ruta = getClass().getResource("/com/example/farmaventa/" + nombreFxml);
-            if (ruta == null) {
-                System.err.println(">>> No se encontro el FXML: " + nombreFxml);
-                return;
-            }
-            FXMLLoader loader = new FXMLLoader(ruta);
-            Node vista = loader.load();
+            URL ruta = getClass().getResource("/com/example/farmaventa/" + fxml);
+            if (ruta == null) { System.err.println("FXML no encontrado: " + fxml); return; }
+            Node vista = FXMLLoader.load(ruta);
             contentArea.getChildren().setAll(vista);
-            marcarBotonActivo(boton);
+            if (lblModuloActual    != null) lblModuloActual.setText(titulo);
+            if (lblSubtituloActual != null) lblSubtituloActual.setText(subtitulo);
+            if (boton != null) {
+                if (btnActivo != null) btnActivo.setStyle(S_NORMAL);
+                boton.setStyle(S_ACTIVO);
+                btnActivo = boton;
+                limpiarSubs();
+            }
         } catch (IOException e) {
-            System.err.println(">>> Error cargando: " + nombreFxml);
+            System.err.println("Error cargando: " + fxml);
             e.printStackTrace();
         }
     }
 
-    private void resetarTodosLosBotones() {
-        List.of(btnInicio, btnVentas, btnCompras, btnPersonas,
-                        btnInventario, btnReclamaciones, btnReclamacionesCompra,
-                        btnDevoluciones, btnDevolucionesCompra,
-                        btnFidelizacion, btnConvenios, btnEnvios)
-                .forEach(b -> b.setStyle(ESTILO_INACTIVO));
-        btnActivo = null;
+    private void activarSub(Button sub) {
+        if (btnActivo != null) { btnActivo.setStyle(S_NORMAL); btnActivo = null; }
+        limpiarSubs();
+        sub.setStyle(S_SUB_ACTIVO);
     }
 
-    private void marcarBotonActivo(Button nuevoActivo) {
-        if (btnActivo != null) btnActivo.setStyle(ESTILO_INACTIVO);
-        nuevoActivo.setStyle(ESTILO_ACTIVO);
-        btnActivo = nuevoActivo;
+    private void limpiarSubs() {
+        List.of(btnReclamaciones, btnReclamacionesCompra,
+                        btnDevoluciones, btnDevolucionesCompra)
+                .forEach(b -> b.setStyle(S_SUB_NORMAL));
     }
 
-    public void navegarA(String nombreFxml, Button boton) {
-        cargarVista(nombreFxml, boton != null ? boton : btnInicio);
+    private void resetarTodos() {
+        List.of(btnInicio, btnVentas, btnCompras, btnPersonas, btnInventario,
+                        btnFidelizacion, btnConvenios, btnEnvios,
+                        btnReclamacionesToggle, btnDevolucionesToggle)
+                .forEach(b -> b.setStyle(S_NORMAL));
+        limpiarSubs();
     }
 
-    public Button getBtnInicio()               { return btnInicio; }
-    public Button getBtnVentas()               { return btnVentas; }
-    public Button getBtnCompras()              { return btnCompras; }
-    public Button getBtnPersonas()             { return btnPersonas; }
-    public Button getBtnInventario()           { return btnInventario; }
-    public Button getBtnReclamaciones()        { return btnReclamaciones; }
-    public Button getBtnReclamacionesCompra()  { return btnReclamacionesCompra; }
-    public Button getBtnDevoluciones()         { return btnDevoluciones; }
-    public Button getBtnDevolucionesCompra()   { return btnDevolucionesCompra; }
-    public Button getBtnFidelizacion()         { return btnFidelizacion; }
-    public Button getBtnConvenios()            { return btnConvenios; }
-    public Button getBtnEnvios()               { return btnEnvios; }
+    // ── Getters ───────────────────────────────────────────────────────────
+    public void navegarA(String fxml, Button boton) {
+        cargarVista(fxml, boton != null ? boton : btnInicio, "", ""); }
+    public Button getBtnInicio()              { return btnInicio; }
+    public Button getBtnVentas()              { return btnVentas; }
+    public Button getBtnCompras()             { return btnCompras; }
+    public Button getBtnPersonas()            { return btnPersonas; }
+    public Button getBtnInventario()          { return btnInventario; }
+    public Button getBtnReclamaciones()       { return btnReclamaciones; }
+    public Button getBtnReclamacionesCompra() { return btnReclamacionesCompra; }
+    public Button getBtnDevoluciones()        { return btnDevoluciones; }
+    public Button getBtnDevolucionesCompra()  { return btnDevolucionesCompra; }
+    public Button getBtnFidelizacion()        { return btnFidelizacion; }
+    public Button getBtnConvenios()           { return btnConvenios; }
+    public Button getBtnEnvios()              { return btnEnvios; }
 }

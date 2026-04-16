@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.SelectorProductoCompraController">
+
+    <!-- Encabezado -->
+    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+        <padding><Insets bottom="16" left="24" right="24" top="16" /></padding>
+
+        <Button onAction="#onVolver" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 14 7 14;" text="← Volver a Compra" />
+
+        <VBox spacing="2">
+            <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Catálogo de Productos" />
+            <Label style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;" text="Selecciona un producto para agregarlo a la compra" />
+        </VBox>
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button onAction="#onIrAInventario" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-border-color: #BBDEFB; -fx-cursor: hand; -fx-padding: 7 14 7 14;" text="+ Registrar nuevo producto" />
+
+        <Label fx:id="lblCompraActual" style="-fx-text-fill: #2E7D32; -fx-font-size: 12px; -fx-background-color: #E8F5E9; -fx-background-radius: 20; -fx-padding: 4 12 4 12;" text="Compra en curso" />
+    </HBox>
+
+    <!-- Barra de búsqueda -->
+    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+        <padding><Insets bottom="12" left="24" right="24" top="12" /></padding>
+
+        <TextField fx:id="txtBuscar" prefWidth="280" promptText="Buscar por nombre, categoría o ID..." style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+
+        <ComboBox fx:id="cmbCategoria" prefWidth="180" promptText="Todas las categorías" style="-fx-background-radius: 6;" />
+
+        <Button onAction="#onFiltrar" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 16 7 16;" text="Buscar" />
+
+        <Button onAction="#onLimpiarFiltro" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 12 7 12;" text="Ver todos" />
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Label fx:id="lblTotal" style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;" text="0 productos" />
+    </HBox>
+
+    <!-- Contenido principal -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS">
+        <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
+
+        <!-- Tabla de productos -->
+        <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
+            <padding><Insets bottom="16" left="16" right="16" top="16" /></padding>
+
+            <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Productos disponibles" />
+            <Separator />
+
+            <TableView fx:id="tablaProductos" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colId" prefWidth="55" text="ID" />
+                    <TableColumn fx:id="colNombre" prefWidth="210" text="Nombre" />
+                    <TableColumn fx:id="colCategoria" prefWidth="130" text="Categoría" />
+                    <TableColumn fx:id="colStock" prefWidth="70" text="Stock" />
+                    <TableColumn fx:id="colPrecio" prefWidth="110" text="Precio (RD$)" />
+                    <TableColumn fx:id="colDescuento" prefWidth="80" text="Desc. %" />
+                    <TableColumn fx:id="colUbicacion" prefWidth="110" text="Ubicación" />
+                </columns>
+                <placeholder>
+                    <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="No hay productos que mostrar" />
+                </placeholder>
+            </TableView>
+        </VBox>
+
+        <!-- Panel lateral -->
+        <VBox prefWidth="300" spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+            <padding><Insets bottom="20" left="16" right="16" top="16" /></padding>
+
+            <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Detalle del Producto" />
+            <Separator />
+
+            <!-- Ficha de detalle -->
+            <VBox fx:id="panelDetalle" spacing="8" style="-fx-background-color: #F9FBF9; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1;">
+                <padding><Insets bottom="12" left="14" right="14" top="12" /></padding>
+
+                <Label fx:id="lblDetNombre" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;" text="—" wrapText="true" />
+                <Separator />
+
+                <HBox spacing="8">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;" text="ID" />
+                        <Label fx:id="lblDetId" style="-fx-font-size: 13px; -fx-text-fill: #424242;" text="—" />
+                    </VBox>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;" text="CATEGORÍA" />
+                        <Label fx:id="lblDetCategoria" style="-fx-font-size: 13px; -fx-text-fill: #424242;" text="—" />
+                    </VBox>
+                </HBox>
+
+                <!-- Precio oficial resaltado en azul (compra) -->
+                <VBox spacing="2" style="-fx-background-color: #E8F5E9; -fx-background-radius: 6; -fx-padding: 6 8 6 8;">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #2E7D32; -fx-font-weight: bold;" text="PRECIO OFICIAL (BD)" />
+                    <Label fx:id="lblDetPrecio" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;" text="RD$ —" />
+                </VBox>
+
+                <HBox spacing="8">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;" text="DESCUENTO" />
+                        <Label fx:id="lblDetDescuento" style="-fx-font-size: 13px; -fx-text-fill: #E65100; -fx-font-weight: bold;" text="0%" />
+                    </VBox>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;" text="PRECIO C/ DESC." />
+                        <Label fx:id="lblDetPrecioFinal" style="-fx-font-size: 13px; -fx-text-fill: #1565C0; -fx-font-weight: bold;" text="RD$ —" />
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="8">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;" text="STOCK DISPONIBLE" />
+                        <Label fx:id="lblDetStock" style="-fx-font-size: 13px; -fx-text-fill: #424242;" text="—" />
+                    </VBox>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;" text="STOCK MÍNIMO" />
+                        <Label fx:id="lblDetStockMin" style="-fx-font-size: 13px; -fx-text-fill: #424242;" text="—" />
+                    </VBox>
+                </HBox>
+
+                <VBox spacing="2">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;" text="UBICACIÓN" />
+                    <Label fx:id="lblDetUbicacion" style="-fx-font-size: 13px; -fx-text-fill: #424242;" text="—" />
+                </VBox>
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS" />
+            <Separator />
+
+            <Label style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #424242;" text="Agregar a la Compra" />
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <VBox spacing="3">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Cantidad" />
+                    <TextField fx:id="txtCantidad" prefWidth="80" promptText="1" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                </VBox>
+                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Precio unitario (BD)" />
+                    <Label fx:id="lblPrecioFijo" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2E7D32; -fx-background-color: #E8F5E9; -fx-background-radius: 6; -fx-padding: 6 10 6 10;" text="—" />
+                </VBox>
+            </HBox>
+
+            <Label fx:id="lblAdvertencia" managed="false" style="-fx-text-fill: #C62828; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: #FFEBEE; -fx-background-radius: 6; -fx-padding: 6 8 6 8;" text="" visible="false" wrapText="true" />
+
+            <Label fx:id="lblSubtotal" style="-fx-font-size: 12px; -fx-text-fill: #757575;" text="Subtotal: RD$ 0.00" />
+
+            <Button fx:id="btnAgregarCompra" maxWidth="Infinity" onAction="#onSeleccionarProducto" style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="✔ Agregar a la Compra" />
+        </VBox>
+    </HBox>
+</VBox>
