@@ -6,7 +6,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 
 import javax.swing.JOptionPane;
 import java.sql.*;
@@ -65,6 +68,59 @@ public class HelloController {
         colProductoSubtotal.setCellValueFactory(c -> c.getValue().subtotalProperty());
 
         tablaVentaProducto.setItems(listaTemporal);
+    }
+
+    // ── Abrir catálogo de productos ───────────────────────────────────────
+    @FXML
+    public void onAbrirCatalogo(ActionEvent event) {
+        try {
+            Node nodo = (Node) event.getSource();
+            StackPane contentArea = (StackPane) nodo.getScene().lookup("#contentArea");
+            if (contentArea == null) {
+                JOptionPane.showMessageDialog(null, "No se pudo encontrar el área de contenido."); return;
+            }
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/example/farmaventa/SelectorProducto.fxml"));
+            Node selectorVista = loader.load();
+            SelectorProductoController selectorCtrl = loader.getController();
+            selectorCtrl.init(this, contentArea, construirInfoVentaActual());
+            contentArea.getChildren().setAll(selectorVista);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al abrir el catálogo: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void recibirProductoDelCatalogo(int idProducto, String nombre, int cantidad, double precio) {
+        listaTemporal.add(new Venta(idProducto, "", precio, cantidad, precio * cantidad,
+                nombre, "", "", "", 0, 0, ""));
+        actualizarTotales();
+    }
+
+    public void restaurarEstadoEn(HelloController destino) {
+        destino.listaTemporal.setAll(this.listaTemporal);
+        destino.tablaVentaProducto.setItems(destino.listaTemporal);
+        destino.idVentaSeleccionada = this.idVentaSeleccionada;
+        if (this.txtIdVenta    != null && destino.txtIdVenta    != null) destino.txtIdVenta.setText(this.txtIdVenta.getText());
+        if (this.txtIdCliente  != null && destino.txtIdCliente  != null) destino.txtIdCliente.setText(this.txtIdCliente.getText());
+        if (this.txtIdEmpleado != null && destino.txtIdEmpleado != null) destino.txtIdEmpleado.setText(this.txtIdEmpleado.getText());
+        if (this.txtCondicion  != null && destino.txtCondicion  != null) destino.txtCondicion.setText(this.txtCondicion.getText());
+        if (this.txtMontoPagado != null && destino.txtMontoPagado != null) destino.txtMontoPagado.setText(this.txtMontoPagado.getText());
+        if (this.cmbTipoVenta  != null && destino.cmbTipoVenta  != null) destino.cmbTipoVenta.setValue(this.cmbTipoVenta.getValue());
+        if (this.dpFechaVenta  != null && destino.dpFechaVenta  != null) destino.dpFechaVenta.setValue(this.dpFechaVenta.getValue());
+        if (this.lblInfoVenta  != null && destino.lblInfoVenta  != null) {
+            destino.lblInfoVenta.setText(this.lblInfoVenta.getText());
+            destino.lblInfoVenta.setStyle(this.lblInfoVenta.getStyle());
+        }
+        destino.actualizarTotales();
+    }
+
+    private String construirInfoVentaActual() {
+        if (idVentaSeleccionada != -1)
+            return "Editando Venta #" + idVentaSeleccionada + " | " + listaTemporal.size() + " producto(s) en lista";
+        String cliente = (txtIdCliente != null && !txtIdCliente.getText().isBlank())
+                ? "Cliente #" + txtIdCliente.getText().trim() : "Nueva Venta";
+        return cliente + " | " + listaTemporal.size() + " producto(s) en lista";
     }
 
     // ── Buscar venta existente por ID ─────────────────────────────────────
@@ -149,16 +205,27 @@ public class HelloController {
         if (txtIdProducto.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return;
         }
-        String sql = "SELECT nombre FROM TBL_PRODUCTO WHERE id_producto = ?";
+        // Trae nombre Y precio de presentación (pre-llenado automático, solo lectura)
+        String sql = "SELECT p.nombre, " +
+                "ISNULL((SELECT TOP 1 precio_venta FROM TBL_PRESENTACION_PRODUCTO " +
+                "        WHERE id_producto = p.id_producto ORDER BY id_presentacion ASC), 0) AS precio_venta " +
+                "FROM TBL_PRODUCTO p WHERE p.id_producto = ?";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(txtIdProducto.getText().trim()));
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 txtNombreProducto.setText(rs.getString("nombre"));
+                double precio = rs.getDouble("precio_venta");
+                if (txtPrecioProducto != null) {
+                    txtPrecioProducto.setText(precio > 0 ? String.format("%.2f", precio) : "");
+                    txtPrecioProducto.setEditable(false);
+                    txtPrecioProducto.setStyle("-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;");
+                }
             } else {
                 JOptionPane.showMessageDialog(null, "Producto no encontrado.");
                 txtNombreProducto.clear();
+                if (txtPrecioProducto != null) txtPrecioProducto.clear();
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
@@ -196,7 +263,11 @@ public class HelloController {
             txtIdProducto.clear();
             txtNombreProducto.clear();
             txtCantidadProducto.clear();
-            txtPrecioProducto.clear();
+            if (txtPrecioProducto != null) {
+                txtPrecioProducto.clear();
+                txtPrecioProducto.setEditable(false);
+                txtPrecioProducto.setStyle("-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;");
+            }
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Cantidad y precio deben ser numeros.");

@@ -91,7 +91,11 @@
         <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
-            <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Productos en esta Venta" />
+            <HBox alignment="CENTER_LEFT">
+                <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Productos en esta Venta" HBox.hgrow="ALWAYS" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button onAction="#onAbrirCatalogo" text="🔍 Ver Catálogo de Productos" style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 14 7 14;" />
+            </HBox>
             <Separator />
 
             <!-- Seccion para agregar producto con campos normales -->
@@ -115,7 +119,7 @@
 
                 <VBox spacing="3" prefWidth="90">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Precio (RD$)" />
-                    <TextField fx:id="txtPrecioProducto" promptText="0.00" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                    <TextField fx:id="txtPrecioProducto" promptText="0.00" editable="false" style="-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;" />
                 </VBox>
 
                 <VBox spacing="3" alignment="BOTTOM_LEFT">

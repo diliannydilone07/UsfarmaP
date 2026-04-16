@@ -20,7 +20,7 @@ public class ProductoController {
     @FXML private TextField        txtNombre;
     @FXML private TextField        txtStockActual;
     @FXML private TextField        txtStockMinimo;
-    @FXML private TextField        txtPrecio;
+    @FXML private TextField        txtPrecio;       // precio_venta en TBL_PRESENTACION_PRODUCTO
     @FXML private TextField        txtDescuento;
     @FXML private TextField        txtUbicacion;
     @FXML private ComboBox<String> cmbCategoria;
@@ -38,14 +38,13 @@ public class ProductoController {
     @FXML private TableColumn<Producto, Number> colDescuento;
     @FXML private TableColumn<Producto, String> colUbicacion;
 
-    // ── Lista de datos ────────────────────────────────────────────────────
+    // ── Lista ─────────────────────────────────────────────────────────────
     private ObservableList<Producto> listaProductos = FXCollections.observableArrayList();
 
     // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         spinCantidad.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 999, 1));
-
         cargarComboCategorias();
 
         colId.setCellValueFactory(c -> c.getValue().idProductoProperty());
@@ -53,16 +52,13 @@ public class ProductoController {
         colCategoria.setCellValueFactory(c -> c.getValue().categoriaProperty());
         colStock.setCellValueFactory(c -> c.getValue().stockActualProperty());
         colMinimo.setCellValueFactory(c -> c.getValue().stockMinimoProperty());
+        colPrecio.setCellValueFactory(c -> c.getValue().precioProperty());
         colDescuento.setCellValueFactory(c -> c.getValue().descuentoProperty());
         colUbicacion.setCellValueFactory(c -> c.getValue().ubicacionProperty());
-        if (colPrecio != null) colPrecio.setCellValueFactory(c -> c.getValue().descuentoProperty());
 
         tablaProductos.setItems(listaProductos);
-
-        // Clic en fila → carga datos en formulario
-        tablaProductos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            if (sel != null) cargarEnFormulario(sel);
-        });
+        tablaProductos.getSelectionModel().selectedItemProperty().addListener(
+                (obs, old, sel) -> { if (sel != null) cargarEnFormulario(sel); });
 
         actualizarTabla();
     }
@@ -83,23 +79,19 @@ public class ProductoController {
     @FXML
     public void fnBuscar(ActionEvent event) {
         String busqueda = txtBusqueda.getText().trim().toLowerCase();
-        if (busqueda.isEmpty()) {
-            tablaProductos.setItems(listaProductos);
-            return;
-        }
-
-        ObservableList<Producto> listaFiltrada = FXCollections.observableArrayList();
+        if (busqueda.isEmpty()) { tablaProductos.setItems(listaProductos); return; }
+        ObservableList<Producto> filtrada = FXCollections.observableArrayList();
         for (Producto p : listaProductos) {
             if (p.getNombre().toLowerCase().contains(busqueda)
                     || p.getCategoria().toLowerCase().contains(busqueda)
                     || String.valueOf(p.getIdProducto()).contains(busqueda)) {
-                listaFiltrada.add(p);
+                filtrada.add(p);
             }
         }
-        tablaProductos.setItems(listaFiltrada);
+        tablaProductos.setItems(filtrada);
     }
 
-    // ── Guardar o editar según si hay ID ─────────────────────────────────
+    // ── Guardar o editar ──────────────────────────────────────────────────
     @FXML
     public void onGuardarProductoClick(ActionEvent event) {
         if (txtNombre.getText().isBlank()) {
@@ -108,23 +100,21 @@ public class ProductoController {
         if (cmbCategoria.getValue() == null) {
             JOptionPane.showMessageDialog(null, "Selecciona una categoría."); return;
         }
-
         int idCategoria = obtenerIdCategoria(cmbCategoria.getValue());
         if (idCategoria == -1) return;
 
-        if (!txtId.getText().isBlank()) {
-            editarProducto(idCategoria);
-        } else {
-            insertarProducto(idCategoria);
-        }
+        if (!txtId.getText().isBlank()) editarProducto(idCategoria);
+        else insertarProducto(idCategoria);
     }
 
-    // ── Insertar nuevo ────────────────────────────────────────────────────
+    // ── Insertar nuevo producto + precio en TBL_PRESENTACION_PRODUCTO ─────
     private void insertarProducto(int idCategoria) {
-        String sql = "INSERT INTO TBL_PRODUCTO (nombre, descuento, cantidad_minima, cantidad_disponible, ubicacion, id_categoria) " +
+        String sqlProducto = "INSERT INTO TBL_PRODUCTO " +
+                "(nombre, descuento, cantidad_minima, cantidad_disponible, ubicacion, id_categoria) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(sqlProducto, Statement.RETURN_GENERATED_KEYS)) {
+
             ps.setString(1, txtNombre.getText().trim());
             ps.setDouble(2, txtDescuento.getText().isBlank() ? 0 : Double.parseDouble(txtDescuento.getText().trim()));
             ps.setInt(3,    txtStockMinimo.getText().isBlank() ? 0 : Integer.parseInt(txtStockMinimo.getText().trim()));
@@ -132,34 +122,110 @@ public class ProductoController {
             ps.setString(5, txtUbicacion.getText().trim());
             ps.setInt(6,    idCategoria);
             ps.executeUpdate();
+
+            // Obtener ID generado
+            int idProducto = -1;
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) idProducto = keys.getInt(1);
+
+            // Guardar precio en TBL_PRESENTACION_PRODUCTO si se ingresó
+            if (idProducto != -1 && txtPrecio != null && !txtPrecio.getText().isBlank()) {
+                double precio = Double.parseDouble(txtPrecio.getText().trim());
+                guardarPrecioEnPresentacion(con, idProducto, precio, false);
+            }
+
             JOptionPane.showMessageDialog(null, "Producto guardado correctamente.");
             actualizarTabla();
             Limpiar();
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al guardar: " + e.getMessage());
         }
     }
 
-    // ── Editar existente ──────────────────────────────────────────────────
+    // ── Editar producto existente + actualizar precio ─────────────────────
     private void editarProducto(int idCategoria) {
-        String sql = "UPDATE TBL_PRODUCTO " +
+        int idProducto = Integer.parseInt(txtId.getText().trim());
+        String sqlProducto = "UPDATE TBL_PRODUCTO " +
                 "SET nombre=?, descuento=?, cantidad_minima=?, cantidad_disponible=?, ubicacion=?, id_categoria=? " +
                 "WHERE id_producto=?";
         try (Connection con = conexion.establecerConexion();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(sqlProducto)) {
+
             ps.setString(1, txtNombre.getText().trim());
             ps.setDouble(2, txtDescuento.getText().isBlank() ? 0 : Double.parseDouble(txtDescuento.getText().trim()));
             ps.setInt(3,    txtStockMinimo.getText().isBlank() ? 0 : Integer.parseInt(txtStockMinimo.getText().trim()));
             ps.setInt(4,    txtStockActual.getText().isBlank() ? 0 : Integer.parseInt(txtStockActual.getText().trim()));
             ps.setString(5, txtUbicacion.getText().trim());
             ps.setInt(6,    idCategoria);
-            ps.setInt(7,    Integer.parseInt(txtId.getText().trim()));
+            ps.setInt(7,    idProducto);
             ps.executeUpdate();
+
+            // Actualizar precio si se ingresó
+            if (txtPrecio != null && !txtPrecio.getText().isBlank()) {
+                double precio = Double.parseDouble(txtPrecio.getText().trim());
+                guardarPrecioEnPresentacion(con, idProducto, precio, true);
+            }
+
             JOptionPane.showMessageDialog(null, "Producto actualizado.");
             actualizarTabla();
             Limpiar();
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al editar: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Inserta o actualiza el precio en TBL_PRESENTACION_PRODUCTO.
+     * Usa la primera presentación disponible en TBL_PRESENTACION (id=1).
+     * Si no existe el registro, lo crea. Si existe, lo actualiza.
+     *
+     * @param esEdicion true = UPDATE si existe, false = INSERT solo si no existe
+     */
+    private void guardarPrecioEnPresentacion(Connection con, int idProducto,
+                                             double precio, boolean esEdicion) throws SQLException {
+        // Verificar si ya tiene presentación registrada
+        PreparedStatement psCheck = con.prepareStatement(
+                "SELECT COUNT(*) FROM TBL_PRESENTACION_PRODUCTO WHERE id_producto = ?");
+        psCheck.setInt(1, idProducto);
+        ResultSet rs = psCheck.executeQuery();
+        boolean existe = rs.next() && rs.getInt(1) > 0;
+
+        // Asegurarse de que exista la presentación base (id=1) en TBL_PRESENTACION
+        asegurarPresentacionBase(con);
+
+        if (existe) {
+            // Actualizar precio de la primera presentación
+            PreparedStatement psUpd = con.prepareStatement(
+                    "UPDATE TBL_PRESENTACION_PRODUCTO SET precio_venta = ? " +
+                            "WHERE id_producto = ? AND id_presentacion = (" +
+                            "   SELECT TOP 1 id_presentacion FROM TBL_PRESENTACION_PRODUCTO " +
+                            "   WHERE id_producto = ? ORDER BY id_presentacion ASC)");
+            psUpd.setDouble(1, precio);
+            psUpd.setInt(2, idProducto);
+            psUpd.setInt(3, idProducto);
+            psUpd.executeUpdate();
+        } else {
+            // Insertar nueva presentación con fecha de caducidad de 1 año
+            PreparedStatement psIns = con.prepareStatement(
+                    "INSERT INTO TBL_PRESENTACION_PRODUCTO (id_producto, id_presentacion, precio_venta, fecha_caducidad) " +
+                            "VALUES (?, 1, ?, DATEADD(year, 1, GETDATE()))");
+            psIns.setInt(1, idProducto);
+            psIns.setDouble(2, precio);
+            psIns.executeUpdate();
+        }
+    }
+
+    /** Garantiza que exista al menos una fila en TBL_PRESENTACION con id=1 */
+    private void asegurarPresentacionBase(Connection con) throws SQLException {
+        PreparedStatement psCheck = con.prepareStatement(
+                "SELECT COUNT(*) FROM TBL_PRESENTACION WHERE id_presentacion = 1");
+        ResultSet rs = psCheck.executeQuery();
+        if (rs.next() && rs.getInt(1) == 0) {
+            PreparedStatement psIns = con.prepareStatement(
+                    "INSERT INTO TBL_PRESENTACION (nombre) VALUES ('Estándar')");
+            psIns.executeUpdate();
         }
     }
 
@@ -169,14 +235,14 @@ public class ProductoController {
         if (txtId.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Selecciona un producto de la tabla primero."); return;
         }
-
-        int confirm = JOptionPane.showConfirmDialog(null, "¿Eliminar este producto?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(null, "¿Eliminar este producto?",
+                "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
         int idProducto = Integer.parseInt(txtId.getText().trim());
 
         try (Connection con = conexion.establecerConexion()) {
-            // Eliminar dependencias
+            // Eliminar medicamentos y sus enfermedades
             PreparedStatement psMedIds = con.prepareStatement(
                     "SELECT id_medicamento FROM TBL_MEDICAMENTO WHERE id_producto=?");
             psMedIds.setInt(1, idProducto);
@@ -200,13 +266,11 @@ public class ProductoController {
                     "DELETE FROM TBL_CONVENIO                    WHERE id_producto=?",
                     "DELETE FROM TBL_MEDICAMENTO                 WHERE id_producto=?"
             };
-
             for (String sqlDep : tablasDependientes) {
                 PreparedStatement ps2 = con.prepareStatement(sqlDep);
                 ps2.setInt(1, idProducto);
                 ps2.executeUpdate();
             }
-
             PreparedStatement psElim = con.prepareStatement(
                     "DELETE FROM TBL_PRODUCTO WHERE id_producto=?");
             psElim.setInt(1, idProducto);
@@ -221,16 +285,6 @@ public class ProductoController {
         }
     }
 
-    // ── Añadir al carrito ─────────────────────────────────────────────────
-    @FXML
-    public void onAñadirClick(ActionEvent event) {
-        Producto sel = tablaProductos.getSelectionModel().getSelectedItem();
-        if (sel == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona un producto primero."); return;
-        }
-        JOptionPane.showMessageDialog(null, "\"" + sel.getNombre() + "\" x" + spinCantidad.getValue() + " listo para agregar.");
-    }
-
     // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void Limpiar() {
@@ -238,23 +292,44 @@ public class ProductoController {
         txtNombre.clear();
         txtStockActual.clear();
         txtStockMinimo.clear();
+        if (txtPrecio    != null) txtPrecio.clear();
         txtDescuento.clear();
         txtUbicacion.clear();
         txtBusqueda.clear();
-        if (txtPrecio != null) txtPrecio.clear();
         cmbCategoria.setValue(null);
         tablaProductos.getSelectionModel().clearSelection();
         tablaProductos.setItems(listaProductos);
     }
 
-    // ── Actualizar tabla ──────────────────────────────────────────────────
-    private void actualizarTabla() {
+    // ── Añadir al carrito (placeholder) ──────────────────────────────────
+    @FXML
+    public void onAñadirClick(ActionEvent event) {
+        Producto sel = tablaProductos.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            JOptionPane.showMessageDialog(null, "Selecciona un producto primero."); return;
+        }
+        JOptionPane.showMessageDialog(null,
+                "\"" + sel.getNombre() + "\" x" + spinCantidad.getValue() + " listo para agregar.");
+    }
+
+    // ── Cargar tabla con precio desde TBL_PRESENTACION_PRODUCTO ──────────
+    public void actualizarTabla() {
         listaProductos.clear();
-        String sql = "SELECT p.id_producto, p.nombre, c.nombre_categoria, " +
-                "p.cantidad_disponible, p.cantidad_minima, p.descuento, p.ubicacion " +
-                "FROM TBL_PRODUCTO p " +
-                "JOIN TBL_CATEGORIA_DE_PRODUCTO c ON c.id_categoria = p.id_categoria " +
-                "ORDER BY p.id_producto DESC";
+        // LEFT JOIN para obtener el precio_venta de la primera presentación.
+        // Si no tiene presentación, precio = 0.
+        String sql =
+                "SELECT p.id_producto, p.nombre, c.nombre_categoria, " +
+                        "       p.cantidad_disponible, p.cantidad_minima, p.descuento, p.ubicacion, " +
+                        "       ISNULL(( " +
+                        "           SELECT TOP 1 precio_venta " +
+                        "           FROM TBL_PRESENTACION_PRODUCTO " +
+                        "           WHERE id_producto = p.id_producto " +
+                        "           ORDER BY id_presentacion ASC " +
+                        "       ), 0) AS precio_venta " +
+                        "FROM TBL_PRODUCTO p " +
+                        "JOIN TBL_CATEGORIA_DE_PRODUCTO c ON c.id_categoria = p.id_categoria " +
+                        "ORDER BY p.id_producto DESC";
+
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -265,8 +340,10 @@ public class ProductoController {
                         rs.getString("nombre_categoria"),
                         rs.getInt("cantidad_disponible"),
                         rs.getInt("cantidad_minima"),
+                        rs.getDouble("precio_venta"),   // precio de presentación
                         rs.getDouble("descuento"),
-                        rs.getString("ubicacion")));
+                        rs.getString("ubicacion")
+                ));
             }
             tablaProductos.setItems(listaProductos);
         } catch (SQLException e) {
@@ -288,6 +365,19 @@ public class ProductoController {
         return -1;
     }
 
+    // ── Cargar fila en formulario ─────────────────────────────────────────
+    private void cargarEnFormulario(Producto p) {
+        txtId.setText(String.valueOf(p.getIdProducto()));
+        txtNombre.setText(p.getNombre());
+        cmbCategoria.setValue(p.getCategoria());
+        txtStockActual.setText(String.valueOf(p.getStockActual()));
+        txtStockMinimo.setText(String.valueOf(p.getStockMinimo()));
+        if (txtPrecio != null)
+            txtPrecio.setText(p.getPrecio() > 0 ? String.format("%.2f", p.getPrecio()) : "");
+        txtDescuento.setText(String.valueOf(p.getDescuento()));
+        txtUbicacion.setText(p.getUbicacion());
+    }
+
     // ── Precargar producto por ID (llamado desde otras vistas) ────────────
     public void precargarProducto(int idProducto) {
         for (Producto p : listaProductos) {
@@ -298,16 +388,5 @@ public class ProductoController {
                 return;
             }
         }
-    }
-
-    // ── Cargar fila seleccionada en formulario ────────────────────────────
-    private void cargarEnFormulario(Producto p) {
-        txtId.setText(String.valueOf(p.getIdProducto()));
-        txtNombre.setText(p.getNombre());
-        cmbCategoria.setValue(p.getCategoria());
-        txtStockActual.setText(String.valueOf(p.getStockActual()));
-        txtStockMinimo.setText(String.valueOf(p.getStockMinimo()));
-        txtDescuento.setText(String.valueOf(p.getDescuento()));
-        txtUbicacion.setText(p.getUbicacion());
     }
 }

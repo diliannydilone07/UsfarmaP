@@ -2,6 +2,7 @@ package com.example.farmaventa;
 
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Persona;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -19,12 +20,21 @@ public class PersonaController {
     // ── Rol ───────────────────────────────────────────────────────────────
     @FXML private RadioButton      rbCliente;
     @FXML private RadioButton      rbEmpleado;
+    @FXML private RadioButton      rbProveedor;
     @FXML private VBox             vboxEmpleado;
     @FXML private VBox             vboxCliente;
+    @FXML private VBox             vboxProveedor;
     @FXML private ComboBox<String> cmbCargo;
     @FXML private DatePicker       dpHorario;
     @FXML private ComboBox<String> cmbAseguradora;
     @FXML private ComboBox<String> cmbSeguro;
+
+    // ── Proveedor ─────────────────────────────────────────────────────────
+    @FXML private ComboBox<String> cmbCategoriaProveedor;
+    @FXML private TextField        txtNombreEmpresa;
+    @FXML private TextField        txtCorreoEmpresa;
+    @FXML private TextField        txtTelefonoEmpresa;
+    @FXML private TextField        txtDniProveedor;
 
     // ── Datos personales ──────────────────────────────────────────────────
     @FXML private TextField        txtNombre;
@@ -54,21 +64,23 @@ public class PersonaController {
 
     // ── Datos internos ────────────────────────────────────────────────────
     private ObservableList<Persona> listaPersonas = FXCollections.observableArrayList();
-    private int idPersonaSeleccionada = -1;
-    private int idMunicipio = 0;
+    private int idPersonaSeleccionada   = -1;
+    private int idMunicipio             = 0;
+    private int idProveedorSeleccionado = -1;
 
     // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         cmbGenero.getItems().addAll("Masculino", "Femenino", "Otro");
 
-        // Toggle Cliente / Empleado
-        rbEmpleado.selectedProperty().addListener((obs, o, n) -> {
-            vboxEmpleado.setVisible(n);
-            vboxEmpleado.setManaged(n);
-            vboxCliente.setVisible(!n);
-            vboxCliente.setManaged(!n);
-        });
+        // Toggle Cliente / Empleado / Proveedor
+        ChangeListener<Boolean> rolListener = (obs, o, n) -> actualizarVisibilidadRol();
+        rbCliente.selectedProperty().addListener(rolListener);
+        rbEmpleado.selectedProperty().addListener(rolListener);
+        rbProveedor.selectedProperty().addListener(rolListener);
+
+        // Estado inicial
+        actualizarVisibilidadRol();
 
         // Columnas tabla
         colId.setCellValueFactory(c -> c.getValue().idProperty());
@@ -101,8 +113,23 @@ public class PersonaController {
         cargarCombo("SELECT id_region, nombre FROM TBL_REGION ORDER BY nombre", cmbRegion);
         cargarCombo("SELECT id_cargo, nombre FROM TBL_CARGO ORDER BY nombre", cmbCargo);
         cargarCombo("SELECT id_aseguradora, nombre FROM TBL_ASEGURADORA WHERE estado=1 ORDER BY nombre", cmbAseguradora);
+        cargarCombo("SELECT id_categoriaproveedor, nombre FROM TBL_CATEGORIA_PROVEEDOR ORDER BY nombre", cmbCategoriaProveedor);
 
         cargarPersonas();
+    }
+
+    // ── Visibilidad de paneles según rol ──────────────────────────────────
+    private void actualizarVisibilidadRol() {
+        boolean esEmpleado  = rbEmpleado.isSelected();
+        boolean esProveedor = rbProveedor.isSelected();
+        boolean esCliente   = rbCliente.isSelected();
+
+        vboxEmpleado.setVisible(esEmpleado);
+        vboxEmpleado.setManaged(esEmpleado);
+        vboxCliente.setVisible(esCliente);
+        vboxCliente.setManaged(esCliente);
+        vboxProveedor.setVisible(esProveedor);
+        vboxProveedor.setManaged(esProveedor);
     }
 
     // ── Cargar cualquier combo desde BD ───────────────────────────────────
@@ -248,7 +275,7 @@ public class PersonaController {
             if (keys.next()) idPersona = keys.getInt(1);
             if (idPersona == -1) return;
 
-            // 2. Insertar en rol
+            // 2. Insertar según rol
             if (rbCliente.isSelected()) {
                 if (cmbSeguro.getValue() != null) {
                     int idSeguro = Integer.parseInt(cmbSeguro.getValue().split(" - ")[0]);
@@ -263,7 +290,8 @@ public class PersonaController {
                     psCli.setInt(1, idPersona);
                     psCli.executeUpdate();
                 }
-            } else {
+
+            } else if (rbEmpleado.isSelected()) {
                 if (cmbCargo.getValue() == null || dpHorario.getValue() == null) {
                     JOptionPane.showMessageDialog(null, "Selecciona cargo y fecha de contratación.");
                     return;
@@ -275,6 +303,41 @@ public class PersonaController {
                 psEmp.setInt(2, idPersona);
                 psEmp.setInt(3, idCargo);
                 psEmp.executeUpdate();
+
+            } else if (rbProveedor.isSelected()) {
+                if (txtNombreEmpresa.getText().isBlank() || cmbCategoriaProveedor.getValue() == null) {
+                    JOptionPane.showMessageDialog(null, "Nombre de empresa y categoría son obligatorios.");
+                    return;
+                }
+                int idCat = Integer.parseInt(cmbCategoriaProveedor.getValue().split(" - ")[0]);
+
+                String correoEmpresa = txtCorreoEmpresa.getText().isBlank()
+                        ? txtCorreo.getText().trim()
+                        : txtCorreoEmpresa.getText().trim();
+                String dniVal = txtDniProveedor.getText().isBlank() ? null : txtDniProveedor.getText().trim();
+
+                PreparedStatement psProv = con.prepareStatement(
+                        "INSERT INTO TBL_PROVEEDOR (id_categoriaproveedor, nombre, telefono, correo_electronico, dni) " +
+                                "VALUES (?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                psProv.setInt(1, idCat);
+                psProv.setString(2, txtNombreEmpresa.getText().trim());
+                psProv.setString(3, txtTelefonoEmpresa.getText().trim());
+                psProv.setString(4, correoEmpresa);
+                psProv.setString(5, dniVal);
+                psProv.executeUpdate();
+
+                ResultSet keysProv = psProv.getGeneratedKeys();
+                if (keysProv.next()) {
+                    int idProveedor = keysProv.getInt(1);
+                    idProveedorSeleccionado = idProveedor;
+
+                    PreparedStatement psRep = con.prepareStatement(
+                            "INSERT INTO TBL_REPRESENTANTE (id_proveedor, id_persona) VALUES (?, ?)");
+                    psRep.setInt(1, idProveedor);
+                    psRep.setInt(2, idPersona);
+                    psRep.executeUpdate();
+                }
             }
 
             // 3. Dirección opcional
@@ -285,7 +348,9 @@ public class PersonaController {
                     insertarDireccion(con, idPersona, idCalle, txtDescripcionDireccion.getText().trim());
             }
 
-            JOptionPane.showMessageDialog(null, (rbCliente.isSelected() ? "Cliente" : "Empleado") + " registrado correctamente.");
+            String rol = rbCliente.isSelected() ? "Cliente"
+                    : rbEmpleado.isSelected() ? "Empleado" : "Proveedor";
+            JOptionPane.showMessageDialog(null, rol + " registrado correctamente.");
             limpiar();
             cargarPersonas();
 
@@ -315,7 +380,7 @@ public class PersonaController {
             ps.setInt(6, idPersonaSeleccionada);
             ps.executeUpdate();
 
-            // 2. Actualizar seguro si es cliente
+            // 2. Actualizar según rol
             if (rbCliente.isSelected()) {
                 if (cmbSeguro.getValue() != null) {
                     int idSeguro = Integer.parseInt(cmbSeguro.getValue().split(" - ")[0]);
@@ -329,6 +394,26 @@ public class PersonaController {
                             "UPDATE TBL_CLIENTE SET id_seguro=NULL WHERE id_persona=?");
                     psCli.setInt(1, idPersonaSeleccionada);
                     psCli.executeUpdate();
+                }
+
+            } else if (rbProveedor.isSelected() && idProveedorSeleccionado > 0) {
+                if (cmbCategoriaProveedor.getValue() != null) {
+                    int idCat = Integer.parseInt(cmbCategoriaProveedor.getValue().split(" - ")[0]);
+                    String correoEmpresa = txtCorreoEmpresa.getText().isBlank()
+                            ? txtCorreo.getText().trim()
+                            : txtCorreoEmpresa.getText().trim();
+                    String dniVal = txtDniProveedor.getText().isBlank() ? null : txtDniProveedor.getText().trim();
+
+                    PreparedStatement psProv = con.prepareStatement(
+                            "UPDATE TBL_PROVEEDOR SET nombre=?, telefono=?, correo_electronico=?, " +
+                                    "dni=?, id_categoriaproveedor=? WHERE id_proveedor=?");
+                    psProv.setString(1, txtNombreEmpresa.getText().trim());
+                    psProv.setString(2, txtTelefonoEmpresa.getText().trim());
+                    psProv.setString(3, correoEmpresa);
+                    psProv.setString(4, dniVal);
+                    psProv.setInt(5, idCat);
+                    psProv.setInt(6, idProveedorSeleccionado);
+                    psProv.executeUpdate();
                 }
             }
 
@@ -377,6 +462,11 @@ public class PersonaController {
         if (ok != JOptionPane.YES_OPTION) return;
 
         try (Connection con = conexion.establecerConexion()) {
+            // Eliminar representante si existe
+            con.prepareStatement(
+                            "DELETE FROM TBL_REPRESENTANTE WHERE id_persona=" + idPersonaSeleccionada)
+                    .executeUpdate();
+
             for (String q : new String[]{
                     "DELETE FROM TBL_DIRECCION WHERE id_persona=" + idPersonaSeleccionada,
                     "DELETE FROM TBL_CLIENTE   WHERE id_persona=" + idPersonaSeleccionada,
@@ -403,6 +493,13 @@ public class PersonaController {
         txtCalle.clear();
         txtDescripcionDireccion.clear();
         txtBuscar.clear();
+        // Proveedor
+        txtNombreEmpresa.clear();
+        txtCorreoEmpresa.clear();
+        txtTelefonoEmpresa.clear();
+        txtDniProveedor.clear();
+        cmbCategoriaProveedor.setValue(null);
+
         cmbGenero.setValue(null);
         cmbCargo.setValue(null);
         dpHorario.setValue(null);
@@ -412,12 +509,10 @@ public class PersonaController {
         cmbProvincia.getItems().clear();
         cmbMunicipio.getItems().clear();
         rbCliente.setSelected(true);
-        vboxEmpleado.setVisible(false);
-        vboxEmpleado.setManaged(false);
-        vboxCliente.setVisible(true);
-        vboxCliente.setManaged(true);
-        idPersonaSeleccionada = -1;
-        idMunicipio = 0;
+        actualizarVisibilidadRol();
+        idPersonaSeleccionada   = -1;
+        idMunicipio             = 0;
+        idProveedorSeleccionado = -1;
         tablaPersonas.getSelectionModel().clearSelection();
         tablaPersonas.setItems(listaPersonas);
     }
@@ -460,17 +555,18 @@ public class PersonaController {
 
     // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Persona p) {
-        idPersonaSeleccionada = p.getId();
+        idPersonaSeleccionada   = p.getId();
+        idProveedorSeleccionado = -1;
+
         txtNombre.setText(p.getNombre());
         txtApellido.setText(p.getApellido());
         cmbGenero.setValue(p.getGenero());
         txtTelefono.setText(p.getTelefono());
         txtCorreo.setText(p.getCorreo());
 
-        // Cargar datos adicionales de BD
         try (Connection con = conexion.establecerConexion()) {
 
-            // ¿Cliente o empleado?
+            // ¿Cliente?
             PreparedStatement psCli = con.prepareStatement(
                     "SELECT id_seguro FROM TBL_CLIENTE WHERE id_persona=?");
             psCli.setInt(1, p.getId());
@@ -505,18 +601,44 @@ public class PersonaController {
                     }
                 }
             } else {
-                rbEmpleado.setSelected(true);
-                PreparedStatement psEmp = con.prepareStatement(
-                        "SELECT e.id_cargo, c.nombre FROM TBL_EMPLEADO e " +
-                                "JOIN TBL_CARGO c ON c.id_cargo = e.id_cargo WHERE e.id_persona=?");
-                psEmp.setInt(1, p.getId());
-                ResultSet rsEmp = psEmp.executeQuery();
-                if (rsEmp.next()) {
-                    int idCargo = rsEmp.getInt("id_cargo");
-                    for (String item : cmbCargo.getItems()) {
-                        if (item.startsWith(idCargo + " - ")) {
-                            cmbCargo.setValue(item);
+                // ¿Proveedor (representante)?
+                PreparedStatement psProv = con.prepareStatement(
+                        "SELECT pv.id_proveedor, pv.nombre, pv.telefono, pv.correo_electronico, " +
+                                "pv.dni, pv.id_categoriaproveedor " +
+                                "FROM TBL_PROVEEDOR pv " +
+                                "JOIN TBL_REPRESENTANTE r ON r.id_proveedor = pv.id_proveedor " +
+                                "WHERE r.id_persona = ?");
+                psProv.setInt(1, p.getId());
+                ResultSet rsProv = psProv.executeQuery();
+
+                if (rsProv.next()) {
+                    rbProveedor.setSelected(true);
+                    idProveedorSeleccionado = rsProv.getInt("id_proveedor");
+                    txtNombreEmpresa.setText(rsProv.getString("nombre"));
+                    txtTelefonoEmpresa.setText(rsProv.getString("telefono"));
+                    txtCorreoEmpresa.setText(rsProv.getString("correo_electronico"));
+                    txtDniProveedor.setText(rsProv.getString("dni") != null ? rsProv.getString("dni") : "");
+                    int idCat = rsProv.getInt("id_categoriaproveedor");
+                    for (String item : cmbCategoriaProveedor.getItems()) {
+                        if (item.startsWith(idCat + " - ")) {
+                            cmbCategoriaProveedor.setValue(item);
                             break;
+                        }
+                    }
+                } else {
+                    // Es empleado
+                    rbEmpleado.setSelected(true);
+                    PreparedStatement psEmp = con.prepareStatement(
+                            "SELECT e.id_cargo FROM TBL_EMPLEADO e WHERE e.id_persona=?");
+                    psEmp.setInt(1, p.getId());
+                    ResultSet rsEmp = psEmp.executeQuery();
+                    if (rsEmp.next()) {
+                        int idCargo = rsEmp.getInt("id_cargo");
+                        for (String item : cmbCargo.getItems()) {
+                            if (item.startsWith(idCargo + " - ")) {
+                                cmbCargo.setValue(item);
+                                break;
+                            }
                         }
                     }
                 }
@@ -543,7 +665,7 @@ public class PersonaController {
                 txtSector.setText(rsDir.getString("sector"));
                 txtCalle.setText(rsDir.getString("calle"));
                 idMunicipio = rsDir.getInt("id_municipio");
-                int idRegion   = rsDir.getInt("id_region");
+                int idRegion    = rsDir.getInt("id_region");
                 int idProvincia = rsDir.getInt("id_provincia");
 
                 for (String item : cmbRegion.getItems()) {
@@ -574,6 +696,12 @@ public class PersonaController {
         }
         if (cmbGenero.getValue() == null) {
             JOptionPane.showMessageDialog(null, "Selecciona el género."); return false;
+        }
+        if (rbProveedor.isSelected() && txtNombreEmpresa.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "El nombre de la empresa es obligatorio."); return false;
+        }
+        if (rbProveedor.isSelected() && cmbCategoriaProveedor.getValue() == null) {
+            JOptionPane.showMessageDialog(null, "Selecciona la categoría del proveedor."); return false;
         }
         return true;
     }

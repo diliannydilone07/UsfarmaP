@@ -7,7 +7,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 
 import javax.swing.JOptionPane;
 import java.sql.*;
@@ -31,7 +34,7 @@ public class CompraController {
     @FXML private Label            lblCantProductos;
     @FXML private TextField        txtBuscarProducto;
 
-    // ── Campos para agregar producto ──────────────────────────────────────
+    // ── Campos para agregar producto manualmente ───────────────────────────
     @FXML private TextField txtIdProducto;
     @FXML private TextField txtNombreProducto;
     @FXML private TextField txtCantidadProducto;
@@ -85,7 +88,6 @@ public class CompraController {
         colProductoCantidad.setCellValueFactory(c -> c.getValue().cantidadProperty());
         colProductoPrecio.setCellValueFactory(c -> c.getValue().precioUnitarioProperty());
         colProductoSubtotal.setCellValueFactory(c -> c.getValue().subtotalProperty());
-
         tablaCompraProducto.setItems(listaTemporal);
 
         cmbMetodoPago.getItems().addAll("Efectivo", "Transferencia", "Tarjeta", "Cheque");
@@ -101,7 +103,71 @@ public class CompraController {
         tablaPagos.setItems(listaPagos);
     }
 
-    // ── Cargar cuentas bancarias en combo ─────────────────────────────────
+    // ── Abrir catálogo de productos ───────────────────────────────────────
+    @FXML
+    public void onAbrirCatalogo(ActionEvent event) {
+        try {
+            Node nodo = (Node) event.getSource();
+            StackPane contentArea = (StackPane) nodo.getScene().lookup("#contentArea");
+            if (contentArea == null) {
+                JOptionPane.showMessageDialog(null, "No se pudo encontrar el área de contenido."); return;
+            }
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/example/farmaventa/SelectorProductoCompra.fxml"));
+            Node selectorVista = loader.load();
+            SelectorProductoCompraController selectorCtrl = loader.getController();
+            selectorCtrl.init(this, contentArea, construirInfoCompraActual());
+            contentArea.getChildren().setAll(selectorVista);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al abrir el catálogo: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Llamado por SelectorProductoCompraController cuando el usuario elige un producto.
+     * Precio pre-llenado desde la BD — no requiere ingreso manual.
+     */
+    public void recibirProductoDelCatalogo(int idProducto, String nombre, int cantidad, double precio) {
+        listaTemporal.add(new Compra(
+                idCompraSeleccionada == -1 ? 0 : idCompraSeleccionada,
+                "", nombre, cantidad, precio, precio * cantidad,
+                "", "", "", idProducto, 0, 0, 1, 0, 0));
+        actualizarTotales();
+    }
+
+    /**
+     * Restaura el estado del formulario al volver del catálogo.
+     */
+    public void restaurarEstadoEn(CompraController destino) {
+        destino.listaTemporal.setAll(this.listaTemporal);
+        destino.tablaCompraProducto.setItems(destino.listaTemporal);
+        destino.idCompraSeleccionada  = this.idCompraSeleccionada;
+        destino.idPedidoCSeleccionado = this.idPedidoCSeleccionado;
+
+        if (this.txtIdCompra    != null && destino.txtIdCompra    != null) destino.txtIdCompra.setText(this.txtIdCompra.getText());
+        if (this.txtIdProveedor != null && destino.txtIdProveedor != null) destino.txtIdProveedor.setText(this.txtIdProveedor.getText());
+        if (this.txtIdEmpleado  != null && destino.txtIdEmpleado  != null) destino.txtIdEmpleado.setText(this.txtIdEmpleado.getText());
+        if (this.txtCondicion   != null && destino.txtCondicion   != null) destino.txtCondicion.setText(this.txtCondicion.getText());
+        if (this.txtMontoPagado != null && destino.txtMontoPagado != null) destino.txtMontoPagado.setText(this.txtMontoPagado.getText());
+        if (this.cmbTipoCompra  != null && destino.cmbTipoCompra  != null) destino.cmbTipoCompra.setValue(this.cmbTipoCompra.getValue());
+        if (this.dpFechaCompra  != null && destino.dpFechaCompra  != null) destino.dpFechaCompra.setValue(this.dpFechaCompra.getValue());
+        if (this.lblInfoCompra  != null && destino.lblInfoCompra  != null) {
+            destino.lblInfoCompra.setText(this.lblInfoCompra.getText());
+            destino.lblInfoCompra.setStyle(this.lblInfoCompra.getStyle());
+        }
+        destino.actualizarTotales();
+    }
+
+    private String construirInfoCompraActual() {
+        if (idCompraSeleccionada != -1)
+            return "Editando Compra #" + idCompraSeleccionada + " | " + listaTemporal.size() + " producto(s)";
+        String proveedor = (txtIdProveedor != null && !txtIdProveedor.getText().isBlank())
+                ? "Proveedor #" + txtIdProveedor.getText().trim() : "Nueva Compra";
+        return proveedor + " | " + listaTemporal.size() + " producto(s) en lista";
+    }
+
+    // ── Cargar cuentas bancarias ──────────────────────────────────────────
     private void cargarCuentas() {
         mapaCuentas.clear();
         cmbCuenta.getItems().clear();
@@ -123,7 +189,6 @@ public class CompraController {
     @FXML
     public void onBuscarCompra(ActionEvent event) {
         if (txtIdCompra.getText().isBlank()) return;
-
         String sql = "SELECT c.id_compra, c.tipo_compra, c.condicion, " +
                 "CONVERT(VARCHAR(10), c.fecha_transaccion, 120) AS fecha, " +
                 "c.monto_total, c.monto_pendiente, " +
@@ -133,7 +198,6 @@ public class CompraController {
                 "JOIN TBL_PEDIDO_C pc  ON pc.id_pedido_c  = c.id_pedido_c " +
                 "JOIN TBL_PROVEEDOR pr ON pr.id_proveedor = pc.id_proveedor " +
                 "WHERE c.id_compra = ?";
-
         try {
             int idC = Integer.parseInt(txtIdCompra.getText().trim());
             try (Connection con = conexion.establecerConexion();
@@ -177,11 +241,9 @@ public class CompraController {
         }
     }
 
-    // ── Cargar productos de una compra en la tabla ────────────────────────
     private void cargarProductosDeCompra(Connection con, int idCompra) throws SQLException {
         listaTemporal.clear();
-        String sql = "SELECT cp.id_producto, cp.cantidad, cp.precio_unitario, " +
-                "cp.id_presentacion, pr.nombre " +
+        String sql = "SELECT cp.id_producto, cp.cantidad, cp.precio_unitario, cp.id_presentacion, pr.nombre " +
                 "FROM TBL_COMPRA_PRODUCTO cp " +
                 "JOIN TBL_PRODUCTO pr ON pr.id_producto = cp.id_producto " +
                 "WHERE cp.id_compra = ?";
@@ -201,13 +263,10 @@ public class CompraController {
         actualizarTotales();
     }
 
-    // ── Cargar pagos de una compra en la tabla ────────────────────────────
     private void cargarPagosDeCompra(Connection con, int idCompra) throws SQLException {
         listaPagos.clear();
-        String sql = "SELECT p.id_pago, p.tipo_pago, " +
-                "CONVERT(VARCHAR(10), p.fecha_pago, 120) AS fecha, " +
-                "p.monto_pago, p.metodo_pago, p.estado_pago, " +
-                "cu.nombre AS cuenta, cu.banco " +
+        String sql = "SELECT p.id_pago, p.tipo_pago, CONVERT(VARCHAR(10), p.fecha_pago, 120) AS fecha, " +
+                "p.monto_pago, p.metodo_pago, p.estado_pago, cu.nombre AS cuenta, cu.banco " +
                 "FROM TBL_PAGO p " +
                 "JOIN TBL_PAGO_COMPRA pc ON pc.id_pago   = p.id_pago " +
                 "JOIN TBL_CUENTA cu      ON cu.id_cuenta = pc.id_cuenta " +
@@ -225,21 +284,34 @@ public class CompraController {
         tablaPagos.setItems(listaPagos);
     }
 
-    // ── Buscar producto por ID → llena nombre ────────────────────────────
+    // ── Buscar producto por ID → llena nombre y precio desde BD ──────────
     @FXML
     public void onBuscarProductoId(ActionEvent event) {
         if (txtIdProducto.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return;
         }
-        String sql = "SELECT nombre FROM TBL_PRODUCTO WHERE id_producto = ?";
+        // Trae nombre Y precio de presentación (pre-llenado automático)
+        String sql = "SELECT p.nombre, " +
+                "ISNULL((SELECT TOP 1 precio_venta FROM TBL_PRESENTACION_PRODUCTO " +
+                "        WHERE id_producto = p.id_producto ORDER BY id_presentacion ASC), 0) AS precio_venta " +
+                "FROM TBL_PRODUCTO p WHERE p.id_producto = ?";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(txtIdProducto.getText().trim()));
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) txtNombreProducto.setText(rs.getString("nombre"));
-            else {
+            if (rs.next()) {
+                txtNombreProducto.setText(rs.getString("nombre"));
+                double precio = rs.getDouble("precio_venta");
+                // Pre-llenar precio automáticamente
+                if (txtPrecioProducto != null) {
+                    txtPrecioProducto.setText(precio > 0 ? String.format("%.2f", precio) : "");
+                    txtPrecioProducto.setEditable(false); // solo lectura
+                    txtPrecioProducto.setStyle("-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;");
+                }
+            } else {
                 JOptionPane.showMessageDialog(null, "Producto no encontrado.");
                 txtNombreProducto.clear();
+                if (txtPrecioProducto != null) txtPrecioProducto.clear();
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
@@ -250,10 +322,7 @@ public class CompraController {
     @FXML
     public void fnBuscarProducto(ActionEvent event) {
         String busqueda = txtBuscarProducto.getText().trim().toLowerCase();
-        if (busqueda.isEmpty()) {
-            tablaCompraProducto.setItems(listaTemporal);
-            return;
-        }
+        if (busqueda.isEmpty()) { tablaCompraProducto.setItems(listaTemporal); return; }
         ObservableList<Compra> listaFiltrada = FXCollections.observableArrayList();
         for (Compra c : listaTemporal) {
             if (c.getProducto().toLowerCase().contains(busqueda)) listaFiltrada.add(c);
@@ -261,7 +330,7 @@ public class CompraController {
         tablaCompraProducto.setItems(listaFiltrada);
     }
 
-    // ── Agregar producto usando los campos del formulario ─────────────────
+    // ── Agregar producto manualmente ──────────────────────────────────────
     @FXML
     public void onAgregarProducto(ActionEvent event) {
         if (txtIdProducto.getText().isBlank()) {
@@ -276,7 +345,6 @@ public class CompraController {
         if (txtPrecioProducto.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El precio es obligatorio."); return;
         }
-
         try {
             int    idProd = Integer.parseInt(txtIdProducto.getText().trim());
             String nombre = txtNombreProducto.getText().trim();
@@ -293,14 +361,17 @@ public class CompraController {
             txtIdProducto.clear();
             txtNombreProducto.clear();
             txtCantidadProducto.clear();
-            txtPrecioProducto.clear();
-
+            if (txtPrecioProducto != null) {
+                txtPrecioProducto.clear();
+                txtPrecioProducto.setEditable(true);
+                txtPrecioProducto.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
+            }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Cantidad y precio deben ser numeros.");
         }
     }
 
-    // ── Quitar producto de la lista ───────────────────────────────────────
+    // ── Quitar producto ───────────────────────────────────────────────────
     @FXML
     public void onQuitarProducto(ActionEvent event) {
         Compra sel = tablaCompraProducto.getSelectionModel().getSelectedItem();
@@ -330,8 +401,6 @@ public class CompraController {
         double pendiente   = Math.max(0, montoTotal - pagado);
 
         try (Connection con = conexion.establecerConexion()) {
-
-            // 1. Insertar pedido
             PreparedStatement psPedido = con.prepareStatement(
                     "INSERT INTO TBL_PEDIDO_C (id_empleado, id_proveedor, fecha_pedido) VALUES (?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
@@ -343,20 +412,15 @@ public class CompraController {
             ResultSet kp = psPedido.getGeneratedKeys();
             if (kp.next()) idPedidoC = kp.getInt(1);
 
-            // 2. Detalle pedido
             for (Compra c : listaTemporal) {
                 PreparedStatement ps = con.prepareStatement(
                         "INSERT INTO TBL_DETALLE_PEDIDO_C (id_pedido_c, id_producto, cantidad) VALUES (?,?,?)");
-                ps.setInt(1, idPedidoC);
-                ps.setInt(2, c.getIdProducto());
-                ps.setInt(3, c.getCantidad());
+                ps.setInt(1, idPedidoC); ps.setInt(2, c.getIdProducto()); ps.setInt(3, c.getCantidad());
                 ps.executeUpdate();
             }
 
-            // 3. Insertar compra
             PreparedStatement psCompra = con.prepareStatement(
-                    "INSERT INTO TBL_COMPRA (tipo_compra, fecha_transaccion, monto_total, monto_pendiente, condicion, id_pedido_c) " +
-                            "VALUES (?,?,?,?,?,?)",
+                    "INSERT INTO TBL_COMPRA (tipo_compra, fecha_transaccion, monto_total, monto_pendiente, condicion, id_pedido_c) VALUES (?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
             psCompra.setString(1, cmbTipoCompra.getValue());
             psCompra.setDate(2,   Date.valueOf(dpFechaCompra.getValue()));
@@ -369,32 +433,25 @@ public class CompraController {
             ResultSet kc = psCompra.getGeneratedKeys();
             if (kc.next()) idCompra = kc.getInt(1);
 
-            // 4. Productos de compra + actualizar stock
             for (Compra c : listaTemporal) {
                 PreparedStatement ps = con.prepareStatement(
-                        "INSERT INTO TBL_COMPRA_PRODUCTO (id_compra, id_producto, cantidad, precio_unitario, id_presentacion, fecha_compra) " +
-                                "VALUES (?,?,?,?,?,?)");
-                ps.setInt(1,    idCompra);
-                ps.setInt(2,    c.getIdProducto());
-                ps.setInt(3,    c.getCantidad());
+                        "INSERT INTO TBL_COMPRA_PRODUCTO (id_compra, id_producto, cantidad, precio_unitario, id_presentacion, fecha_compra) VALUES (?,?,?,?,?,?)");
+                ps.setInt(1, idCompra); ps.setInt(2, c.getIdProducto()); ps.setInt(3, c.getCantidad());
                 ps.setDouble(4, c.getPrecioUnitario());
-                ps.setInt(5,    c.getIdPresentacion() > 0 ? c.getIdPresentacion() : 1);
-                ps.setDate(6,   Date.valueOf(dpFechaCompra.getValue()));
+                ps.setInt(5, c.getIdPresentacion() > 0 ? c.getIdPresentacion() : 1);
+                ps.setDate(6, Date.valueOf(dpFechaCompra.getValue()));
                 ps.executeUpdate();
 
                 PreparedStatement psStock = con.prepareStatement(
                         "UPDATE TBL_PRODUCTO SET cantidad_disponible = cantidad_disponible + ? WHERE id_producto=?");
-                psStock.setInt(1, c.getCantidad());
-                psStock.setInt(2, c.getIdProducto());
+                psStock.setInt(1, c.getCantidad()); psStock.setInt(2, c.getIdProducto());
                 psStock.executeUpdate();
             }
 
-            // 5. Pago inicial si hay monto
             if (pagado > 0) registrarPagoInterno(con, idCompra, pagado);
 
             JOptionPane.showMessageDialog(null, "Compra #" + idCompra + " registrada correctamente.");
             Limpiar();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al registrar compra: " + e.getMessage());
         }
@@ -415,19 +472,14 @@ public class CompraController {
         double pendiente  = Math.max(0, montoTotal - pagado);
 
         try (Connection con = conexion.establecerConexion()) {
-
             PreparedStatement ps = con.prepareStatement(
-                    "UPDATE TBL_COMPRA SET tipo_compra=?, fecha_transaccion=?, monto_total=?, monto_pendiente=?, condicion=? " +
-                            "WHERE id_compra=?");
+                    "UPDATE TBL_COMPRA SET tipo_compra=?, fecha_transaccion=?, monto_total=?, monto_pendiente=?, condicion=? WHERE id_compra=?");
             ps.setString(1, cmbTipoCompra.getValue());
             ps.setDate(2,   Date.valueOf(dpFechaCompra.getValue()));
-            ps.setDouble(3, montoTotal);
-            ps.setDouble(4, pendiente);
-            ps.setString(5, txtCondicion.getText().trim());
-            ps.setInt(6,    idCompraSeleccionada);
+            ps.setDouble(3, montoTotal); ps.setDouble(4, pendiente);
+            ps.setString(5, txtCondicion.getText().trim()); ps.setInt(6, idCompraSeleccionada);
             ps.executeUpdate();
 
-            // Revertir stock anterior
             PreparedStatement psOld = con.prepareStatement(
                     "SELECT id_producto, cantidad FROM TBL_COMPRA_PRODUCTO WHERE id_compra=?");
             psOld.setInt(1, idCompraSeleccionada);
@@ -435,38 +487,28 @@ public class CompraController {
             while (rsOld.next()) {
                 PreparedStatement psRev = con.prepareStatement(
                         "UPDATE TBL_PRODUCTO SET cantidad_disponible = cantidad_disponible - ? WHERE id_producto=?");
-                psRev.setInt(1, rsOld.getInt("cantidad"));
-                psRev.setInt(2, rsOld.getInt("id_producto"));
+                psRev.setInt(1, rsOld.getInt("cantidad")); psRev.setInt(2, rsOld.getInt("id_producto"));
                 psRev.executeUpdate();
             }
 
-            PreparedStatement psDel = con.prepareStatement(
-                    "DELETE FROM TBL_COMPRA_PRODUCTO WHERE id_compra=?");
-            psDel.setInt(1, idCompraSeleccionada);
-            psDel.executeUpdate();
+            PreparedStatement psDel = con.prepareStatement("DELETE FROM TBL_COMPRA_PRODUCTO WHERE id_compra=?");
+            psDel.setInt(1, idCompraSeleccionada); psDel.executeUpdate();
 
             for (Compra c : listaTemporal) {
                 PreparedStatement psCP = con.prepareStatement(
-                        "INSERT INTO TBL_COMPRA_PRODUCTO (id_compra, id_producto, cantidad, precio_unitario, id_presentacion, fecha_compra) " +
-                                "VALUES (?,?,?,?,?,?)");
-                psCP.setInt(1,    idCompraSeleccionada);
-                psCP.setInt(2,    c.getIdProducto());
-                psCP.setInt(3,    c.getCantidad());
+                        "INSERT INTO TBL_COMPRA_PRODUCTO (id_compra, id_producto, cantidad, precio_unitario, id_presentacion, fecha_compra) VALUES (?,?,?,?,?,?)");
+                psCP.setInt(1, idCompraSeleccionada); psCP.setInt(2, c.getIdProducto()); psCP.setInt(3, c.getCantidad());
                 psCP.setDouble(4, c.getPrecioUnitario());
-                psCP.setInt(5,    c.getIdPresentacion() > 0 ? c.getIdPresentacion() : 1);
-                psCP.setDate(6,   Date.valueOf(dpFechaCompra.getValue()));
-                psCP.executeUpdate();
+                psCP.setInt(5, c.getIdPresentacion() > 0 ? c.getIdPresentacion() : 1);
+                psCP.setDate(6, Date.valueOf(dpFechaCompra.getValue())); psCP.executeUpdate();
 
                 PreparedStatement psStock = con.prepareStatement(
                         "UPDATE TBL_PRODUCTO SET cantidad_disponible = cantidad_disponible + ? WHERE id_producto=?");
-                psStock.setInt(1, c.getCantidad());
-                psStock.setInt(2, c.getIdProducto());
-                psStock.executeUpdate();
+                psStock.setInt(1, c.getCantidad()); psStock.setInt(2, c.getIdProducto()); psStock.executeUpdate();
             }
 
             JOptionPane.showMessageDialog(null, "Compra #" + idCompraSeleccionada + " actualizada.");
             Limpiar();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al editar: " + e.getMessage());
         }
@@ -480,38 +522,24 @@ public class CompraController {
             try { idCompraTarget = Integer.parseInt(txtIdCompraPago.getText().trim()); }
             catch (NumberFormatException ignored) {}
         }
-        if (idCompraTarget == -1) {
-            JOptionPane.showMessageDialog(null, "Primero busca una compra por ID."); return;
-        }
-        if (txtMontoPago.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Ingresa el monto del pago."); return;
-        }
-        if (cmbMetodoPago.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona el metodo de pago."); return;
-        }
+        if (idCompraTarget == -1) { JOptionPane.showMessageDialog(null, "Primero busca una compra por ID."); return; }
+        if (txtMontoPago.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa el monto del pago."); return; }
+        if (cmbMetodoPago.getValue() == null) { JOptionPane.showMessageDialog(null, "Selecciona el metodo de pago."); return; }
         if (cmbCuenta.getValue() == null || !mapaCuentas.containsKey(cmbCuenta.getValue())) {
             JOptionPane.showMessageDialog(null, "Selecciona una cuenta bancaria valida."); return;
         }
 
         double montoPago;
         try { montoPago = Double.parseDouble(txtMontoPago.getText().trim()); }
-        catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "El monto debe ser un numero valido."); return;
-        }
-        if (montoPago <= 0) {
-            JOptionPane.showMessageDialog(null, "El monto debe ser mayor a cero."); return;
-        }
+        catch (NumberFormatException e) { JOptionPane.showMessageDialog(null, "El monto debe ser un numero valido."); return; }
+        if (montoPago <= 0) { JOptionPane.showMessageDialog(null, "El monto debe ser mayor a cero."); return; }
 
         int idCuenta = mapaCuentas.get(cmbCuenta.getValue());
-
         try (Connection con = conexion.establecerConexion()) {
-            PreparedStatement psCheck = con.prepareStatement(
-                    "SELECT monto_total, monto_pendiente FROM TBL_COMPRA WHERE id_compra = ?");
+            PreparedStatement psCheck = con.prepareStatement("SELECT monto_total, monto_pendiente FROM TBL_COMPRA WHERE id_compra = ?");
             psCheck.setInt(1, idCompraTarget);
             ResultSet rsCheck = psCheck.executeQuery();
-            if (!rsCheck.next()) {
-                JOptionPane.showMessageDialog(null, "Compra #" + idCompraTarget + " no encontrada."); return;
-            }
+            if (!rsCheck.next()) { JOptionPane.showMessageDialog(null, "Compra #" + idCompraTarget + " no encontrada."); return; }
             double montoTotal     = rsCheck.getDouble("monto_total");
             double montoPendiente = rsCheck.getDouble("monto_pendiente");
 
@@ -525,29 +553,20 @@ public class CompraController {
             PreparedStatement psPago = con.prepareStatement(
                     "INSERT INTO TBL_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) VALUES (?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
-            psPago.setString(1, "Compra");
-            psPago.setDate(2,   Date.valueOf(dpFechaPago.getValue()));
-            psPago.setDouble(3, montoPago);
-            psPago.setString(4, cmbMetodoPago.getValue());
-            psPago.setBoolean(5, true);
+            psPago.setString(1, "Compra"); psPago.setDate(2, Date.valueOf(dpFechaPago.getValue()));
+            psPago.setDouble(3, montoPago); psPago.setString(4, cmbMetodoPago.getValue()); psPago.setBoolean(5, true);
             psPago.executeUpdate();
             int idPago = -1;
             ResultSet keys = psPago.getGeneratedKeys();
             if (keys.next()) idPago = keys.getInt(1);
 
-            PreparedStatement psPagoC = con.prepareStatement(
-                    "INSERT INTO TBL_PAGO_COMPRA (id_compra, id_cuenta, id_pago) VALUES (?,?,?)");
-            psPagoC.setInt(1, idCompraTarget);
-            psPagoC.setInt(2, idCuenta);
-            psPagoC.setInt(3, idPago);
+            PreparedStatement psPagoC = con.prepareStatement("INSERT INTO TBL_PAGO_COMPRA (id_compra, id_cuenta, id_pago) VALUES (?,?,?)");
+            psPagoC.setInt(1, idCompraTarget); psPagoC.setInt(2, idCuenta); psPagoC.setInt(3, idPago);
             psPagoC.executeUpdate();
 
             double nuevoPendiente = Math.max(0, montoPendiente - montoPago);
-            PreparedStatement psUpd = con.prepareStatement(
-                    "UPDATE TBL_COMPRA SET monto_pendiente = ? WHERE id_compra = ?");
-            psUpd.setDouble(1, nuevoPendiente);
-            psUpd.setInt(2,    idCompraTarget);
-            psUpd.executeUpdate();
+            PreparedStatement psUpd = con.prepareStatement("UPDATE TBL_COMPRA SET monto_pendiente = ? WHERE id_compra = ?");
+            psUpd.setDouble(1, nuevoPendiente); psUpd.setInt(2, idCompraTarget); psUpd.executeUpdate();
 
             JOptionPane.showMessageDialog(null, "Pago #" + idPago + " registrado.\n" +
                     "Monto: RD$ " + String.format("%.2f", montoPago) +
@@ -556,7 +575,6 @@ public class CompraController {
             cargarPagosDeCompra(con, idCompraTarget);
             actualizarResumenPago(montoTotal, nuevoPendiente);
             limpiarFormularioPago();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al registrar pago: " + e.getMessage());
         }
@@ -567,12 +585,10 @@ public class CompraController {
     public void onEliminarPago(ActionEvent event) {
         Pago sel = tablaPagos.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un pago de la lista."); return; }
-
         int resp = JOptionPane.showConfirmDialog(null,
                 "Eliminar pago #" + sel.getIdPago() + " de RD$ " + String.format("%.2f", sel.getMonto()) + "?",
                 "Confirmar", JOptionPane.YES_NO_OPTION);
         if (resp != JOptionPane.YES_OPTION) return;
-
         try (Connection con = conexion.establecerConexion()) {
             PreparedStatement psGet = con.prepareStatement("SELECT monto_pago FROM TBL_PAGO WHERE id_pago=?");
             psGet.setInt(1, sel.getIdPago());
@@ -580,29 +596,21 @@ public class CompraController {
             double monto = rs.next() ? rs.getDouble("monto_pago") : 0;
 
             PreparedStatement psDel1 = con.prepareStatement("DELETE FROM TBL_PAGO_COMPRA WHERE id_pago=?");
-            psDel1.setInt(1, sel.getIdPago());
-            psDel1.executeUpdate();
-
+            psDel1.setInt(1, sel.getIdPago()); psDel1.executeUpdate();
             PreparedStatement psDel2 = con.prepareStatement("DELETE FROM TBL_PAGO WHERE id_pago=?");
-            psDel2.setInt(1, sel.getIdPago());
-            psDel2.executeUpdate();
+            psDel2.setInt(1, sel.getIdPago()); psDel2.executeUpdate();
 
             if (idCompraSeleccionada != -1 && monto > 0) {
                 PreparedStatement psUpd = con.prepareStatement(
                         "UPDATE TBL_COMPRA SET monto_pendiente = monto_pendiente + ? WHERE id_compra=?");
-                psUpd.setDouble(1, monto);
-                psUpd.setInt(2,    idCompraSeleccionada);
-                psUpd.executeUpdate();
-
-                PreparedStatement psRef = con.prepareStatement(
-                        "SELECT monto_total, monto_pendiente FROM TBL_COMPRA WHERE id_compra=?");
+                psUpd.setDouble(1, monto); psUpd.setInt(2, idCompraSeleccionada); psUpd.executeUpdate();
+                PreparedStatement psRef = con.prepareStatement("SELECT monto_total, monto_pendiente FROM TBL_COMPRA WHERE id_compra=?");
                 psRef.setInt(1, idCompraSeleccionada);
                 ResultSet rsRef = psRef.executeQuery();
                 if (rsRef.next()) actualizarResumenPago(rsRef.getDouble("monto_total"), rsRef.getDouble("monto_pendiente"));
             }
             cargarPagosDeCompra(con, idCompraSeleccionada != -1 ? idCompraSeleccionada : sel.getIdCompra());
             JOptionPane.showMessageDialog(null, "Pago eliminado correctamente.");
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
         }
@@ -611,28 +619,26 @@ public class CompraController {
     // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void Limpiar() {
-        txtIdCompra.clear();
-        txtIdProveedor.clear();
-        txtIdEmpleado.clear();
-        txtCondicion.clear();
-        txtMontoPagado.clear();
-        if (txtIdProducto      != null) txtIdProducto.clear();
-        if (txtNombreProducto  != null) txtNombreProducto.clear();
+        txtIdCompra.clear(); txtIdProveedor.clear(); txtIdEmpleado.clear();
+        txtCondicion.clear(); txtMontoPagado.clear();
+        if (txtIdProducto       != null) txtIdProducto.clear();
+        if (txtNombreProducto   != null) txtNombreProducto.clear();
         if (txtCantidadProducto != null) txtCantidadProducto.clear();
-        if (txtPrecioProducto  != null) txtPrecioProducto.clear();
-        if (txtBuscarProducto  != null) txtBuscarProducto.clear();
-        if (lblInfoCompra      != null) lblInfoCompra.setText("");
-        if (lblResumenPago     != null) lblResumenPago.setText("");
+        if (txtPrecioProducto   != null) {
+            txtPrecioProducto.clear();
+            txtPrecioProducto.setEditable(true);
+            txtPrecioProducto.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
+        }
+        if (txtBuscarProducto != null) txtBuscarProducto.clear();
+        if (lblInfoCompra     != null) lblInfoCompra.setText("");
+        if (lblResumenPago    != null) lblResumenPago.setText("");
         cmbTipoCompra.setValue(null);
         dpFechaCompra.setValue(java.time.LocalDate.now());
-        listaTemporal.clear();
-        listaPagos.clear();
+        listaTemporal.clear(); listaPagos.clear();
         tablaCompraProducto.setItems(listaTemporal);
         tablaPagos.setItems(listaPagos);
-        idCompraSeleccionada  = -1;
-        idPedidoCSeleccionado = -1;
-        lblMontoTotal.setText("RD$ 0.00");
-        lblMontoPendiente.setText("RD$ 0.00");
+        idCompraSeleccionada  = -1; idPedidoCSeleccionado = -1;
+        lblMontoTotal.setText("RD$ 0.00"); lblMontoPendiente.setText("RD$ 0.00");
         lblCantProductos.setText("0 productos");
         limpiarFormularioPago();
     }
@@ -645,20 +651,15 @@ public class CompraController {
         PreparedStatement psPago = con.prepareStatement(
                 "INSERT INTO TBL_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) VALUES (?,?,?,?,?)",
                 Statement.RETURN_GENERATED_KEYS);
-        psPago.setString(1, "Compra");
-        psPago.setDate(2,   Date.valueOf(dpFechaCompra.getValue()));
-        psPago.setDouble(3, montoPagado);
-        psPago.setString(4, metodo);
-        psPago.setBoolean(5, true);
+        psPago.setString(1, "Compra"); psPago.setDate(2, Date.valueOf(dpFechaCompra.getValue()));
+        psPago.setDouble(3, montoPagado); psPago.setString(4, metodo); psPago.setBoolean(5, true);
         psPago.executeUpdate();
         int idPago = -1;
         ResultSet keys = psPago.getGeneratedKeys();
         if (keys.next()) idPago = keys.getInt(1);
         PreparedStatement psPagoC = con.prepareStatement(
                 "INSERT INTO TBL_PAGO_COMPRA (id_compra, id_cuenta, id_pago) VALUES (?,?,?)");
-        psPagoC.setInt(1, idCompra);
-        psPagoC.setInt(2, cuenta);
-        psPagoC.setInt(3, idPago);
+        psPagoC.setInt(1, idCompra); psPagoC.setInt(2, cuenta); psPagoC.setInt(3, idPago);
         psPagoC.executeUpdate();
     }
 
@@ -666,8 +667,7 @@ public class CompraController {
         if (txtMontoPago    != null) txtMontoPago.clear();
         if (txtIdCompraPago != null) txtIdCompraPago.setText(
                 idCompraSeleccionada != -1 ? String.valueOf(idCompraSeleccionada) : "");
-        cmbMetodoPago.setValue(null);
-        cmbCuenta.setValue(null);
+        cmbMetodoPago.setValue(null); cmbCuenta.setValue(null);
         dpFechaPago.setValue(java.time.LocalDate.now());
     }
 
