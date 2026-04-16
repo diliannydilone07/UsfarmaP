@@ -36,6 +36,7 @@ public class HistoricoReclamacion {
         return "ID Histórico  : " + idHistorico.get()              + "\n" +
                 "Fecha         : " + (fechaCreacion.get() != null
                 ? fechaCreacion.get() : "—")  + "\n" +
+
                 "Creado por    : " + (creadoPor.get() != null
                 ? creadoPor.get() : "—")      + "\n" +
                 "Reclamación   : #" + idReclamacionventa.get()       + "\n\n" +

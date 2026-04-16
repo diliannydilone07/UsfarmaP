@@ -10,4 +10,6 @@ module com.example.farmaventa {
     exports com.example.farmaventa;
     exports com.example.farmaventa.modelo;
     opens com.example.farmaventa.modelo to javafx.fxml;
+    exports Usuarios;
+    opens Usuarios to javafx.fxml;
 }
