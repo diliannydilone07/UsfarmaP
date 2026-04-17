@@ -10,10 +10,10 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(
-                HelloApplication.class.getResource("MainLayout.fxml")
+                HelloApplication.class.getResource("/Usuarios/Login.fxml")
         );
-        Scene scene = new Scene(loader.load(), 1000, 600);
-        stage.setTitle("UsFarma");
+        Scene scene = new Scene(loader.load(), 820, 520);
+        stage.setTitle("FarmaVenta — Iniciar Sesión");
         stage.setScene(scene);
         stage.show();
     }
