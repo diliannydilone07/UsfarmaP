@@ -389,7 +389,23 @@ public class CompraController {
         int    idEmpleado  = txtIdEmpleado.getText().isBlank() ? 1 : Integer.parseInt(txtIdEmpleado.getText().trim());
         double montoTotal  = calcularTotal();
         double pagado      = parseMontoPagado();
-        double pendiente   = Math.max(0, montoTotal - pagado);
+
+// ── Validar que el pago inicial no exceda el total ────────────
+        if (pagado > montoTotal + 0.001) {
+            JOptionPane.showMessageDialog(null,
+                    "⚠ El monto pagado inicial supera el total de la compra.\n\n" +
+                            "Total de la compra:    RD$ " + String.format("%.2f", montoTotal) + "\n" +
+                            "Monto pagado inicial:  RD$ " + String.format("%.2f", pagado) + "\n\n" +
+                            "Corrige el monto antes de continuar.\n" +
+                            "Maximo permitido:      RD$ " + String.format("%.2f", montoTotal),
+                    "Monto excedido", JOptionPane.WARNING_MESSAGE);
+            txtMontoPagado.setText(String.format("%.2f", montoTotal));
+            txtMontoPagado.requestFocus();
+            txtMontoPagado.selectAll();
+            return;
+        }
+
+        double pendiente = Math.max(0, montoTotal - pagado);
 
         try (Connection con = conexion.establecerConexion()) {
             PreparedStatement psPedido = con.prepareStatement(

@@ -27,6 +27,7 @@ public class LoginController {
     @FXML
     public void initialize() {
         lblError.setVisible(false);
+        lblError.setManaged(false);
 
         // Permitir login con Enter desde el campo contraseña
         txtContrasena.setOnAction(e -> onLogin(null));
@@ -36,6 +37,7 @@ public class LoginController {
     @FXML
     public void onLogin(ActionEvent event) {
         lblError.setVisible(false);
+        lblError.setManaged(false);
 
         String usuario    = txtUsuario.getText().trim();
         String contrasena = txtContrasena.getText();
@@ -57,7 +59,7 @@ public class LoginController {
 
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, usuario);
-            ps.setString(2, contrasena); // En producción: hashear antes de comparar
+            ps.setString(2, contrasena);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
@@ -80,7 +82,7 @@ public class LoginController {
                 // Registrar último acceso
                 actualizarUltimoAcceso(con, u.getIdCredencial());
 
-                // Ir a pantalla principal
+                // Ir al sistema principal
                 abrirVentanaPrincipal();
 
             } else {
@@ -93,7 +95,7 @@ public class LoginController {
         }
     }
 
-    // ── Ir a registro de nuevo usuario ────────────────────────────────────
+    // ── Ir a registro ─────────────────────────────────────────────────────
     @FXML
     public void onIrRegistro(ActionEvent event) {
         try {
@@ -101,10 +103,28 @@ public class LoginController {
                     getClass().getResource("/Usuarios/Registro.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) txtUsuario.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            stage.setScene(new Scene(root, 820, 520));
             stage.setTitle("FarmaVenta — Registro de Usuario");
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "No se pudo abrir el registro: " + e.getMessage());
+        }
+    }
+
+    // ── Abrir sistema principal ───────────────────────────────────────────
+    private void abrirVentanaPrincipal() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/example/farmaventa/MainLayout.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) txtUsuario.getScene().getWindow();
+            Scene scene = new Scene(root, 1000, 600);
+            stage.setScene(scene);
+            stage.setTitle("FarmaVenta — " +
+                    SesionUsuario.getInstance().getUsuarioActual().getNombreCompleto());
+            stage.setMaximized(true);
+            stage.show();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error al abrir el sistema: " + e.getMessage());
         }
     }
 
@@ -112,6 +132,7 @@ public class LoginController {
     private void mostrarError(String msg) {
         lblError.setText("⚠  " + msg);
         lblError.setVisible(true);
+        lblError.setManaged(true);
     }
 
     private void actualizarUltimoAcceso(Connection con, int idCredencial) {
@@ -121,25 +142,5 @@ public class LoginController {
             ps.setInt(1, idCredencial);
             ps.executeUpdate();
         } catch (SQLException ignored) {}
-    }
-
-    private void abrirVentanaPrincipal() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/example/farmaventa/MainView.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) txtUsuario.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("FarmaVenta — " +
-                    SesionUsuario.getInstance().getUsuarioActual().getNombreCompleto());
-            stage.setMaximized(true);
-        } catch (IOException e) {
-            // Si aún no tienes MainView, muestra mensaje temporal
-            JOptionPane.showMessageDialog(null,
-                    "✅ Login correcto como: " +
-                            SesionUsuario.getInstance().getUsuarioActual().getNombreCompleto() +
-                            "\n\nRol: " + SesionUsuario.getInstance().getUsuarioActual().getRol() +
-                            "\n\n(Conecta a tu vista principal en abrirVentanaPrincipal())");
-        }
     }
 }
