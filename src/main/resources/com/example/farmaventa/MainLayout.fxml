@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
 
 <BorderPane minHeight="600" minWidth="900" prefHeight="750" prefWidth="1200" style="-fx-background-color: #ECEFF1;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.MainController">
 
@@ -126,10 +127,24 @@
                  CONTENT AREA — sin padding propio,
                  el contenido de cada FXML pone el suyo
                  ════════════════════════════════════ -->
-            <ScrollPane fitToHeight="false" fitToWidth="true" style="-fx-background-color: #F1F5F9;                                -fx-background: #F1F5F9;                                -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
-                <StackPane fx:id="contentArea" style="-fx-background-color: #F1F5F9;" />
+            <ScrollPane fitToHeight="false" fitToWidth="true" style="-fx-background-color: #F1F5F9;
+                            -fx-background: #F1F5F9;
+                            -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
+                <StackPane fx:id="contentArea" style="-fx-background-color: #F1F5F9;">
+                    <VBox alignment="CENTER" spacing="16">
+                        <ImageView fitWidth="280" fitHeight="280" preserveRatio="true" opacity="0.75">
+                            <image><Image url="/Usuarios/Images/farmacialog.jpg"/></image>
+                        </ImageView>
+                        <Label text="Bienvenido al Sistema"
+                               style="-fx-font-size: 22px;
+                          -fx-font-weight: bold;
+                          -fx-text-fill: #1B5E20;" />
+                        <Label text="Selecciona una opción del menú para comenzar"
+                               style="-fx-font-size: 13px;
+                          -fx-text-fill: #94A3B8;" />
+                    </VBox>
+                </StackPane>
             </ScrollPane>
-
         </HBox>
     </center>
 
