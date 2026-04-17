@@ -4,10 +4,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -83,6 +86,15 @@ public class MainController implements Initializable {
         cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema");
     }
 
+    /**
+     * Recibe el nombre completo del usuario desde LoginController
+     * y lo muestra en el chip del top bar.
+     */
+    public void setUsuario(String nombreCompleto) {
+        if (lblUsuario != null && nombreCompleto != null && !nombreCompleto.isBlank())
+            lblUsuario.setText(nombreCompleto);
+    }
+
     // ── Navegación ────────────────────────────────────────────────────────
     @FXML private void onMenuInicio() {
         cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema"); }
@@ -144,8 +156,34 @@ public class MainController implements Initializable {
         activarSub(btnDevolucionesCompra);
     }
 
-    @FXML private void onCerrarSesion() {
-        System.out.println("Cerrando sesión...");
+    // ── Cerrar sesión ─────────────────────────────────────────────────────
+    @FXML
+    private void onCerrarSesion() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/Usuarios/Login.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) btnInicio.getScene().getWindow();
+
+            // 1) Quitar maximizado ANTES de cambiar la escena
+            stage.setMaximized(false);
+
+            // 2) Asignar nueva escena con tamaño exacto del login
+            stage.setScene(new Scene(root));
+
+            // 3) sizeToScene ajusta el stage al tamaño real del contenido
+            stage.sizeToScene();
+
+            stage.setTitle("FarmaVenta — Iniciar Sesión");
+            stage.setResizable(false);
+            stage.centerOnScreen();
+            stage.show();
+
+        } catch (IOException e) {
+            System.err.println("Error al cerrar sesión: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

@@ -2,9 +2,8 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
 
 <BorderPane minHeight="600" minWidth="900" prefHeight="750" prefWidth="1200" style="-fx-background-color: #ECEFF1;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.MainController">
 
@@ -127,17 +126,21 @@
             <!-- ════════════════════════════════════
                  CONTENT AREA
                  ════════════════════════════════════ -->
-            <ScrollPane fitToHeight="false" fitToWidth="true" style="-fx-background-color: #F1F5F9;                             -fx-background: #F1F5F9;                             -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
+            <ScrollPane fitToHeight="false" fitToWidth="true" style="-fx-background-color: #F1F5F9;
+                            -fx-background: #F1F5F9;
+                            -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
                 <StackPane fx:id="contentArea" style="-fx-background-color: #F1F5F9;">
                     <VBox alignment="CENTER" spacing="16">
-                        <ImageView fitHeight="441.0" fitWidth="303.0" opacity="0.75" preserveRatio="true">
-                            <Image url="@logologo.png" />
+                        <ImageView fitWidth="280" fitHeight="280" preserveRatio="true" opacity="0.75">
+                            <Image url="@img.png"/>
                         </ImageView>
-                        <Label style="-fx-font-size: 22px;                                       -fx-font-weight: bold;                                       -fx-text-fill: #1B5E20;" text="Bienvenido al Sistema">
-                     <font>
-                        <Font size="23.0" />
-                     </font></Label>
-                        <Label prefHeight="0.0" prefWidth="275.0" style="-fx-font-size: 13px;                                       -fx-text-fill: #94A3B8;" text="Selecciona una opción del menú para comenzar" />
+                        <Label text="Bienvenido al Sistema"
+                               style="-fx-font-size: 22px;
+                                      -fx-font-weight: bold;
+                                      -fx-text-fill: #1B5E20;" />
+                        <Label text="Selecciona una opción del menú para comenzar"
+                               style="-fx-font-size: 13px;
+                                      -fx-text-fill: #94A3B8;" />
                     </VBox>
                 </StackPane>
             </ScrollPane>
