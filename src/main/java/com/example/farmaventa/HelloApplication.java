@@ -13,7 +13,7 @@ public class HelloApplication extends Application {
                 HelloApplication.class.getResource("/Usuarios/Login.fxml")
         );
         Scene scene = new Scene(loader.load(), 820, 520);
-        stage.setTitle("FarmaVenta — Iniciar Sesión");
+        stage.setTitle("UsFarma — Iniciar Sesión");
         stage.setScene(scene);
         stage.show();
     }

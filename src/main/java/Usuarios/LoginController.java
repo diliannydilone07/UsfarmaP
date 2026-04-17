@@ -1,5 +1,6 @@
 package Usuarios;
 
+import com.example.farmaventa.MainController;
 import com.example.farmaventa.database.Conexion;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -82,8 +83,8 @@ public class LoginController {
                 // Registrar último acceso
                 actualizarUltimoAcceso(con, u.getIdCredencial());
 
-                // Ir al sistema principal
-                abrirVentanaPrincipal();
+                // Ir al sistema principal pasando el nombre completo
+                abrirVentanaPrincipal(u.getNombreCompleto());
 
             } else {
                 mostrarError("Usuario o contraseña incorrectos.");
@@ -102,27 +103,41 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/Usuarios/Registro.fxml"));
             Parent root = loader.load();
+
             Stage stage = (Stage) txtUsuario.getScene().getWindow();
-            stage.setScene(new Scene(root, 820, 520));
+
+            // Asignar escena sin tamaño fijo y dejar que sizeToScene la ajuste
+            stage.setScene(new Scene(root));
+            stage.sizeToScene();
             stage.setTitle("FarmaVenta — Registro de Usuario");
+            stage.setResizable(false);
+            stage.centerOnScreen();
+
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "No se pudo abrir el registro: " + e.getMessage());
         }
     }
 
     // ── Abrir sistema principal ───────────────────────────────────────────
-    private void abrirVentanaPrincipal() {
+    private void abrirVentanaPrincipal(String nombreCompleto) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/example/farmaventa/MainLayout.fxml"));
             Parent root = loader.load();
+
+            // Pasar el nombre del usuario al controlador principal
+            MainController mainController = loader.getController();
+            mainController.setUsuario(nombreCompleto);
+
             Stage stage = (Stage) txtUsuario.getScene().getWindow();
-            Scene scene = new Scene(root, 1000, 600);
-            stage.setScene(scene);
-            stage.setTitle("FarmaVenta — " +
-                    SesionUsuario.getInstance().getUsuarioActual().getNombreCompleto());
+
+            // Asignar escena, maximizar y mostrar
+            stage.setScene(new Scene(root));
+            stage.setTitle("FarmaVenta — " + nombreCompleto);
+            stage.setResizable(true);
             stage.setMaximized(true);
             stage.show();
+
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Error al abrir el sistema: " + e.getMessage());
         }
