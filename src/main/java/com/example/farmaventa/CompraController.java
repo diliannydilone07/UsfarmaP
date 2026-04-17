@@ -67,11 +67,14 @@ public class CompraController {
     @FXML private TableColumn<Pago, String> colPagoEstado;
 
     // ── Datos internos ────────────────────────────────────────────────────
-    private ObservableList<Compra> listaTemporal  = FXCollections.observableArrayList();
-    private ObservableList<Pago>   listaPagos     = FXCollections.observableArrayList();
+    private final ObservableList<Compra>         listaTemporal = FXCollections.observableArrayList();
+    private final ObservableList<Pago>           listaPagos    = FXCollections.observableArrayList();
     private int idCompraSeleccionada  = -1;
     private int idPedidoCSeleccionado = -1;
-    private LinkedHashMap<String, Integer> mapaCuentas = new LinkedHashMap<>();
+    private final LinkedHashMap<String, Integer> mapaCuentas   = new LinkedHashMap<>();
+
+    private static final System.Logger LOGGER =
+            System.getLogger(CompraController.class.getName());
 
     // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
@@ -105,9 +108,9 @@ public class CompraController {
 
     // ── Abrir catálogo de productos ───────────────────────────────────────
     @FXML
-    public void onAbrirCatalogo(ActionEvent event) {
+    public void onAbrirCatalogo(ActionEvent ignored) {
         try {
-            Node nodo = (Node) event.getSource();
+            Node nodo = (Node) ignored.getSource();
             StackPane contentArea = (StackPane) nodo.getScene().lookup("#contentArea");
             if (contentArea == null) {
                 JOptionPane.showMessageDialog(null, "No se pudo encontrar el área de contenido."); return;
@@ -120,7 +123,7 @@ public class CompraController {
             contentArea.getChildren().setAll(selectorVista);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Error al abrir el catálogo: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(System.Logger.Level.ERROR, e.getMessage(), e);
         }
     }
 
@@ -180,7 +183,7 @@ public class CompraController {
 
     // ── Buscar compra existente por ID ────────────────────────────────────
     @FXML
-    public void onBuscarCompra(ActionEvent event) {
+    public void onBuscarCompra(ActionEvent ignored) {
         if (txtIdCompra.getText().isBlank()) return;
         String sql = "SELECT c.id_compra, c.tipo_compra, c.condicion, " +
                 "CONVERT(VARCHAR(10), c.fecha_transaccion, 120) AS fecha, " +
@@ -209,7 +212,7 @@ public class CompraController {
                 cmbTipoCompra.setValue(rs.getString("tipo_compra"));
                 txtCondicion.setText(rs.getString("condicion") != null ? rs.getString("condicion") : "");
                 try { dpFechaCompra.setValue(java.time.LocalDate.parse(rs.getString("fecha"))); }
-                catch (Exception ignored) {}
+                catch (Exception e) { LOGGER.log(System.Logger.Level.WARNING, "Fecha no parseable", e); }
 
                 double montoTotal     = rs.getDouble("monto_total");
                 double montoPendiente = rs.getDouble("monto_pendiente");
@@ -279,7 +282,7 @@ public class CompraController {
 
     // ── Buscar producto por ID ────────────────────────────────────────────
     @FXML
-    public void onBuscarProductoId(ActionEvent event) {
+    public void onBuscarProductoId(ActionEvent ignored) {
         if (txtIdProducto.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return;
         }
@@ -311,7 +314,7 @@ public class CompraController {
 
     // ── Buscar en tabla ───────────────────────────────────────────────────
     @FXML
-    public void fnBuscarProducto(ActionEvent event) {
+    public void fnBuscarProducto(ActionEvent ignored) {
         String busqueda = txtBuscarProducto.getText().trim().toLowerCase();
         if (busqueda.isEmpty()) { tablaCompraProducto.setItems(listaTemporal); return; }
         ObservableList<Compra> listaFiltrada = FXCollections.observableArrayList();
@@ -323,7 +326,7 @@ public class CompraController {
 
     // ── Agregar producto manualmente ──────────────────────────────────────
     @FXML
-    public void onAgregarProducto(ActionEvent event) {
+    public void onAgregarProducto(ActionEvent ignored) {
         if (txtIdProducto.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return;
         }
@@ -364,7 +367,7 @@ public class CompraController {
 
     // ── Quitar producto ───────────────────────────────────────────────────
     @FXML
-    public void onQuitarProducto(ActionEvent event) {
+    public void onQuitarProducto(ActionEvent ignored) {
         Compra sel = tablaCompraProducto.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un producto."); return; }
         listaTemporal.remove(sel);
@@ -374,7 +377,7 @@ public class CompraController {
 
     // ── Registrar nueva compra ────────────────────────────────────────────
     @FXML
-    public void onRegistrarCompra(ActionEvent event) {
+    public void onRegistrarCompra(ActionEvent ignored) {
         if (txtIdProveedor.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El ID de Proveedor es obligatorio."); return;
         }
@@ -390,7 +393,7 @@ public class CompraController {
         double montoTotal  = calcularTotal();
         double pagado      = parseMontoPagado();
 
-// ── Validar que el pago inicial no exceda el total ────────────
+        // ── Validar que el pago inicial no exceda el total ────────────────
         if (pagado > montoTotal + 0.001) {
             JOptionPane.showMessageDialog(null,
                     "⚠ El monto pagado inicial supera el total de la compra.\n\n" +
@@ -466,7 +469,7 @@ public class CompraController {
 
     // ── Editar compra existente ───────────────────────────────────────────
     @FXML
-    public void onEditarCompra(ActionEvent event) {
+    public void onEditarCompra(ActionEvent ignored) {
         if (idCompraSeleccionada == -1) {
             JOptionPane.showMessageDialog(null, "Primero busca una compra por ID."); return;
         }
@@ -523,12 +526,11 @@ public class CompraController {
 
     // ── Registrar pago ────────────────────────────────────────────────────
     @FXML
-    public void onRegistrarPago(ActionEvent event) {
+    public void onRegistrarPago(ActionEvent ignored) {
 
         // ── Resolver ID de compra destino ─────────────────────────────────
         int idCompraTarget = -1;
 
-        // Primero intentar desde el campo txtIdCompraPago
         if (txtIdCompraPago != null && !txtIdCompraPago.getText().isBlank()) {
             try {
                 idCompraTarget = Integer.parseInt(txtIdCompraPago.getText().trim());
@@ -539,12 +541,10 @@ public class CompraController {
             }
         }
 
-        // Si sigue en -1, usar el que está cargado en memoria
         if (idCompraTarget == -1) {
             idCompraTarget = idCompraSeleccionada;
         }
 
-        // Si todavia es -1, no hay compra seleccionada
         if (idCompraTarget == -1) {
             JOptionPane.showMessageDialog(null,
                     "Debes buscar una compra antes de registrar un pago.",
@@ -588,7 +588,7 @@ public class CompraController {
 
         try (Connection con = conexion.establecerConexion()) {
 
-            // ── 1. Leer saldo real desde la BD (siempre, nunca confiar en la UI) ──
+            // ── 1. Leer saldo real desde la BD (nunca confiar en la UI) ───
             PreparedStatement psCheck = con.prepareStatement(
                     "SELECT monto_total, monto_pendiente FROM tbl_COMPRA WHERE id_compra = ?");
             psCheck.setInt(1, idCompraTarget);
@@ -614,7 +614,7 @@ public class CompraController {
             }
 
             // ── 3. Validar: monto no excede el pendiente ──────────────────
-            if (montoPago > montoPendiente + 0.001) {   // +0.001 tolerancia de centavos
+            if (montoPago > montoPendiente + 0.001) {
                 JOptionPane.showMessageDialog(null,
                         "⚠ El monto ingresado supera la deuda pendiente.\n\n" +
                                 "Monto ingresado:       RD$ " + String.format("%.2f", montoPago) + "\n" +
@@ -622,14 +622,13 @@ public class CompraController {
                                 "Corrige el monto antes de continuar.\n" +
                                 "Maximo permitido:      RD$ " + String.format("%.2f", montoPendiente),
                         "Monto excedido", JOptionPane.WARNING_MESSAGE);
-                // Sugerir el monto correcto en el campo
                 txtMontoPago.setText(String.format("%.2f", montoPendiente));
                 txtMontoPago.requestFocus();
                 txtMontoPago.selectAll();
-                return;  // ← BLOQUEA el pago, no se inserta nada
+                return;
             }
 
-            // ── 4. Calcular nuevo pendiente con precisión ─────────────────
+            // ── 4. Calcular nuevo pendiente ───────────────────────────────
             double nuevoPendiente = Math.round((montoPendiente - montoPago) * 100.0) / 100.0;
 
             // ── 5. Insertar pago ──────────────────────────────────────────
@@ -655,7 +654,7 @@ public class CompraController {
             psPagoC.setInt(3, idPago);
             psPagoC.executeUpdate();
 
-            // ── 7. Actualizar pendiente exacto en tbl_COMPRA ──────────────
+            // ── 7. Actualizar pendiente en tbl_COMPRA ─────────────────────
             PreparedStatement psUpd = con.prepareStatement(
                     "UPDATE tbl_COMPRA SET monto_pendiente = ? WHERE id_compra = ?");
             psUpd.setDouble(1, nuevoPendiente);
@@ -681,7 +680,7 @@ public class CompraController {
 
     // ── Eliminar pago ─────────────────────────────────────────────────────
     @FXML
-    public void onEliminarPago(ActionEvent event) {
+    public void onEliminarPago(ActionEvent ignored) {
         Pago sel = tablaPagos.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona un pago de la lista."); return; }
         int resp = JOptionPane.showConfirmDialog(null,
