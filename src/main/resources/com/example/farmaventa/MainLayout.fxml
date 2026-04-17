@@ -124,8 +124,7 @@
             </VBox>
 
             <!-- ════════════════════════════════════
-                 CONTENT AREA — sin padding propio,
-                 el contenido de cada FXML pone el suyo
+                 CONTENT AREA
                  ════════════════════════════════════ -->
             <ScrollPane fitToHeight="false" fitToWidth="true" style="-fx-background-color: #F1F5F9;
                             -fx-background: #F1F5F9;
@@ -133,15 +132,15 @@
                 <StackPane fx:id="contentArea" style="-fx-background-color: #F1F5F9;">
                     <VBox alignment="CENTER" spacing="16">
                         <ImageView fitWidth="280" fitHeight="280" preserveRatio="true" opacity="0.75">
-                            <image><Image url="/Usuarios/Images/farmacialog.jpg"/></image>
+                            <Image url="@img.png"/>
                         </ImageView>
                         <Label text="Bienvenido al Sistema"
                                style="-fx-font-size: 22px;
-                          -fx-font-weight: bold;
-                          -fx-text-fill: #1B5E20;" />
+                                      -fx-font-weight: bold;
+                                      -fx-text-fill: #1B5E20;" />
                         <Label text="Selecciona una opción del menú para comenzar"
                                style="-fx-font-size: 13px;
-                          -fx-text-fill: #94A3B8;" />
+                                      -fx-text-fill: #94A3B8;" />
                     </VBox>
                 </StackPane>
             </ScrollPane>
