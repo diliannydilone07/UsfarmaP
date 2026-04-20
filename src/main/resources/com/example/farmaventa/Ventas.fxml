@@ -19,8 +19,8 @@
     <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-        <!-- COLUMNA IZQUIERDA: Datos de la venta -->
-        <VBox prefWidth="290" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+        <!-- ══ COLUMNA IZQUIERDA ══════════════════════════════════════════════ -->
+        <VBox prefWidth="300" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
             <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Datos de la Venta" />
@@ -35,9 +35,17 @@
                 <Label fx:id="lblInfoVenta" style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
             </VBox>
 
+            <!-- ══ NUEVO: ID Cliente con nombre y seguro automático ══════════ -->
             <VBox spacing="4">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="ID Cliente *" />
-                <TextField fx:id="txtIdCliente" promptText="Ej. 001" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <TextField fx:id="txtIdCliente" promptText="Ej. 001"
+                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <Label fx:id="lblNombreCliente"
+                       style="-fx-font-size: 11px; -fx-text-fill: #424242; -fx-font-weight: bold;"
+                       text="" wrapText="true" />
+                <Label fx:id="lblSeguroCliente"
+                       style="-fx-font-size: 11px; -fx-text-fill: #9E9E9E;"
+                       text="" wrapText="true" />
             </VBox>
 
             <VBox spacing="4">
@@ -56,13 +64,44 @@
             </VBox>
 
             <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Condicion de pago" />
-                <TextField fx:id="txtCondicion" promptText="Contado / Credito" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Condición de pago" />
+                <TextField fx:id="txtCondicion" promptText="Contado / Crédito" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
             </VBox>
 
             <VBox spacing="4">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Monto Pagado (RD$)" />
                 <TextField fx:id="txtMontoPagado" promptText="0.00" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+            </VBox>
+
+            <Button maxWidth="Infinity" onAction="#onAplicarSeguro"
+                    style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;
+                           -fx-font-weight: bold; -fx-font-size: 12px;
+                           -fx-background-radius: 6; -fx-border-color: #BBDEFB;
+                           -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 9 0 9 0;"
+                    text="🏥  Aplicar Seguro Médico" />
+
+            <!-- Panel 2 cobros -->
+            <VBox fx:id="panelCobrosSeguro" spacing="6"
+                  style="-fx-background-color: #E8F5E9; -fx-background-radius: 8;
+                         -fx-border-color: #A5D6A7; -fx-border-radius: 8; -fx-border-width: 1;"
+                  visible="false" managed="false">
+                <padding><Insets bottom="10" left="10" right="10" top="10" /></padding>
+                <HBox alignment="CENTER_LEFT" spacing="6">
+                    <Label style="-fx-font-size: 13px;" text="🏥" />
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Seguro Aplicado – Dos Cobros" />
+                </HBox>
+                <Separator />
+                <VBox spacing="2" style="-fx-background-color: #FFFFFF; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6; -fx-border-width: 1;">
+                    <padding><Insets bottom="7" left="9" right="9" top="7" /></padding>
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575; -fx-font-weight: bold;" text="COBRO #1 → ASEGURADORA" />
+                    <Label fx:id="lblCobroAseguradora" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;" text="RD$ 0.00" />
+                </VBox>
+                <VBox spacing="2" style="-fx-background-color: #FFFFFF; -fx-background-radius: 6; -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;">
+                    <padding><Insets bottom="7" left="9" right="9" top="7" /></padding>
+                    <Label style="-fx-font-size: 10px; -fx-text-fill: #757575; -fx-font-weight: bold;" text="COBRO #2 → CLIENTE" />
+                    <Label fx:id="lblCobroCliente" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #C62828;" text="RD$ 0.00" />
+                </VBox>
+                <Label fx:id="lblNumAutorizacion" style="-fx-font-size: 10px; -fx-text-fill: #558B2F;" text="Auth: —" />
             </VBox>
 
             <Region VBox.vgrow="ALWAYS" />
@@ -78,7 +117,6 @@
                     <Label fx:id="lblMontoPendiente" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #C62828;" text="RD$ 0.00" />
                 </VBox>
             </HBox>
-
             <Separator />
 
             <HBox spacing="8">
@@ -87,53 +125,46 @@
             </HBox>
         </VBox>
 
-        <!-- COLUMNA DERECHA: agregar producto + tabla -->
+        <!-- ══ COLUMNA DERECHA: Productos ════════════════════════════════════ -->
         <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
             <HBox alignment="CENTER_LEFT">
-                <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Productos en esta Venta" HBox.hgrow="ALWAYS" />
+                <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Productos en esta Venta" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#onAbrirCatalogo" text="🔍 Ver Catálogo de Productos" style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 14 7 14;" />
+                <Button onAction="#onAbrirCatalogo" text="🔍 Ver Catálogo de Productos"
+                        style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 14 7 14;" />
             </HBox>
             <Separator />
 
-            <!-- Seccion para agregar producto con campos normales -->
             <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-background-color: #F9FBF9; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1;">
                 <padding><Insets bottom="10" left="12" right="12" top="10" /></padding>
-
                 <VBox spacing="3" prefWidth="90">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="ID Producto" />
                     <TextField fx:id="txtIdProducto" promptText="Ej. 5" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                 </VBox>
-
                 <VBox spacing="3" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Nombre del Producto" />
                     <TextField fx:id="txtNombreProducto" editable="false" promptText="Se llena al buscar" style="-fx-background-color: #F5F5F5; -fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                 </VBox>
-
                 <VBox spacing="3" prefWidth="70">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Cantidad" />
                     <TextField fx:id="txtCantidadProducto" promptText="1" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                 </VBox>
-
                 <VBox spacing="3" prefWidth="90">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Precio (RD$)" />
                     <TextField fx:id="txtPrecioProducto" promptText="0.00" editable="false" style="-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;" />
                 </VBox>
-
                 <VBox spacing="3" alignment="BOTTOM_LEFT">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: transparent;" text="x" />
                     <Button onAction="#onBuscarProductoId" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 10 6 10;" text="Buscar" />
                 </VBox>
-
                 <VBox spacing="3" alignment="BOTTOM_LEFT">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: transparent;" text="x" />
                     <Button onAction="#onAgregarProducto" style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 10 6 10;" text="Agregar" />
                 </VBox>
             </HBox>
 
-            <!-- Buscador en la tabla -->
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <TextField fx:id="txtBuscarProducto" prefWidth="220" promptText="Buscar en la tabla..." style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                 <Button onAction="#fnBuscarProducto" style="-fx-background-color: #F5F5F5; -fx-text-fill: #424242; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10 5 10;" text="Buscar" />
@@ -143,15 +174,15 @@
 
             <TableView fx:id="tablaVentaProducto" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colVentaId" prefWidth="70" text="Venta #" />
-                    <TableColumn fx:id="colVentaCliente" prefWidth="130" text="Cliente" />
-                    <TableColumn fx:id="colProductoNombre" prefWidth="160" text="Producto" />
-                    <TableColumn fx:id="colProductoCantidad" prefWidth="75" text="Cantidad" />
-                    <TableColumn fx:id="colProductoPrecio" prefWidth="100" text="Precio Unit." />
+                    <TableColumn fx:id="colVentaId"          prefWidth="70"  text="Prod. #" />
+                    <TableColumn fx:id="colVentaCliente"     prefWidth="130" text="Cliente" />
+                    <TableColumn fx:id="colProductoNombre"   prefWidth="160" text="Producto" />
+                    <TableColumn fx:id="colProductoCantidad" prefWidth="75"  text="Cantidad" />
+                    <TableColumn fx:id="colProductoPrecio"   prefWidth="100" text="Precio Unit." />
                     <TableColumn fx:id="colProductoSubtotal" prefWidth="100" text="Subtotal" />
                 </columns>
                 <placeholder>
-                    <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="Aun no has agregado productos" />
+                    <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="Aún no has agregado productos" />
                 </placeholder>
             </TableView>
 
