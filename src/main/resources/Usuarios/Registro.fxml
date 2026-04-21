@@ -2,107 +2,124 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.*?>
 
-<StackPane style="-fx-background-color: #ECEFF1;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Usuarios.RegistroController">
+<VBox xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="Usuarios.RegistroController"
+      spacing="0"
+      style="-fx-background-color: #F4F6F8;">
 
-    <!-- TARJETA: dos columnas -->
-    <HBox maxHeight="520" maxWidth="820" minHeight="520" minWidth="720" style="-fx-background-color: #FFFFFF;                  -fx-background-radius: 18;                  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 28, 0, 0, 6);">
+    <!-- Encabezado de sección -->
+    <VBox style="-fx-background-color: #FFFFFF;
+                 -fx-padding: 28 36 22 36;
+                 -fx-border-color: transparent transparent #E0E0E0 transparent;
+                 -fx-border-width: 0 0 1 0;">
+        <Label style="-fx-font-size: 20px; -fx-font-weight: bold;
+                      -fx-text-fill: #1B5E20;" text="Registrar nuevo usuario" />
+        <Label style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;
+                      -fx-padding: 4 0 0 0;"
+               text="Completa los datos para crear acceso al sistema" />
+    </VBox>
 
-        <!-- ════════════════════════════════
-             PANEL IZQUIERDO — Imagen completa
-        ════════════════════════════════ -->
-        <StackPane maxWidth="320" minWidth="320" style="-fx-background-radius: 18 0 0 18;                           -fx-background-color: #1B5E20;">
+    <!-- Cuerpo con scroll -->
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;
+                                         -fx-background: transparent;"
+                VBox.vgrow="ALWAYS">
+        <VBox style="-fx-padding: 32 36 32 36;" spacing="0">
 
-            <!-- Imagen que cubre todo el panel -->
-            <ImageView fitHeight="520" fitWidth="320" opacity="0.93" preserveRatio="false">
-                <image><Image url="@Images/farmacialog.jpg" /></image>
-            </ImageView>
+            <!-- Tarjeta formulario -->
+            <VBox style="-fx-background-color: #FFFFFF;
+                         -fx-background-radius: 12;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 12, 0, 0, 3);
+                         -fx-padding: 32 36 32 36;"
+                  spacing="0" maxWidth="620">
 
-            <!-- Overlay degradado -->
-            <VBox style="-fx-background-color: linear-gradient(to bottom,                              rgba(0,0,0,0.08) 0%,                              rgba(27,94,32,0.55) 70%,                              rgba(27,94,32,0.85) 100%);                           -fx-background-radius: 18 0 0 18;" />
+                <!-- Mensajes -->
+                <Label fx:id="lblError" managed="false" maxWidth="Infinity"
+                       style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
+                              -fx-font-size: 11px; -fx-background-radius: 7;
+                              -fx-border-color: #FFCDD2; -fx-border-radius: 7;
+                              -fx-border-width: 1; -fx-padding: 9 13 9 13;
+                              -fx-margin: 0 0 14 0;"
+                       visible="false" wrapText="true" />
 
-            <!-- Texto encima de la imagen -->
-            <VBox alignment="BOTTOM_CENTER" style="-fx-background-radius: 18 0 0 18;">
-                <padding><Insets bottom="32" left="28" right="28" /></padding>
+                <Label fx:id="lblExito" managed="false" maxWidth="Infinity"
+                       style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32;
+                              -fx-font-size: 11px; -fx-background-radius: 7;
+                              -fx-border-color: #C8E6C9; -fx-border-radius: 7;
+                              -fx-border-width: 1; -fx-padding: 9 13 9 13;"
+                       visible="false" wrapText="true" />
 
-                <Label style="-fx-font-size: 26px;                               -fx-font-weight: bold;                               -fx-text-fill: #FFFFFF;                               -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 6, 0, 0, 2);" text="UsFarma" />
-                <Label style="-fx-font-size: 11px;                               -fx-text-fill: #C8E6C9;                               -fx-wrap-text: true;                               -fx-alignment: CENTER;                               -fx-padding: 4 0 16 0;" text="Registro de nuevo usuario" />
+                <!-- Empleado -->
+                <VBox spacing="5" style="-fx-padding: 14 0 14 0;">
+                    <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
+                                  -fx-text-fill: #78909C;" text="EMPLEADO" />
+                    <ComboBox fx:id="cmbEmpleado" maxWidth="Infinity"
+                              promptText="Seleccionar empleado..."
+                              style="-fx-background-color: #F5F7F8;
+                                     -fx-border-color: #E0E0E0;
+                                     -fx-border-radius: 8; -fx-background-radius: 8;
+                                     -fx-padding: 4 0 4 0;" />
+                </VBox>
 
-                <HBox alignment="CENTER" spacing="7">
-                    <Circle radius="3.5" style="-fx-fill: rgba(255,255,255,0.30);" />
-                    <Circle radius="3.5" style="-fx-fill: rgba(255,255,255,0.80);" />
-                    <Circle radius="3.5" style="-fx-fill: rgba(255,255,255,0.30);" />
+                <!-- Fila: Usuario + Rol -->
+                <HBox spacing="16" style="-fx-padding: 0 0 14 0;">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
+                                      -fx-text-fill: #78909C;" text="USUARIO" />
+                        <TextField fx:id="txtUsuario" promptText="Mínimo 4 caracteres"
+                                   style="-fx-background-color: #F5F7F8;
+                                          -fx-border-color: #E0E0E0; -fx-border-radius: 8;
+                                          -fx-background-radius: 8; -fx-padding: 10 12 10 12;
+                                          -fx-font-size: 12px;
+                                          -fx-prompt-text-fill: #C0C8CC;" />
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
+                                      -fx-text-fill: #78909C;" text="ROL" />
+                        <ComboBox fx:id="cmbRol" maxWidth="Infinity"
+                                  promptText="Seleccionar..."
+                                  style="-fx-background-color: #F5F7F8;
+                                         -fx-border-color: #E0E0E0;
+                                         -fx-border-radius: 8; -fx-background-radius: 8;
+                                         -fx-padding: 4 0 4 0;" />
+                    </VBox>
                 </HBox>
-                <Label style="-fx-font-size: 9px;                               -fx-text-fill: rgba(255,255,255,0.35);                               -fx-padding: 8 0 0 0;                               -fx-alignment: CENTER;" text="© 2025 FarmaVenta" />
-            </VBox>
-        </StackPane>
 
-        <!-- ════════════════════════════════
-             PANEL DERECHO — Formulario
-        ════════════════════════════════ -->
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS">
-            <padding><Insets bottom="32" left="48" right="48" top="32" /></padding>
-
-            <!-- Encabezado -->
-            <VBox spacing="4" style="-fx-padding: 0 0 18 0;">
-                <Label style="-fx-font-size: 21px;                               -fx-font-weight: bold;                               -fx-text-fill: #1B5E20;" text="Crear cuenta" />
-                <Label style="-fx-font-size: 12px;                               -fx-text-fill: #9E9E9E;" text="Completa los datos del nuevo usuario" />
-            </VBox>
-
-            <!-- Error -->
-            <Label fx:id="lblError" managed="false" maxWidth="Infinity" style="-fx-background-color: #FFEBEE;                           -fx-text-fill: #C62828;                           -fx-font-size: 11px;                           -fx-background-radius: 7;                           -fx-border-color: #FFCDD2;                           -fx-border-radius: 7;                           -fx-border-width: 1;                           -fx-padding: 9 13 9 13;" visible="false" wrapText="true" />
-
-            <!-- Éxito -->
-            <Label fx:id="lblExito" managed="false" maxWidth="Infinity" style="-fx-background-color: #E8F5E9;                           -fx-text-fill: #2E7D32;                           -fx-font-size: 11px;                           -fx-background-radius: 7;                           -fx-border-color: #C8E6C9;                           -fx-border-radius: 7;                           -fx-border-width: 1;                           -fx-padding: 9 13 9 13;" visible="false" wrapText="true" />
-
-            <!-- Empleado -->
-            <VBox spacing="5" style="-fx-padding: 0 0 11 0;">
-                <Label style="-fx-font-size: 10px;                               -fx-font-weight: bold;                               -fx-text-fill: #78909C;" text="EMPLEADO" />
-                <ComboBox fx:id="cmbEmpleado" maxWidth="Infinity" promptText="Seleccionar empleado..." style="-fx-background-color: #F5F7F8;                                  -fx-border-color: #E0E0E0;                                  -fx-border-radius: 8;                                  -fx-background-radius: 8;" />
-            </VBox>
-
-            <!-- Fila: Usuario + Rol -->
-            <HBox spacing="12" style="-fx-padding: 0 0 11 0;">
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-size: 10px;                                   -fx-font-weight: bold;                                   -fx-text-fill: #78909C;" text="USUARIO" />
-                    <TextField fx:id="txtUsuario" promptText="Mín. 4 caracteres" style="-fx-background-color: #F5F7F8;                                       -fx-border-color: #E0E0E0;                                       -fx-border-radius: 8;                                       -fx-background-radius: 8;                                       -fx-padding: 10 12 10 12;                                       -fx-font-size: 12px;                                       -fx-prompt-text-fill: #C0C8CC;" />
+                <!-- Contraseña -->
+                <VBox spacing="5" style="-fx-padding: 0 0 14 0;">
+                    <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
+                                  -fx-text-fill: #78909C;" text="CONTRASEÑA" />
+                    <PasswordField fx:id="txtContrasena" promptText="Mínimo 6 caracteres"
+                                   style="-fx-background-color: #F5F7F8;
+                                          -fx-border-color: #E0E0E0; -fx-border-radius: 8;
+                                          -fx-background-radius: 8; -fx-padding: 10 12 10 12;
+                                          -fx-font-size: 12px;
+                                          -fx-prompt-text-fill: #C0C8CC;" />
                 </VBox>
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                    <Label style="-fx-font-size: 10px;                                   -fx-font-weight: bold;                                   -fx-text-fill: #78909C;" text="ROL" />
-                    <ComboBox fx:id="cmbRol" maxWidth="Infinity" promptText="Seleccionar..." style="-fx-background-color: #F5F7F8;                                      -fx-border-color: #E0E0E0;                                      -fx-border-radius: 8;                                      -fx-background-radius: 8;" />
+
+                <!-- Confirmar contraseña -->
+                <VBox spacing="5" style="-fx-padding: 0 0 28 0;">
+                    <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
+                                  -fx-text-fill: #78909C;" text="CONFIRMAR CONTRASEÑA" />
+                    <PasswordField fx:id="txtConfirmar" promptText="Repite la contraseña"
+                                   style="-fx-background-color: #F5F7F8;
+                                          -fx-border-color: #E0E0E0; -fx-border-radius: 8;
+                                          -fx-background-radius: 8; -fx-padding: 10 12 10 12;
+                                          -fx-font-size: 12px;
+                                          -fx-prompt-text-fill: #C0C8CC;" />
                 </VBox>
-            </HBox>
 
-            <!-- Contraseña -->
-            <VBox spacing="5" style="-fx-padding: 0 0 11 0;">
-                <Label style="-fx-font-size: 10px;                               -fx-font-weight: bold;                               -fx-text-fill: #78909C;" text="CONTRASEÑA" />
-                <PasswordField fx:id="txtContrasena" promptText="Mínimo 6 caracteres" style="-fx-background-color: #F5F7F8;                                       -fx-border-color: #E0E0E0;                                       -fx-border-radius: 8;                                       -fx-background-radius: 8;                                       -fx-padding: 10 12 10 12;                                       -fx-font-size: 12px;                                       -fx-prompt-text-fill: #C0C8CC;" />
+                <!-- Botón -->
+                <Button maxWidth="320" onAction="#onRegistrar"
+                        style="-fx-background-color: #2E7D32; -fx-text-fill: white;
+                               -fx-font-weight: bold; -fx-font-size: 13px;
+                               -fx-background-radius: 8; -fx-cursor: hand;
+                               -fx-padding: 13 0 13 0;
+                               -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.40), 12, 0, 0, 4);"
+                        text="Registrar usuario →" />
             </VBox>
-
-            <!-- Confirmar contraseña -->
-            <VBox spacing="5" style="-fx-padding: 0 0 20 0;">
-                <Label style="-fx-font-size: 10px;                               -fx-font-weight: bold;                               -fx-text-fill: #78909C;" text="CONFIRMAR CONTRASEÑA" />
-                <PasswordField fx:id="txtConfirmar" promptText="Repite la contraseña" style="-fx-background-color: #F5F7F8;                                       -fx-border-color: #E0E0E0;                                       -fx-border-radius: 8;                                       -fx-background-radius: 8;                                       -fx-padding: 10 12 10 12;                                       -fx-font-size: 12px;                                       -fx-prompt-text-fill: #C0C8CC;" />
-            </VBox>
-
-            <!-- Botón Registrar -->
-            <Button maxWidth="Infinity" onAction="#onRegistrar" style="-fx-background-color: #2E7D32;                            -fx-text-fill: white;                            -fx-font-weight: bold;                            -fx-font-size: 13px;                            -fx-background-radius: 8;                            -fx-cursor: hand;                            -fx-padding: 13 0 13 0;                            -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.40), 12, 0, 0, 4);" text="Registrar →" />
-
-            <!-- Divider -->
-            <HBox alignment="CENTER" spacing="12" style="-fx-padding: 14 0 10 0;">
-                <Separator HBox.hgrow="ALWAYS" />
-                <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 11px;" text="o" />
-                <Separator HBox.hgrow="ALWAYS" />
-            </HBox>
-
-            <!-- Volver al login -->
-            <HBox alignment="CENTER" spacing="4">
-                <Label style="-fx-font-size: 12px; -fx-text-fill: #78909C;" text="¿Ya tienes cuenta?" />
-                <Hyperlink onAction="#onVolverLogin" style="-fx-font-size: 12px;                                   -fx-text-fill: #2E7D32;                                   -fx-font-weight: bold;                                   -fx-border-color: transparent;" text="Iniciar sesión" />
-            </HBox>
         </VBox>
-    </HBox>
-</StackPane>
+    </ScrollPane>
+</VBox>

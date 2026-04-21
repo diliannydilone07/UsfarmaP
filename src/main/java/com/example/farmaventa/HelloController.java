@@ -247,30 +247,79 @@ public class HelloController {
 
     @FXML
     public void onBuscarProductoId(ActionEvent event) {
-        if (txtIdProducto.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return; }
+        if (txtIdProducto.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return;
+        }
         buscarProducto(txtIdProducto, txtNombreProducto, txtPrecioProducto);
     }
 
     @FXML
     public void onAgregarProducto(ActionEvent event) {
-        if (txtIdProducto.getText().isBlank() || txtNombreProducto.getText().isBlank()
-                || txtCantidadProducto.getText().isBlank() || txtPrecioProducto.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Completa todos los campos del producto."); return;
+        // ── Validar que el producto fue buscado primero ───────────────────
+        if (txtIdProducto.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+        if (txtNombreProducto.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Busca el producto primero (boton Buscar).", "Producto no buscado", JOptionPane.WARNING_MESSAGE);
+            txtIdProducto.requestFocus();
+            return;
+        }
+        if (txtPrecioProducto.getUserData() == null) {
+            JOptionPane.showMessageDialog(null,
+                    "Debes buscar el producto antes de agregarlo.\n\nEso garantiza que el precio sea el del sistema.",
+                    "Producto no validado", JOptionPane.WARNING_MESSAGE);
+            txtIdProducto.requestFocus();
+            return;
+        }
+        if (txtCantidadProducto.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "La cantidad es obligatoria.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (txtPrecioProducto.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "El precio es obligatorio.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         try {
             int    idProd = Integer.parseInt(txtIdProducto.getText().trim());
             int    cant   = Integer.parseInt(txtCantidadProducto.getText().trim());
             double precio = Double.parseDouble(txtPrecioProducto.getText().trim());
+
+            // ── Validar que el precio no supere el de BD ──────────────────
+            double precioMax = (double) txtPrecioProducto.getUserData();
+            if (precio > precioMax + 0.001) {
+                JOptionPane.showMessageDialog(null,
+                        "⚠ El precio ingresado supera el precio registrado en el sistema.\n\n" +
+                                "Precio ingresado:   RD$ " + String.format("%.2f", precio) + "\n" +
+                                "Precio maximo:      RD$ " + String.format("%.2f", precioMax) + "\n\n" +
+                                "No se puede vender por encima del precio del sistema.\n" +
+                                "Maximo permitido:   RD$ " + String.format("%.2f", precioMax),
+                        "Precio excedido", JOptionPane.WARNING_MESSAGE);
+                txtPrecioProducto.setText(String.format("%.2f", precioMax));
+                txtPrecioProducto.requestFocus();
+                txtPrecioProducto.selectAll();
+                return;
+            }
+
             listaTemporal.add(new Venta(idProd, "", precio, cant, precio * cant,
                     txtNombreProducto.getText().trim(), "", "", "", 0, 0, ""));
             tablaVentaProducto.setItems(listaTemporal);
             actualizarTotalesNormal();
-            txtIdProducto.clear(); txtNombreProducto.clear(); txtCantidadProducto.clear();
+
+            // ── Limpiar campos del producto ───────────────────────────────
+            txtIdProducto.clear();
+            txtNombreProducto.clear();
+            txtCantidadProducto.clear();
             if (txtPrecioProducto != null) {
                 txtPrecioProducto.clear();
-                txtPrecioProducto.setStyle("-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;");
+                txtPrecioProducto.setUserData(null);
+                txtPrecioProducto.setEditable(true);
+                txtPrecioProducto.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
             }
-        } catch (NumberFormatException e) { JOptionPane.showMessageDialog(null, "Cantidad y precio deben ser numeros."); }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Cantidad y precio deben ser numeros.");
+        }
     }
 
     @FXML
@@ -384,8 +433,15 @@ public class HelloController {
     public void onLimpiarVenta(ActionEvent event) {
         txtIdVenta.clear(); txtIdCliente.clear(); txtIdEmpleado.clear();
         txtCondicion.clear(); txtMontoPagado.clear();
-        txtIdProducto.clear(); txtNombreProducto.clear(); txtCantidadProducto.clear();
-        if (txtPrecioProducto != null) txtPrecioProducto.clear();
+        if (txtIdProducto       != null) txtIdProducto.clear();
+        if (txtNombreProducto   != null) txtNombreProducto.clear();
+        if (txtCantidadProducto != null) txtCantidadProducto.clear();
+        if (txtPrecioProducto   != null) {
+            txtPrecioProducto.clear();
+            txtPrecioProducto.setUserData(null);
+            txtPrecioProducto.setEditable(true);
+            txtPrecioProducto.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
+        }
         if (txtBuscarProducto != null) txtBuscarProducto.clear();
         if (lblInfoVenta      != null) lblInfoVenta.setText("");
         if (lblNombreCliente  != null) lblNombreCliente.setText("");
@@ -515,29 +571,79 @@ public class HelloController {
 
     @FXML
     public void onBuscarProdSeguro(ActionEvent event) {
-        if (txtIdProdSeg.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return; }
+        if (txtIdProdSeg.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return;
+        }
         buscarProducto(txtIdProdSeg, txtNombreProdSeg, txtPrecioProdSeg);
     }
 
     @FXML
     public void onAgregarProdSeguro(ActionEvent event) {
-        if (idSeguroCliente == -1) { JOptionPane.showMessageDialog(null, "El cliente no tiene seguro medico registrado."); return; }
-        if (txtIdProdSeg.getText().isBlank() || txtNombreProdSeg.getText().isBlank()
-                || txtCantProdSeg.getText().isBlank() || txtPrecioProdSeg.getText().isBlank()) {
+        if (idSeguroCliente == -1) {
+            JOptionPane.showMessageDialog(null, "El cliente no tiene seguro medico registrado."); return;
+        }
+
+        // ── Validar que el producto fue buscado primero ───────────────────
+        if (txtIdProdSeg.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (txtNombreProdSeg.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Busca el producto primero (boton Buscar).", "Producto no buscado", JOptionPane.WARNING_MESSAGE);
+            txtIdProdSeg.requestFocus();
+            return;
+        }
+        if (txtPrecioProdSeg.getUserData() == null) {
+            JOptionPane.showMessageDialog(null,
+                    "Debes buscar el producto antes de agregarlo.\n\nEso garantiza que el precio sea el del sistema.",
+                    "Producto no validado", JOptionPane.WARNING_MESSAGE);
+            txtIdProdSeg.requestFocus();
+            return;
+        }
+        if (txtCantProdSeg.getText().isBlank() || txtPrecioProdSeg.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Completa todos los campos del producto."); return;
         }
-        if (txtPctCobertura.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa el porcentaje de cobertura."); return; }
+        if (txtPctCobertura.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null, "Ingresa el porcentaje de cobertura."); return;
+        }
+
         try {
             int    idProd = Integer.parseInt(txtIdProdSeg.getText().trim());
             int    cant   = Integer.parseInt(txtCantProdSeg.getText().trim());
             double precio = Double.parseDouble(txtPrecioProdSeg.getText().trim());
-            double pct    = Math.min(100, Math.max(0,
+
+            // ── Validar que el precio no supere el de BD ──────────────────
+            double precioMax = (double) txtPrecioProdSeg.getUserData();
+            if (precio > precioMax + 0.001) {
+                JOptionPane.showMessageDialog(null,
+                        "⚠ El precio ingresado supera el precio registrado en el sistema.\n\n" +
+                                "Precio ingresado:   RD$ " + String.format("%.2f", precio) + "\n" +
+                                "Precio maximo:      RD$ " + String.format("%.2f", precioMax) + "\n\n" +
+                                "No se puede vender por encima del precio del sistema.\n" +
+                                "Maximo permitido:   RD$ " + String.format("%.2f", precioMax),
+                        "Precio excedido", JOptionPane.WARNING_MESSAGE);
+                txtPrecioProdSeg.setText(String.format("%.2f", precioMax));
+                txtPrecioProdSeg.requestFocus();
+                txtPrecioProdSeg.selectAll();
+                return;
+            }
+
+            double pct = Math.min(100, Math.max(0,
                     Double.parseDouble(txtPctCobertura.getText().replace("%", "").trim())));
             listaSeguro.add(new VentaSeguroItem(idProd, txtNombreProdSeg.getText().trim(), cant, precio, pct));
             tablaSeguro.setItems(listaSeguro);
             actualizarResumenSeguro();
-            txtIdProdSeg.clear(); txtNombreProdSeg.clear(); txtCantProdSeg.clear(); txtPrecioProdSeg.clear();
+
+            // ── Limpiar campos del producto ───────────────────────────────
+            txtIdProdSeg.clear();
+            txtNombreProdSeg.clear();
+            txtCantProdSeg.clear();
+            txtPrecioProdSeg.clear();
+            txtPrecioProdSeg.setUserData(null);
+            txtPrecioProdSeg.setEditable(true);
+            txtPrecioProdSeg.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
             txtPctCobertura.setText(String.format("%.0f", coberturaBaseCliente));
+
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(null, "Cantidad, precio y cobertura deben ser numeros.");
         }
@@ -662,7 +768,13 @@ public class HelloController {
         txtIdVentaSeguro.clear(); txtIdClienteSeguro.clear(); txtIdEmpleadoSeguro.clear();
         txtNumAutorizacion.clear(); txtCondicionSeguro.clear();
         txtIdProdSeg.clear(); txtNombreProdSeg.clear(); txtCantProdSeg.clear();
-        txtPrecioProdSeg.clear(); txtPctCobertura.clear();
+        if (txtPrecioProdSeg != null) {
+            txtPrecioProdSeg.clear();
+            txtPrecioProdSeg.setUserData(null);
+            txtPrecioProdSeg.setEditable(true);
+            txtPrecioProdSeg.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
+        }
+        txtPctCobertura.clear();
         if (lblInfoVentaSeguro     != null) lblInfoVentaSeguro.setText("");
         if (lblNombreClienteSeguro != null) lblNombreClienteSeguro.setText("");
         if (cardSeguroCliente      != null) { cardSeguroCliente.setVisible(false); cardSeguroCliente.setManaged(false); }
@@ -699,12 +811,15 @@ public class HelloController {
             if (rs.next()) {
                 fldNombre.setText(rs.getString("nombre"));
                 double precio = rs.getDouble("precio_venta");
-                fldPrecio.setText(precio > 0 ? String.format("%.2f", precio) : "");
+                fldPrecio.setText(precio > 0 ? String.format("%.2f", precio) : "0.00");
+                fldPrecio.setUserData(precio);   // <-- guardar precio real de BD
                 fldPrecio.setEditable(false);
                 fldPrecio.setStyle("-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;");
             } else {
                 JOptionPane.showMessageDialog(null, "Producto no encontrado.");
-                fldNombre.clear(); fldPrecio.clear();
+                fldNombre.clear();
+                fldPrecio.clear();
+                fldPrecio.setUserData(null);
             }
         } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()); }
     }

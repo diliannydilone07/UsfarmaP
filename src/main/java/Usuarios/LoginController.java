@@ -22,19 +22,14 @@ public class LoginController {
     @FXML private PasswordField txtContrasena;
     @FXML private Label         lblError;
     @FXML private Button        btnIngresar;
-    @FXML private Hyperlink     linkRegistro;
 
-    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         lblError.setVisible(false);
         lblError.setManaged(false);
-
-        // Permitir login con Enter desde el campo contraseña
         txtContrasena.setOnAction(e -> onLogin(null));
     }
 
-    // ── Acción Login ──────────────────────────────────────────────────────
     @FXML
     public void onLogin(ActionEvent event) {
         lblError.setVisible(false);
@@ -69,7 +64,6 @@ public class LoginController {
                     return;
                 }
 
-                // Guardar sesión
                 Usuario u = new Usuario(
                         rs.getInt("id_credencial"),
                         rs.getString("usuario"),
@@ -79,11 +73,7 @@ public class LoginController {
                         rs.getString("nombre_completo")
                 );
                 SesionUsuario.getInstance().setUsuarioActual(u);
-
-                // Registrar último acceso
                 actualizarUltimoAcceso(con, u.getIdCredencial());
-
-                // Ir al sistema principal pasando el nombre completo
                 abrirVentanaPrincipal(u.getNombreCompleto());
 
             } else {
@@ -96,42 +86,16 @@ public class LoginController {
         }
     }
 
-    // ── Ir a registro ─────────────────────────────────────────────────────
-    @FXML
-    public void onIrRegistro(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/Usuarios/Registro.fxml"));
-            Parent root = loader.load();
-
-            Stage stage = (Stage) txtUsuario.getScene().getWindow();
-
-            // Asignar escena sin tamaño fijo y dejar que sizeToScene la ajuste
-            stage.setScene(new Scene(root));
-            stage.sizeToScene();
-            stage.setTitle("FarmaVenta — Registro de Usuario");
-            stage.setResizable(false);
-            stage.centerOnScreen();
-
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "No se pudo abrir el registro: " + e.getMessage());
-        }
-    }
-
-    // ── Abrir sistema principal ───────────────────────────────────────────
     private void abrirVentanaPrincipal(String nombreCompleto) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/example/farmaventa/MainLayout.fxml"));
             Parent root = loader.load();
 
-            // Pasar el nombre del usuario al controlador principal
             MainController mainController = loader.getController();
             mainController.setUsuario(nombreCompleto);
 
             Stage stage = (Stage) txtUsuario.getScene().getWindow();
-
-            // Asignar escena, maximizar y mostrar
             stage.setScene(new Scene(root));
             stage.setTitle("FarmaVenta — " + nombreCompleto);
             stage.setResizable(true);
@@ -143,7 +107,6 @@ public class LoginController {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
     private void mostrarError(String msg) {
         lblError.setText("⚠  " + msg);
         lblError.setVisible(true);
