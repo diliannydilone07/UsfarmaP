@@ -25,7 +25,7 @@
 
         <Label style="-fx-font-weight: bold; -fx-font-size: 13px;                       -fx-text-fill: #2E7D32; -fx-padding: 0 0 8 0;" text="Registrar / Gestionar Fidelización" />
 
-        <!-- Fila 1 -->
+        <!-- Fila 1: Campos de entrada -->
         <HBox alignment="CENTER_LEFT" spacing="10">
 
             <VBox prefWidth="75" spacing="3">
@@ -33,11 +33,11 @@
                 <TextField fx:id="txtIdFidelizacion" editable="false" promptText="Auto" style="-fx-background-color: #F5F5F5; -fx-background-radius: 6;                                   -fx-border-color: #E0E0E0; -fx-border-radius: 6;                                   -fx-text-fill: #9E9E9E; -fx-pref-height: 32;" />
             </VBox>
 
-            <VBox prefWidth="150" spacing="3">
+            <VBox prefWidth="160" spacing="3">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="ID Cliente *" />
-                <HBox spacing="5">
+                <HBox prefHeight="32.0" spacing="5">
                     <TextField fx:id="txtIdCliente" promptText="Ej. 12" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0;                                       -fx-border-radius: 6; -fx-pref-height: 32;" HBox.hgrow="ALWAYS" />
-                    <Button onAction="#onBuscarCliente" prefHeight="32" prefWidth="61.0" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                    -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 12px;" text="🔎" />
+                    <Button onAction="#onBuscarCliente" prefHeight="32" prefWidth="52.0" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                    -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 12px;" text="🔎" />
                 </HBox>
             </VBox>
 
@@ -46,21 +46,26 @@
                 <TextField fx:id="txtNombreCliente" editable="false" promptText="Se llena al buscar" style="-fx-background-color: #F5F5F5; -fx-background-radius: 6;                                   -fx-border-color: #E0E0E0; -fx-border-radius: 6; -fx-pref-height: 32;" />
             </VBox>
 
-            <VBox prefWidth="120" spacing="3">
+            <VBox prefWidth="130" spacing="3">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Puntos a Agregar *" />
                 <TextField fx:id="txtPuntos" promptText="Ej. 150" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0;                                   -fx-border-radius: 6; -fx-pref-height: 32;" />
             </VBox>
 
-            <VBox prefWidth="150" spacing="3">
+            <VBox prefWidth="160" spacing="3">
                 <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Fecha Caducidad *" />
                 <DatePicker fx:id="dpFechaCaducidad" maxWidth="Infinity" style="-fx-background-radius: 6; -fx-pref-height: 32;" />
             </VBox>
 
-            <Button onAction="#onRegistrar" style="-fx-background-color: #388E3C; -fx-text-fill: white;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 32; -fx-padding: 0 14 0 14;" text="📋  Registrar Nuevo" />
-            <Button onAction="#onAgregarPuntos" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 32; -fx-padding: 0 14 0 14;" text="➕  Agregar Puntos" />
-            <Button onAction="#onRenovarCaducidad" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 32; -fx-padding: 0 14 0 14;" text="📅  Renovar" />
-            <Button onAction="#onLimpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 32; -fx-padding: 0 14 0 14;" text="✖" />
         </HBox>
+
+        <!-- Fila 2: Botones de acción -->
+        <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 10 0 0 0;">
+            <Button onAction="#onRegistrar" style="-fx-background-color: #388E3C; -fx-text-fill: white;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="📋  Registrar" />
+            <Button onAction="#onAgregarPuntos" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="➕  Agregar Puntos" />
+            <Button onAction="#onRenovarCaducidad" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="📅  Renovar Caducidad" />
+            <Button onAction="#onLimpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                            -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="✖  Limpiar" />
+        </HBox>
+
     </VBox>
 
     <!-- ══ TABLA + PANEL LATERAL ════════════════════════════════════════════ -->
