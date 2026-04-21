@@ -132,7 +132,7 @@
                 <StackPane fx:id="contentArea" style="-fx-background-color: #F1F5F9;">
                     <VBox alignment="CENTER" spacing="16">
                         <ImageView fitWidth="280" fitHeight="280" preserveRatio="true" opacity="0.75">
-                            <Image url="@img.png"/>
+                            <Image url="@logologo.png"/>
                         </ImageView>
                         <Label text="Bienvenido al Sistema"
                                style="-fx-font-size: 22px;
