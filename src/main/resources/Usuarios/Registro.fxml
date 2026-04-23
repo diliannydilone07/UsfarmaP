@@ -10,7 +10,7 @@
       spacing="0"
       style="-fx-background-color: #F4F6F8;">
 
-    <!-- Encabezado de sección -->
+    <!-- Encabezado -->
     <VBox style="-fx-background-color: #FFFFFF;
                  -fx-padding: 28 36 22 36;
                  -fx-border-color: transparent transparent #E0E0E0 transparent;
@@ -23,8 +23,8 @@
     </VBox>
 
     <!-- Cuerpo con scroll -->
-    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;
-                                         -fx-background: transparent;"
+    <ScrollPane fitToWidth="true"
+                style="-fx-background-color: transparent; -fx-background: transparent;"
                 VBox.vgrow="ALWAYS">
         <VBox style="-fx-padding: 32 36 32 36;" spacing="0">
 
@@ -35,24 +35,29 @@
                          -fx-padding: 32 36 32 36;"
                   spacing="0" maxWidth="620">
 
-                <!-- Mensajes -->
+                <!-- Mensaje error -->
                 <Label fx:id="lblError" managed="false" maxWidth="Infinity"
                        style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
                               -fx-font-size: 11px; -fx-background-radius: 7;
                               -fx-border-color: #FFCDD2; -fx-border-radius: 7;
-                              -fx-border-width: 1; -fx-padding: 9 13 9 13;
-                              -fx-margin: 0 0 14 0;"
-                       visible="false" wrapText="true" />
+                              -fx-border-width: 1; -fx-padding: 9 13 9 13;"
+                       visible="false" wrapText="true">
+                    <VBox.margin><Insets bottom="14" /></VBox.margin>
+                </Label>
 
+                <!-- Mensaje éxito -->
                 <Label fx:id="lblExito" managed="false" maxWidth="Infinity"
                        style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32;
                               -fx-font-size: 11px; -fx-background-radius: 7;
                               -fx-border-color: #C8E6C9; -fx-border-radius: 7;
                               -fx-border-width: 1; -fx-padding: 9 13 9 13;"
-                       visible="false" wrapText="true" />
+                       visible="false" wrapText="true">
+                    <VBox.margin><Insets bottom="14" /></VBox.margin>
+                </Label>
 
                 <!-- Empleado -->
-                <VBox spacing="5" style="-fx-padding: 14 0 14 0;">
+                <VBox spacing="5">
+                    <VBox.margin><Insets bottom="14" /></VBox.margin>
                     <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
                                   -fx-text-fill: #78909C;" text="EMPLEADO" />
                     <ComboBox fx:id="cmbEmpleado" maxWidth="Infinity"
@@ -64,7 +69,8 @@
                 </VBox>
 
                 <!-- Fila: Usuario + Rol -->
-                <HBox spacing="16" style="-fx-padding: 0 0 14 0;">
+                <HBox spacing="16">
+                    <VBox.margin><Insets bottom="14" /></VBox.margin>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
                                       -fx-text-fill: #78909C;" text="USUARIO" />
@@ -88,7 +94,8 @@
                 </HBox>
 
                 <!-- Contraseña -->
-                <VBox spacing="5" style="-fx-padding: 0 0 14 0;">
+                <VBox spacing="5">
+                    <VBox.margin><Insets bottom="14" /></VBox.margin>
                     <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
                                   -fx-text-fill: #78909C;" text="CONTRASEÑA" />
                     <PasswordField fx:id="txtContrasena" promptText="Mínimo 6 caracteres"
@@ -100,7 +107,8 @@
                 </VBox>
 
                 <!-- Confirmar contraseña -->
-                <VBox spacing="5" style="-fx-padding: 0 0 28 0;">
+                <VBox spacing="5">
+                    <VBox.margin><Insets bottom="28" /></VBox.margin>
                     <Label style="-fx-font-size: 10px; -fx-font-weight: bold;
                                   -fx-text-fill: #78909C;" text="CONFIRMAR CONTRASEÑA" />
                     <PasswordField fx:id="txtConfirmar" promptText="Repite la contraseña"
@@ -111,7 +119,7 @@
                                           -fx-prompt-text-fill: #C0C8CC;" />
                 </VBox>
 
-                <!-- Botón -->
+                <!-- Botón registrar -->
                 <Button maxWidth="320" onAction="#onRegistrar"
                         style="-fx-background-color: #2E7D32; -fx-text-fill: white;
                                -fx-font-weight: bold; -fx-font-size: 13px;

@@ -129,17 +129,15 @@
                                -fx-font-size: 12.5px; -fx-background-radius: 7;
                                -fx-cursor: hand; -fx-padding: 8 10 8 10;" text="📥  Compras" />
 
-                <!-- ── PAGOS (nuevo) ── -->
                 <Button fx:id="btnPagos" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuPagos"
                         style="-fx-background-color: transparent; -fx-text-fill: #C8E6C9;
                                -fx-font-size: 12.5px; -fx-background-radius: 7;
                                -fx-cursor: hand; -fx-padding: 8 10 8 10;" text="💳  Pagos" />
 
-                <!-- ── NÓMINA (nuevo) ── -->
                 <Button fx:id="btnNomina" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuNomina"
                         style="-fx-background-color: transparent; -fx-text-fill: #C8E6C9;
                                -fx-font-size: 12.5px; -fx-background-radius: 7;
-                               -fx-cursor: hand; -fx-padding: 8 10 8 10;" text="👥  Nómina" />
+                               -fx-cursor: hand; -fx-padding: 8 10 8 10;" text="💰  Nómina" />
 
                 <Button fx:id="btnPersonas" alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#onMenuPersonas"
                         style="-fx-background-color: transparent; -fx-text-fill: #C8E6C9;
@@ -215,6 +213,20 @@
                         style="-fx-background-color: transparent; -fx-text-fill: #C8E6C9;
                                -fx-font-size: 12.5px; -fx-background-radius: 7;
                                -fx-cursor: hand; -fx-padding: 8 10 8 10;" text="🚚  Envíos" />
+
+                <Separator style="-fx-background-color: rgba(200,230,201,0.15); -fx-opacity: 1;">
+                    <VBox.margin><Insets bottom="6" top="6" /></VBox.margin>
+                </Separator>
+
+                <Label style="-fx-font-size: 8.5px; -fx-text-fill: #A5D6A7;
+                              -fx-font-weight: bold; -fx-padding: 0 4 5 8; -fx-opacity: 0.7;" text="ADMINISTRACIÓN" />
+
+                <!-- USUARIOS — solo visible para ADMIN, controlado por aplicarPermisos() -->
+                <Button fx:id="btnUsuarios" alignment="CENTER_LEFT" maxWidth="Infinity"
+                        onAction="#onMenuUsuarios"
+                        style="-fx-background-color: transparent; -fx-text-fill: #C8E6C9;
+                               -fx-font-size: 12.5px; -fx-background-radius: 7;
+                               -fx-cursor: hand; -fx-padding: 8 10 8 10;" text="🔐  Usuarios" />
 
                 <Region VBox.vgrow="ALWAYS" />
 

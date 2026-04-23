@@ -4,30 +4,24 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0" style="-fx-background-color: #F1F5F9;"
+<VBox spacing="0" style="-fx-background-color: #F4F6F8;"
       xmlns="http://javafx.com/javafx/17.0.12"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.farmaventa.NominaController">
 
-    <!-- ══ CABECERA ══════════════════════════════════════════════════════ -->
-    <HBox alignment="CENTER_LEFT" spacing="14"
-          style="-fx-background-color: #FFFFFF;
-                 -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;
-                 -fx-padding: 14 20 14 20;">
-        <StackPane style="-fx-background-color: #E8F5E9; -fx-background-radius: 10;
-                          -fx-min-width: 38; -fx-min-height: 38;">
-            <Label style="-fx-font-size: 18px;" text="👥" />
-        </StackPane>
-        <VBox spacing="1">
-            <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Módulo de Nómina" />
-            <Label style="-fx-font-size: 11px; -fx-text-fill: #94A3B8;" text="Creación, pago e historial de nóminas de empleados" />
+    <!-- ══ ENCABEZADO ══════════════════════════════════════════════════════ -->
+    <HBox alignment="CENTER_LEFT" spacing="10"
+          style="-fx-background-color: #FFFFFF; -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+        <padding><Insets bottom="18" left="24" right="24" top="18" /></padding>
+        <VBox spacing="2">
+            <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Módulo de Nómina" />
+            <Label style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;" text="Creación, pago e historial de nóminas de empleados" />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
         <Label fx:id="lblCantEmpleados"
-               style="-fx-font-size: 11px; -fx-text-fill: #475569;
-                      -fx-background-color: #F1F5F9; -fx-background-radius: 6;
-                      -fx-border-color: #E2E8F0; -fx-border-radius: 6; -fx-border-width: 1;
-                      -fx-padding: 5 12 5 12;" text="0 empleado(s)" />
+               style="-fx-font-size: 11px; -fx-text-fill: #757575; -fx-background-color: #F5F5F5;
+                      -fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;
+                      -fx-border-width: 1; -fx-padding: 5 12 5 12;" text="0 empleado(s)" />
         <Label fx:id="lblTotalNomina"
                style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;
                       -fx-background-color: #E8F5E9; -fx-background-radius: 6;
@@ -37,180 +31,175 @@
 
     <!-- ══ TAB PANE ══════════════════════════════════════════════════════ -->
     <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS"
-             style="-fx-background-color: #F1F5F9; -fx-tab-min-height: 36px;">
+             style="-fx-tab-min-height: 38px; -fx-tab-max-height: 38px;">
 
         <!-- ╔══════════════════════════════════════════════════╗
-             ║  PESTAÑA 0 — CREAR / EDITAR NÓMINA              ║
+             ║  PESTAÑA 0 — CREAR NÓMINA                       ║
              ╚══════════════════════════════════════════════════╝ -->
         <Tab text="📝  Crear Nómina">
             <ScrollPane fitToWidth="true" fitToHeight="false"
-                        style="-fx-background-color: #F1F5F9; -fx-background: #F1F5F9; -fx-border-color: transparent;">
-                <VBox spacing="12" style="-fx-padding: 16 18 16 18;">
+                        style="-fx-background-color: #F4F6F8; -fx-background: #F4F6F8; -fx-border-color: transparent;">
+                <VBox spacing="14" style="-fx-padding: 20 20 20 20;">
 
-                    <!-- Encabezado de la nómina -->
-                    <VBox spacing="8"
+                    <!-- Configuración nómina -->
+                    <VBox spacing="10"
                           style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                                 -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-border-width: 1;
-                                 -fx-padding: 14 16 14 16;">
-                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Configuración de la Nómina" />
+                                 -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                        <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Configuración de la Nómina" />
                         <Separator />
-                        <HBox spacing="16" alignment="CENTER_LEFT">
+                        <HBox spacing="14" alignment="CENTER_LEFT">
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Fecha de Pago" />
-                                <DatePicker fx:id="dpFechaPagoNomina" prefWidth="155"
-                                            style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                   -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Fecha de Pago" />
+                                <DatePicker fx:id="dpFechaPagoNomina" prefWidth="155" style="-fx-background-radius: 6;" />
                             </VBox>
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Período (días)" />
-                                <TextField fx:id="txtPeriodoDias" promptText="Ej: 15, 30..."
-                                           prefWidth="100"
-                                           style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                  -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                                  -fx-font-size: 12px;" />
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Período (días)" />
+                                <TextField fx:id="txtPeriodoDias" promptText="Ej: 15, 30..." prefWidth="100"
+                                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                             </VBox>
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Tipo de Pago" />
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Tipo de Pago" />
                                 <ComboBox fx:id="cmbTipoPagoNomina" prefWidth="150"
-                                          style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                 -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
+                                          style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                             </VBox>
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Cuenta Bancaria (si aplica)" />
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Cuenta Bancaria" />
                                 <ComboBox fx:id="cmbCuentaNomina" prefWidth="230"
-                                          style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                 -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
+                                          style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                             </VBox>
                         </HBox>
                     </VBox>
 
                     <!-- Agregar empleado -->
-                    <VBox spacing="8"
+                    <VBox spacing="10"
                           style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                                 -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-border-width: 1;
-                                 -fx-padding: 14 16 14 16;">
-                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Agregar Empleado" />
+                                 -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                        <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Agregar Empleado" />
                         <Separator />
 
-                        <!-- Búsqueda -->
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label style="-fx-font-size: 12px; -fx-text-fill: #475569; -fx-min-width: 110;" text="ID Empleado:" />
-                            <TextField fx:id="txtIdEmpleadoBuscar" promptText="ID del empleado"
-                                       prefWidth="130"
-                                       style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                              -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                              -fx-font-size: 12px;" />
-                            <Button onAction="#onBuscarEmpleado"
-                                    style="-fx-background-color: #2E7D32; -fx-text-fill: white;
-                                           -fx-font-size: 12px; -fx-background-radius: 7;
-                                           -fx-cursor: hand; -fx-padding: 7 16 7 16;" text="🔍 Buscar" />
-                            <Label fx:id="lblInfoEmpleado" wrapText="true"
-                                   style="-fx-font-size: 11px; -fx-text-fill: #2E7D32; -fx-padding: 0 0 0 6;" text="" />
+                        <!-- Fila búsqueda -->
+                        <HBox spacing="8" alignment="CENTER_LEFT"
+                              style="-fx-background-color: #F9FBF9; -fx-background-radius: 8;
+                                     -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1;">
+                            <padding><Insets bottom="10" left="12" right="12" top="10" /></padding>
+                            <VBox spacing="3" prefWidth="120">
+                                <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="ID Empleado" />
+                                <TextField fx:id="txtIdEmpleadoBuscar" promptText="Ej. 1"
+                                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                            </VBox>
+                            <VBox alignment="BOTTOM_LEFT" spacing="3">
+                                <Label style="-fx-font-size: 10px; -fx-text-fill: transparent;" text="x" />
+                                <Button onAction="#onBuscarEmpleado"
+                                        style="-fx-background-color: #388E3C; -fx-text-fill: white;
+                                               -fx-font-weight: bold; -fx-background-radius: 6;
+                                               -fx-cursor: hand; -fx-padding: 6 14 6 14;" text="Buscar" />
+                            </VBox>
+                            <VBox spacing="3" HBox.hgrow="ALWAYS">
+                                <Label style="-fx-font-size: 10px; -fx-text-fill: #757575;" text="Empleado encontrado" />
+                                <!-- Sin fondo — solo muestra texto cuando hay resultado, igual que lblInfoVenta en ventas -->
+                                <Label fx:id="lblInfoEmpleado" wrapText="true"
+                                       style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" />
+                            </VBox>
                         </HBox>
 
-                        <Label fx:id="lblSalarioBaseRef"
-                               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1565C0;
-                                      -fx-background-color: #E3F2FD; -fx-background-radius: 6;
-                                      -fx-border-color: #BBDEFB; -fx-border-radius: 6; -fx-border-width: 1;
+                        <!--
+                            lblSalarioBaseRef: managed=false por defecto.
+                            El controller llama setManaged(true)/setVisible(true) al encontrar empleado.
+                            Así nunca aparece como cuadrado vacío.
+                        -->
+                        <Label fx:id="lblSalarioBaseRef" managed="false" visible="false"
+                               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;
+                                      -fx-background-color: #E8F5E9; -fx-background-radius: 6;
+                                      -fx-border-color: #C8E6C9; -fx-border-radius: 6; -fx-border-width: 1;
                                       -fx-padding: 5 12 5 12;" text="" />
 
-                        <!-- Ajustes -->
-                        <HBox spacing="16" alignment="CENTER_LEFT">
+                        <!-- Campos de ajuste -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Bonificación (RD$)" />
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Bonificación (RD$)" />
                                 <TextField fx:id="txtBonificacion" promptText="0.00" prefWidth="120"
                                            onKeyReleased="#onRecalcularNeto"
-                                           style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                  -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                                  -fx-font-size: 12px;" />
+                                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                             </VBox>
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Comisión Venta (RD$)" />
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Comisión Venta (RD$)" />
                                 <TextField fx:id="txtComision" promptText="0.00" prefWidth="130"
                                            onKeyReleased="#onRecalcularNeto"
-                                           style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                  -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                                  -fx-font-size: 12px;" />
+                                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                             </VBox>
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Monto Horas Extras (RD$)" />
-                                <TextField fx:id="txtMontoHorasExtras" promptText="0.00" prefWidth="155"
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Monto H. Extras (RD$)" />
+                                <TextField fx:id="txtMontoHorasExtras" promptText="0.00" prefWidth="145"
                                            onKeyReleased="#onRecalcularNeto"
-                                           style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                  -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                                  -fx-font-size: 12px;" />
+                                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                             </VBox>
                             <VBox spacing="4">
-                                <Label style="-fx-font-size: 11px; -fx-text-fill: #64748B;" text="Descuento (RD$)" />
+                                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Descuento (RD$)" />
                                 <TextField fx:id="txtDescuento" promptText="0.00" prefWidth="120"
                                            onKeyReleased="#onRecalcularNeto"
-                                           style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                                  -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                                  -fx-font-size: 12px;" />
+                                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
                             </VBox>
                         </HBox>
 
-                        <Label fx:id="lblNetoCalculado"
+                        <!--
+                            lblNetoCalculado: mismo patrón — managed=false hasta que haya cálculo real.
+                        -->
+                        <Label fx:id="lblNetoCalculado" managed="false" visible="false"
                                style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;
                                       -fx-background-color: #E8F5E9; -fx-background-radius: 6;
                                       -fx-border-color: #C8E6C9; -fx-border-radius: 6; -fx-border-width: 1;
                                       -fx-padding: 6 14 6 14;" text="" />
 
-                        <!-- Botones -->
-                        <HBox spacing="8">
+                        <HBox spacing="8" alignment="CENTER_LEFT">
                             <Button onAction="#onAgregarEmpleadoNomina"
-                                    style="-fx-background-color: #2E7D32; -fx-text-fill: white;
-                                           -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 7;
-                                           -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="＋  Agregar a nómina" />
+                                    style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold;
+                                           -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="＋  Agregar a nómina" />
                             <Button onAction="#onActualizarAjuste"
-                                    style="-fx-background-color: #1565C0; -fx-text-fill: white;
-                                           -fx-font-size: 12px; -fx-background-radius: 7;
-                                           -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="✎  Actualizar ajuste" />
+                                    style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-font-weight: bold;
+                                           -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;
+                                           -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="✎  Actualizar ajuste" />
                             <Button onAction="#onQuitarEmpleadoNomina"
                                     style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
-                                           -fx-font-size: 12px; -fx-background-radius: 7;
-                                           -fx-border-color: #FFCDD2; -fx-border-radius: 7; -fx-border-width: 1;
-                                           -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="✕  Quitar" />
+                                           -fx-background-radius: 6; -fx-border-color: #FFCDD2; -fx-border-radius: 6;
+                                           -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="✕  Quitar" />
                         </HBox>
                     </VBox>
 
-                    <!-- Tabla nómina en construcción -->
-                    <VBox spacing="8"
+                    <!-- Tabla empleados en nómina -->
+                    <VBox spacing="10"
                           style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                                 -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-border-width: 1;
-                                 -fx-padding: 14 16 14 16;">
-                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Empleados en esta Nómina" />
+                                 -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                        <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Empleados en esta Nómina" />
                         <Separator />
-                        <TableView fx:id="tablaNomina" prefHeight="220"
-                                   style="-fx-background-color: #FAFAFA; -fx-background-radius: 7;
-                                          -fx-border-color: #F1F5F9; -fx-border-radius: 7; -fx-border-width: 1;">
+                        <TableView fx:id="tablaNomina" prefHeight="220" style="-fx-background-color: transparent;">
                             <columns>
-                                <TableColumn fx:id="colNomEmp"    text="ID Emp"      prefWidth="65" />
-                                <TableColumn fx:id="colNomNombre" text="Empleado"    prefWidth="190" />
-                                <TableColumn fx:id="colNomCargo"  text="Cargo"       prefWidth="140" />
-                                <TableColumn fx:id="colNomBase"   text="Base"        prefWidth="100" />
-                                <TableColumn fx:id="colNomBonif"  text="Bonif."      prefWidth="90" />
-                                <TableColumn fx:id="colNomComis"  text="Comisión"    prefWidth="90" />
-                                <TableColumn fx:id="colNomHoras"  text="H. Extras"   prefWidth="90" />
-                                <TableColumn fx:id="colNomDesc"   text="Descuento"   prefWidth="90" />
-                                <TableColumn fx:id="colNomNeto"   text="Neto"        prefWidth="100" />
-                                <TableColumn fx:id="colNomEstado" text="Estado"      prefWidth="80" />
+                                <TableColumn fx:id="colNomEmp"    text="ID Emp"    prefWidth="65" />
+                                <TableColumn fx:id="colNomNombre" text="Empleado"  prefWidth="190" />
+                                <TableColumn fx:id="colNomCargo"  text="Cargo"     prefWidth="140" />
+                                <TableColumn fx:id="colNomBase"   text="Base"      prefWidth="100" />
+                                <TableColumn fx:id="colNomBonif"  text="Bonif."    prefWidth="90" />
+                                <TableColumn fx:id="colNomComis"  text="Comisión"  prefWidth="90" />
+                                <TableColumn fx:id="colNomHoras"  text="H. Extras" prefWidth="90" />
+                                <TableColumn fx:id="colNomDesc"   text="Descuento" prefWidth="90" />
+                                <TableColumn fx:id="colNomNeto"   text="Neto"      prefWidth="100" />
+                                <TableColumn fx:id="colNomEstado" text="Estado"    prefWidth="80" />
                             </columns>
-                            <placeholder><Label style="-fx-text-fill: #94A3B8;" text="Agrega empleados para construir la nómina" /></placeholder>
+                            <placeholder><Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="Agrega empleados para construir la nómina" /></placeholder>
                         </TableView>
                     </VBox>
 
-                    <!-- Botones guardar/limpiar -->
                     <HBox spacing="10" alignment="CENTER_RIGHT">
                         <Button onAction="#onLimpiarNomina"
-                                style="-fx-background-color: #F1F5F9; -fx-text-fill: #64748B;
-                                       -fx-font-size: 12px; -fx-background-radius: 7;
-                                       -fx-border-color: #E2E8F0; -fx-border-radius: 7; -fx-border-width: 1;
-                                       -fx-cursor: hand; -fx-padding: 9 22 9 22;" text="✕  Limpiar todo" />
+                                style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
+                                       -fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;
+                                       -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 10 22 10 22;" text="✕  Limpiar todo" />
                         <Button onAction="#onGuardarNomina"
-                                style="-fx-background-color: #1B5E20; -fx-text-fill: white;
-                                       -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 7;
-                                       -fx-cursor: hand; -fx-padding: 9 28 9 28;" text="💾  Guardar Nómina" />
+                                style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-size: 13px;
+                                       -fx-font-weight: bold; -fx-background-radius: 6;
+                                       -fx-cursor: hand; -fx-padding: 10 28 10 28;" text="💾  Guardar Nómina" />
                     </HBox>
 
                 </VBox>
@@ -221,176 +210,174 @@
              ║  PESTAÑA 1 — REGISTRAR PAGO                     ║
              ╚══════════════════════════════════════════════════╝ -->
         <Tab text="💳  Registrar Pago">
-            <ScrollPane fitToWidth="true" fitToHeight="false"
-                        style="-fx-background-color: #F1F5F9; -fx-background: #F1F5F9; -fx-border-color: transparent;">
-                <VBox spacing="12" style="-fx-padding: 16 18 16 18;">
+            <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
+                <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-                    <!-- Barra búsqueda nóminas -->
-                    <HBox spacing="8" alignment="CENTER_LEFT">
-                        <TextField fx:id="txtBuscarNominaPago" promptText="🔍  Buscar por empleado o ID nómina..."
-                                   prefWidth="290"
-                                   style="-fx-background-radius: 7; -fx-border-color: #E2E8F0;
-                                          -fx-border-radius: 7; -fx-border-width: 1; -fx-padding: 7 10 7 10;
-                                          -fx-font-size: 12px;" />
-                        <Button onAction="#onBuscarNominaPago"
-                                style="-fx-background-color: #2E7D32; -fx-text-fill: white;
-                                       -fx-font-size: 12px; -fx-background-radius: 7;
-                                       -fx-cursor: hand; -fx-padding: 7 16 7 16;" text="Buscar" />
-                        <ComboBox fx:id="cmbFiltroPago" prefWidth="130"
-                                  style="-fx-background-radius: 7; -fx-border-color: #E2E8F0;
-                                         -fx-border-radius: 7; -fx-border-width: 1; -fx-font-size: 12px;" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button onAction="#onRefrescarPendientes"
-                                style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32;
-                                       -fx-font-size: 11px; -fx-background-radius: 7; -fx-border-color: #C8E6C9;
-                                       -fx-border-radius: 7; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 7 12 7 12;" text="↻ Refrescar" />
-                    </HBox>
+                <!-- COLUMNA IZQUIERDA -->
+                <VBox prefWidth="310" spacing="12"
+                      style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                             -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                    <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
-                    <!-- Tabla nóminas -->
-                    <TableView fx:id="tablaPendientes" prefHeight="240"
-                               style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                                      -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-border-width: 1;">
-                        <columns>
-                            <TableColumn fx:id="colPagEmp"    text="ID Emp"    prefWidth="65" />
-                            <TableColumn fx:id="colPagNombre" text="Empleado"  prefWidth="200" />
-                            <TableColumn fx:id="colPagCargo"  text="Cargo"     prefWidth="150" />
-                            <TableColumn fx:id="colPagFecha"  text="Fecha"     prefWidth="100" />
-                            <TableColumn fx:id="colPagNeto"   text="Neto"      prefWidth="110" />
-                            <TableColumn fx:id="colPagTipo"   text="Método"    prefWidth="100" />
-                            <TableColumn fx:id="colPagEstado" text="Estado"    prefWidth="90" />
-                        </columns>
-                        <placeholder><Label style="-fx-text-fill: #94A3B8;" text="No hay nóminas registradas" /></placeholder>
-                    </TableView>
+                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Registrar Pago de Nómina" />
+                    <Separator />
+
+                    <VBox spacing="4">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Buscar por ID de nómina" />
+                        <HBox spacing="8">
+                            <TextField fx:id="txtBuscarNominaPago" promptText="ID de la nómina..."
+                                       style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;"
+                                       HBox.hgrow="ALWAYS" />
+                            <Button onAction="#onBuscarNominaPago"
+                                    style="-fx-background-color: #388E3C; -fx-text-fill: white;
+                                           -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 4 10 4 10;" text="Buscar" />
+                        </HBox>
+                        <ComboBox fx:id="cmbFiltroPago" maxWidth="Infinity" promptText="Estado..."
+                                  style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                    </VBox>
 
                     <Separator />
 
-                    <!-- Formulario de pago -->
-                    <VBox spacing="10" maxWidth="500"
-                          style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                                 -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-border-width: 1;
-                                 -fx-padding: 16 18 16 18;">
-                        <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Registrar Pago de Nómina" />
-                        <Separator />
-
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label style="-fx-font-size: 12px; -fx-text-fill: #475569; -fx-min-width: 120;" text="ID Nómina:" />
-                            <TextField fx:id="txtIdNominaPagar" promptText="ID de la nómina"
-                                       prefWidth="150"
-                                       style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                              -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                              -fx-font-size: 12px;" />
-                        </HBox>
-
-                        <Label fx:id="lblInfoNominaPagar" wrapText="true"
-                               style="-fx-font-size: 11px; -fx-text-fill: #1B5E20; -fx-padding: 0 0 0 4;" text="" />
-
-                        <Label fx:id="lblMontoPendientePago"
-                               style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #C62828;
-                                      -fx-background-color: #FFF8F8; -fx-background-radius: 6;
-                                      -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;
-                                      -fx-padding: 7 14 7 14;" text="" />
-
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label style="-fx-font-size: 12px; -fx-text-fill: #475569; -fx-min-width: 120;" text="Método de Pago:" />
-                            <ComboBox fx:id="cmbMetodoPagoNom" prefWidth="180"
-                                      style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                             -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
-                        </HBox>
-
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label style="-fx-font-size: 12px; -fx-text-fill: #475569; -fx-min-width: 120;" text="Cuenta Bancaria:" />
-                            <ComboBox fx:id="cmbCuentaPago" prefWidth="260"
-                                      style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                             -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
-                        </HBox>
-                        <Label style="-fx-font-size: 10px; -fx-text-fill: #94A3B8; -fx-padding: 0 0 0 128;"
-                               text="Solo requerida si el método no es Efectivo" />
-
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <Label style="-fx-font-size: 12px; -fx-text-fill: #475569; -fx-min-width: 120;" text="Fecha de Pago:" />
-                            <DatePicker fx:id="dpFechaPago" prefWidth="170"
-                                        style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                               -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
-                        </HBox>
-
-                        <HBox spacing="8">
-                            <Button onAction="#onRegistrarPagoNomina"
-                                    style="-fx-background-color: #1B5E20; -fx-text-fill: white;
-                                           -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 7;
-                                           -fx-cursor: hand; -fx-padding: 9 24 9 24;" text="✔  Confirmar Pago" />
-                        </HBox>
+                    <VBox spacing="4">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="ID Nómina" />
+                        <TextField fx:id="txtIdNominaPagar" promptText="Selecciona una fila de la tabla →"
+                                   editable="false"
+                                   style="-fx-background-color: #F5F5F5; -fx-background-radius: 6;
+                                          -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                        <Label fx:id="lblInfoNominaPagar" managed="false" visible="false" wrapText="true"
+                               style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" />
                     </VBox>
 
+                    <!--
+                        lblMontoPendientePago: managed=false hasta que se seleccione nómina.
+                        Así no aparece cuadrado rojo vacío.
+                    -->
+                    <Label fx:id="lblMontoPendientePago" managed="false" visible="false"
+                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;
+                                  -fx-background-color: #FFEBEE; -fx-background-radius: 6;
+                                  -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;
+                                  -fx-padding: 6 10 6 10;" text="" />
+
+                    <VBox spacing="4">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Método de Pago" />
+                        <ComboBox fx:id="cmbMetodoPagoNom" maxWidth="Infinity"
+                                  style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Cuenta Bancaria" />
+                        <ComboBox fx:id="cmbCuentaPago" maxWidth="Infinity"
+                                  style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E;"
+                               text="Requerida para Transferencia, Tarjeta o Cheque" />
+                    </VBox>
+
+                    <VBox spacing="4">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Fecha de Pago" />
+                        <DatePicker fx:id="dpFechaPago" maxWidth="Infinity" style="-fx-background-radius: 6;" />
+                    </VBox>
+
+                    <Region VBox.vgrow="ALWAYS" />
+                    <Separator />
+
+                    <HBox spacing="8">
+                        <Button maxWidth="Infinity" onAction="#onRegistrarPagoNomina"
+                                style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold;
+                                       -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 0 10 0;"
+                                text="✔  Confirmar Pago" HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onRefrescarPendientes"
+                                style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
+                                       -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 14 10 14;" text="↻" />
+                    </HBox>
                 </VBox>
-            </ScrollPane>
+
+                <!-- COLUMNA DERECHA -->
+                <VBox spacing="12" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                             -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                    <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
+                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Nóminas Registradas" />
+                    <Separator />
+                    <TableView fx:id="tablaPendientes" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                        <columns>
+                            <TableColumn fx:id="colPagEmp"    text="ID Nóm."  prefWidth="65" />
+                            <TableColumn fx:id="colPagNombre" text="Empleado" prefWidth="200" />
+                            <TableColumn fx:id="colPagCargo"  text="Cargo"    prefWidth="150" />
+                            <TableColumn fx:id="colPagFecha"  text="Fecha"    prefWidth="100" />
+                            <TableColumn fx:id="colPagNeto"   text="Neto"     prefWidth="110" />
+                            <TableColumn fx:id="colPagTipo"   text="Método"   prefWidth="100" />
+                            <TableColumn fx:id="colPagEstado" text="Estado"   prefWidth="90" />
+                        </columns>
+                        <placeholder><Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="No hay nóminas registradas" /></placeholder>
+                    </TableView>
+                </VBox>
+            </HBox>
         </Tab>
 
         <!-- ╔══════════════════════════════════════════════════╗
              ║  PESTAÑA 2 — HISTORIAL                          ║
              ╚══════════════════════════════════════════════════╝ -->
         <Tab text="📋  Historial">
-            <ScrollPane fitToWidth="true" fitToHeight="false"
-                        style="-fx-background-color: #F1F5F9; -fx-background: #F1F5F9; -fx-border-color: transparent;">
-                <VBox spacing="12" style="-fx-padding: 16 18 16 18;">
+            <VBox spacing="14" VBox.vgrow="ALWAYS">
+                <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-                    <!-- Filtros -->
-                    <HBox spacing="8" alignment="CENTER_LEFT"
-                          style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                                 -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-border-width: 1;
-                                 -fx-padding: 12 16 12 16;">
-                        <Label style="-fx-font-size: 12px; -fx-text-fill: #475569;" text="Desde:" />
-                        <DatePicker fx:id="dpDesde" prefWidth="145"
-                                    style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                           -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
-                        <Label style="-fx-font-size: 12px; -fx-text-fill: #475569;" text="Hasta:" />
-                        <DatePicker fx:id="dpHasta" prefWidth="145"
-                                    style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                           -fx-border-radius: 6; -fx-border-width: 1; -fx-font-size: 12px;" />
-                        <TextField fx:id="txtBuscarHistorial" promptText="🔍  Buscar por empleado..."
-                                   prefWidth="220"
-                                   style="-fx-background-radius: 6; -fx-border-color: #E2E8F0;
-                                          -fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 7 8 7 8;
-                                          -fx-font-size: 12px;" />
+                <HBox spacing="10" alignment="CENTER_LEFT"
+                      style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                             -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                    <padding><Insets bottom="14" left="16" right="16" top="14" /></padding>
+                    <VBox spacing="3">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Desde" />
+                        <DatePicker fx:id="dpDesde" prefWidth="145" style="-fx-background-radius: 6;" />
+                    </VBox>
+                    <VBox spacing="3">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Hasta" />
+                        <DatePicker fx:id="dpHasta" prefWidth="145" style="-fx-background-radius: 6;" />
+                    </VBox>
+                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Buscar empleado" />
+                        <TextField fx:id="txtBuscarHistorial" promptText="Nombre o ID..."
+                                   style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                    </VBox>
+                    <VBox alignment="BOTTOM_LEFT" spacing="3">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: transparent;" text="x" />
                         <Button onAction="#onFiltrarHistorial"
-                                style="-fx-background-color: #2E7D32; -fx-text-fill: white;
-                                       -fx-font-size: 12px; -fx-background-radius: 7;
-                                       -fx-cursor: hand; -fx-padding: 7 16 7 16;" text="Filtrar" />
+                                style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold;
+                                       -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 18 7 18;" text="Filtrar" />
+                    </VBox>
+                    <VBox alignment="BOTTOM_LEFT" spacing="3">
+                        <Label style="-fx-font-size: 11px; -fx-text-fill: transparent;" text="x" />
                         <Button onAction="#onRefrescarHistorial"
-                                style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32;
-                                       -fx-font-size: 11px; -fx-background-radius: 7; -fx-border-color: #C8E6C9;
-                                       -fx-border-radius: 7; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 7 12 7 12;" text="↻" />
-                    </HBox>
+                                style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
+                                       -fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;
+                                       -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 7 12 7 12;" text="↻" />
+                    </VBox>
+                </HBox>
 
-                    <!-- Resumen -->
-                    <Label fx:id="lblResumenHistorial"
-                           style="-fx-font-size: 11px; -fx-text-fill: #1B5E20;
-                                  -fx-background-color: #E8F5E9; -fx-background-radius: 6;
-                                  -fx-border-color: #C8E6C9; -fx-border-radius: 6; -fx-border-width: 1;
-                                  -fx-padding: 6 12 6 12;" text="0 registros | Total pagado: RD$ 0.00" />
+                <Label fx:id="lblResumenHistorial"
+                       style="-fx-font-size: 11px; -fx-text-fill: #2E7D32; -fx-background-color: #E8F5E9;
+                              -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;
+                              -fx-border-width: 1; -fx-padding: 6 12 6 12;" text="0 registros | Total pagado: RD$ 0.00" />
 
-                    <!-- Tabla historial -->
-                    <TableView fx:id="tablaHistorial" VBox.vgrow="ALWAYS" prefHeight="440"
-                               style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                                      -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-border-width: 1;">
-                        <columns>
-                            <TableColumn fx:id="colHistId"     text="ID Nóm."   prefWidth="70" />
-                            <TableColumn fx:id="colHistEmp"    text="ID Emp"    prefWidth="65" />
-                            <TableColumn fx:id="colHistNombre" text="Empleado"  prefWidth="175" />
-                            <TableColumn fx:id="colHistCargo"  text="Cargo"     prefWidth="130" />
-                            <TableColumn fx:id="colHistBase"   text="Base"      prefWidth="95" />
-                            <TableColumn fx:id="colHistBonif"  text="Bonif."    prefWidth="80" />
-                            <TableColumn fx:id="colHistComis"  text="Comisión"  prefWidth="80" />
-                            <TableColumn fx:id="colHistHoras"  text="H. Extras" prefWidth="85" />
-                            <TableColumn fx:id="colHistDesc"   text="Descuento" prefWidth="85" />
-                            <TableColumn fx:id="colHistNeto"   text="Neto"      prefWidth="100" />
-                            <TableColumn fx:id="colHistFecha"  text="Fecha"     prefWidth="95" />
-                            <TableColumn fx:id="colHistTipo"   text="Método"    prefWidth="100" />
-                        </columns>
-                        <placeholder><Label style="-fx-text-fill: #94A3B8;" text="No hay registros en el período seleccionado" /></placeholder>
-                    </TableView>
-
-                </VBox>
-            </ScrollPane>
+                <TableView fx:id="tablaHistorial" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
+                                  -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                    <columns>
+                        <TableColumn fx:id="colHistId"     text="ID Nóm."   prefWidth="70" />
+                        <TableColumn fx:id="colHistEmp"    text="ID Emp"    prefWidth="65" />
+                        <TableColumn fx:id="colHistNombre" text="Empleado"  prefWidth="175" />
+                        <TableColumn fx:id="colHistCargo"  text="Cargo"     prefWidth="130" />
+                        <TableColumn fx:id="colHistBase"   text="Base"      prefWidth="95" />
+                        <TableColumn fx:id="colHistBonif"  text="Bonif."    prefWidth="80" />
+                        <TableColumn fx:id="colHistComis"  text="Comisión"  prefWidth="80" />
+                        <TableColumn fx:id="colHistHoras"  text="H. Extras" prefWidth="85" />
+                        <TableColumn fx:id="colHistDesc"   text="Descuento" prefWidth="85" />
+                        <TableColumn fx:id="colHistNeto"   text="Neto"      prefWidth="100" />
+                        <TableColumn fx:id="colHistFecha"  text="Fecha"     prefWidth="95" />
+                        <TableColumn fx:id="colHistTipo"   text="Método"    prefWidth="100" />
+                    </columns>
+                    <placeholder><Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="No hay registros en el período seleccionado" /></placeholder>
+                </TableView>
+            </VBox>
         </Tab>
 
     </TabPane>

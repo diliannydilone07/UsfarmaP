@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -31,12 +32,13 @@ public class MainController implements Initializable {
     @FXML private Button btnVentas;
     @FXML private Button btnCompras;
     @FXML private Button btnPagos;
-    @FXML private Button btnNomina;         // ← NUEVO
+    @FXML private Button btnNomina;
     @FXML private Button btnPersonas;
     @FXML private Button btnInventario;
     @FXML private Button btnFidelizacion;
     @FXML private Button btnConvenios;
     @FXML private Button btnEnvios;
+    @FXML private Button btnUsuarios; // ← NUEVO
 
     @FXML private Button btnReclamacionesToggle;
     @FXML private Button btnDevolucionesToggle;
@@ -51,7 +53,6 @@ public class MainController implements Initializable {
     private boolean reclamacionesExpandido = false;
     private boolean devolucionesExpandido  = false;
 
-    // ── Estilos ───────────────────────────────────────────────────────────
     private static final String S_NORMAL =
             "-fx-background-color: transparent; -fx-text-fill: #BBF7D0; " +
                     "-fx-font-size: 12.5px; -fx-background-radius: 7; " +
@@ -78,14 +79,35 @@ public class MainController implements Initializable {
                     "-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 6; " +
                     "-fx-cursor: hand; -fx-padding: 6 10 6 10;";
 
-    // ─────────────────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         if (lblFecha != null)
             lblFecha.setText(LocalDate.now()
                     .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         resetarTodos();
+        aplicarPermisos();
         cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema");
+    }
+
+    private void aplicarPermisos() {
+        ocultarSi(btnVentas,              !Permisos.tieneAcceso(Permisos.Modulo.VENTAS));
+        ocultarSi(btnCompras,             !Permisos.tieneAcceso(Permisos.Modulo.COMPRAS));
+        ocultarSi(btnPagos,               !Permisos.tieneAcceso(Permisos.Modulo.PAGOS));
+        ocultarSi(btnNomina,              !Permisos.tieneAcceso(Permisos.Modulo.NOMINA));
+        ocultarSi(btnPersonas,            !Permisos.tieneAcceso(Permisos.Modulo.PERSONAS));
+        ocultarSi(btnInventario,          !Permisos.tieneAcceso(Permisos.Modulo.INVENTARIO));
+        ocultarSi(btnFidelizacion,        !Permisos.tieneAcceso(Permisos.Modulo.FIDELIZACION));
+        ocultarSi(btnConvenios,           !Permisos.tieneAcceso(Permisos.Modulo.CONVENIOS));
+        ocultarSi(btnEnvios,              !Permisos.tieneAcceso(Permisos.Modulo.ENVIOS));
+        ocultarSi(btnReclamacionesToggle, !Permisos.tieneAcceso(Permisos.Modulo.RECLAMACIONES));
+        ocultarSi(btnDevolucionesToggle,  !Permisos.tieneAcceso(Permisos.Modulo.DEVOLUCIONES));
+        ocultarSi(btnUsuarios,            !Permisos.tieneAcceso(Permisos.Modulo.USUARIOS)); // ← NUEVO
+    }
+
+    private void ocultarSi(Button btn, boolean ocultar) {
+        if (btn == null) return;
+        btn.setVisible(!ocultar);
+        btn.setManaged(!ocultar);
     }
 
     public void setUsuario(String nombreCompleto) {
@@ -101,11 +123,9 @@ public class MainController implements Initializable {
     @FXML private void onMenuCompras() {
         cargarVista("Compra.fxml", btnCompras, "Compras", "Gestiona compras a proveedores"); }
     @FXML private void onMenuPagos() {
-        cargarVista("Pagos.fxml", btnPagos, "Pagos",
-                "Cuentas por pagar, cobrar y seguros"); }
-    @FXML private void onMenuNomina() {                                         // ← NUEVO
-        cargarVista("Nomina.fxml", btnNomina, "Nómina",
-                "Creación, pago e historial de nóminas"); }
+        cargarVista("Pagos.fxml", btnPagos, "Pagos", "Cuentas por pagar, cobrar y seguros"); }
+    @FXML private void onMenuNomina() {
+        cargarVista("Nomina.fxml", btnNomina, "Nómina", "Creación, pago e historial de nóminas"); }
     @FXML private void onMenuPersonas() {
         cargarVista("Personas.fxml", btnPersonas, "Personas", "Clientes, empleados y proveedores"); }
     @FXML private void onMenuInventario() {
@@ -116,6 +136,24 @@ public class MainController implements Initializable {
         cargarVista("Convenio.fxml", btnConvenios, "Convenios", "Acuerdos con proveedores"); }
     @FXML private void onMenuEnvios() {
         cargarVista("Envio.fxml", btnEnvios, "Envíos", "Seguimiento y gestión de envíos"); }
+
+    @FXML private void onMenuUsuarios() {
+        try {
+            URL ruta = getClass().getResource("/Usuarios/Registro.fxml");
+            if (ruta == null) { System.err.println("FXML no encontrado: Usuarios/Registro.fxml"); return; }
+            Node vista = FXMLLoader.load(ruta);
+            contentArea.getChildren().setAll(vista);
+            if (lblModuloActual    != null) lblModuloActual.setText("Usuarios");
+            if (lblSubtituloActual != null) lblSubtituloActual.setText("Gestión de accesos al sistema");
+            if (btnActivo != null) btnActivo.setStyle(S_NORMAL);
+            btnUsuarios.setStyle(S_ACTIVO);
+            btnActivo = btnUsuarios;
+            limpiarSubs();
+        } catch (IOException e) {
+            System.err.println("Error cargando Usuarios/Registro.fxml");
+            e.printStackTrace();
+        }
+    }
 
     // ── Submenús ──────────────────────────────────────────────────────────
     @FXML
@@ -215,10 +253,11 @@ public class MainController implements Initializable {
     }
 
     private void resetarTodos() {
-        List.of(btnInicio, btnVentas, btnCompras, btnPagos, btnNomina, btnPersonas, btnInventario,
-                        btnFidelizacion, btnConvenios, btnEnvios,
+        List.of(btnInicio, btnVentas, btnCompras, btnPagos, btnNomina, btnPersonas,
+                        btnInventario, btnFidelizacion, btnConvenios, btnEnvios,
+                        btnUsuarios, // ← NUEVO
                         btnReclamacionesToggle, btnDevolucionesToggle)
-                .forEach(b -> b.setStyle(S_NORMAL));
+                .forEach(b -> { if (b != null) b.setStyle(S_NORMAL); });
         limpiarSubs();
     }
 
@@ -229,7 +268,7 @@ public class MainController implements Initializable {
     public Button getBtnVentas()              { return btnVentas; }
     public Button getBtnCompras()             { return btnCompras; }
     public Button getBtnPagos()               { return btnPagos; }
-    public Button getBtnNomina()              { return btnNomina; }  // ← NUEVO
+    public Button getBtnNomina()              { return btnNomina; }
     public Button getBtnPersonas()            { return btnPersonas; }
     public Button getBtnInventario()          { return btnInventario; }
     public Button getBtnReclamaciones()       { return btnReclamaciones; }
@@ -239,4 +278,5 @@ public class MainController implements Initializable {
     public Button getBtnFidelizacion()        { return btnFidelizacion; }
     public Button getBtnConvenios()           { return btnConvenios; }
     public Button getBtnEnvios()              { return btnEnvios; }
+    public Button getBtnUsuarios()            { return btnUsuarios; } // ← NUEVO
 }

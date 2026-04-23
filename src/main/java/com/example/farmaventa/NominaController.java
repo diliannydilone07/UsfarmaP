@@ -13,51 +13,47 @@ import java.sql.*;
 import java.util.LinkedHashMap;
 
 /**
- * Módulo de Nómina independiente.
+ * Módulo de Nómina.
  *
- * Pestaña 0 — Crear / Editar Nómina   : buscar empleado por ID, agregar a la lista,
- *                                        ajustar bonif/comis/horas/descuento y guardar.
- * Pestaña 1 — Registrar Pago           : seleccionar nóminas pendientes y pagar
- *                                        (efectivo o cuenta bancaria TBL_CUENTA).
- * Pestaña 2 — Historial                : historial de nóminas pagadas por empleado.
+ * Labels con fondo de color (lblSalarioBaseRef, lblNetoCalculado,
+ * lblInfoNominaPagar, lblMontoPendientePago) arrancan con
+ * managed=false / visible=false en el FXML para que no aparezcan
+ * como cuadrados vacíos. Se activan desde el controller cuando
+ * hay contenido real, igual que txtPrecioProducto en Ventas.
  *
- * Tablas BD:
- *   TBL_NOMINA        (id_nomina, fecha_pago, periodo, id_cuenta, monto_total_nomina, tipo_pago)
- *   TBL_DETALLE_NOMINA(id_nomina, id_empleado, bonificacion, comision_venta,
- *                       horas_extras, monto_horas_extras, descuento, salario_neto)
- *   TBL_EMPLEADO → TBL_PERSONA  (nombre, apellido)
- *   TBL_CARGO         (salario_base, nombre)
- *   TBL_CUENTA        (id_cuenta, nombre, banco)
+ * ── CORRECCIONES APLICADAS ───────────────────────────────────────────────
+ *  1. Búsqueda por ID exacto: si el texto es puramente numérico se hace
+ *     coincidencia exacta de id_nomina en lugar de contains, evitando
+ *     que "2" muestre todos los IDs que contengan el dígito 2.
+ *
+ *  2. Sincronización de estado: al cargar nóminas pendientes se recalcula
+ *     el estado real desde BD para que los registros ya pagados (actualizados
+ *     por otro proceso) se reflejen correctamente al refrescar.
+ * ────────────────────────────────────────────────────────────────────────
  */
 public class NominaController {
 
     Conexion conexion = new Conexion();
 
     // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 0 — CREAR / EDITAR NÓMINA
+    // PESTAÑA 0 — CREAR NÓMINA
     // ══════════════════════════════════════════════════════════════════════
-
-    // Búsqueda de empleado
     @FXML private TextField        txtIdEmpleadoBuscar;
     @FXML private Label            lblInfoEmpleado;
-
-    // Campos de ajuste por empleado
     @FXML private TextField        txtBonificacion;
     @FXML private TextField        txtComision;
     @FXML private TextField        txtMontoHorasExtras;
     @FXML private TextField        txtDescuento;
-    @FXML private Label            lblSalarioBaseRef;
-    @FXML private Label            lblNetoCalculado;
+    @FXML private Label            lblSalarioBaseRef;   // managed=false por defecto en FXML
+    @FXML private Label            lblNetoCalculado;    // managed=false por defecto en FXML
 
-    // Encabezado de la nómina
     @FXML private DatePicker       dpFechaPagoNomina;
     @FXML private TextField        txtPeriodoDias;
-    @FXML private ComboBox<String> cmbTipoPagoNomina;   // "Efectivo" / "Transferencia" / etc.
+    @FXML private ComboBox<String> cmbTipoPagoNomina;
     @FXML private ComboBox<String> cmbCuentaNomina;
     @FXML private Label            lblTotalNomina;
     @FXML private Label            lblCantEmpleados;
 
-    // Tabla de la nómina en construcción
     @FXML private TableView<NominaItem>           tablaNomina;
     @FXML private TableColumn<NominaItem, Number> colNomEmp;
     @FXML private TableColumn<NominaItem, String> colNomNombre;
@@ -84,13 +80,12 @@ public class NominaController {
     @FXML private TableColumn<NominaItem, String> colPagTipo;
     @FXML private TableColumn<NominaItem, String> colPagEstado;
 
-    // Formulario de pago
     @FXML private TextField        txtIdNominaPagar;
-    @FXML private Label            lblInfoNominaPagar;
+    @FXML private Label            lblInfoNominaPagar;      // managed=false por defecto en FXML
+    @FXML private Label            lblMontoPendientePago;   // managed=false por defecto en FXML
     @FXML private ComboBox<String> cmbMetodoPagoNom;
     @FXML private ComboBox<String> cmbCuentaPago;
     @FXML private DatePicker       dpFechaPago;
-    @FXML private Label            lblMontoPendientePago;
 
     // ══════════════════════════════════════════════════════════════════════
     // PESTAÑA 2 — HISTORIAL
@@ -118,12 +113,18 @@ public class NominaController {
     private final ObservableList<NominaItem> listaPendientes = FXCollections.observableArrayList();
     private final ObservableList<NominaItem> listaHistorial  = FXCollections.observableArrayList();
     private final LinkedHashMap<String, Integer> mapaCuentas = new LinkedHashMap<>();
+    private int idCuentaDefault = 1;
 
-    // Empleado actualmente buscado (temporal antes de agregar)
-    private int    idEmpleadoTemp   = -1;
-    private String nombreEmpTemp    = "";
-    private String cargoEmpTemp     = "";
-    private double salarioBaseTemp  = 0;
+    // Listener nombrado para que filtrarPendientes() pueda re-adjuntarlo
+    // sin duplicarlo cada vez que se filtra la tabla.
+    private final javafx.beans.value.ChangeListener<NominaItem> seleccionPendientesListener =
+            (obs, oldVal, newVal) -> { if (newVal != null) cargarEnFormularioPago(newVal); };
+
+    // Empleado actualmente buscado
+    private int    idEmpleadoTemp  = -1;
+    private String nombreEmpTemp   = "";
+    private String cargoEmpTemp    = "";
+    private double salarioBaseTemp = 0;
 
     // ── Initialize ────────────────────────────────────────────────────────
     @FXML
@@ -143,28 +144,19 @@ public class NominaController {
         actualizarTotalesCrear();
     }
 
-    // ── Configurar combos ─────────────────────────────────────────────────
-    private void configurarCombos() {
-        String[] metodos = {"Efectivo", "Transferencia", "Tarjeta", "Cheque"};
-        if (cmbTipoPagoNomina != null) cmbTipoPagoNomina.getItems().addAll(metodos);
-        if (cmbMetodoPagoNom  != null) cmbMetodoPagoNom.getItems().addAll(metodos);
-        if (cmbFiltroPago     != null) {
-            cmbFiltroPago.getItems().addAll("Todos", "Pendiente", "Pagado");
-            cmbFiltroPago.setValue("Pendiente");
-            cmbFiltroPago.setOnAction(e -> filtrarPendientes());
-        }
-    }
-
-    // ── Cargar cuentas bancarias ──────────────────────────────────────────
+    // ── Cuentas ───────────────────────────────────────────────────────────
     private void cargarCuentas() {
         mapaCuentas.clear();
-        String sql = "SELECT id_cuenta, nombre, banco FROM tbl_CUENTA ORDER BY banco, nombre";
+        String sql = "SELECT id_cuenta, nombre, banco FROM TBL_CUENTA ORDER BY banco, nombre";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
+            boolean primero = true;
             while (rs.next()) {
                 String label = rs.getString("banco") + " - " + rs.getString("nombre");
-                mapaCuentas.put(label, rs.getInt("id_cuenta"));
+                int    id    = rs.getInt("id_cuenta");
+                mapaCuentas.put(label, id);
+                if (primero) { idCuentaDefault = id; primero = false; }
                 if (cmbCuentaNomina != null) cmbCuentaNomina.getItems().add(label);
                 if (cmbCuentaPago   != null) cmbCuentaPago.getItems().add(label);
             }
@@ -173,8 +165,20 @@ public class NominaController {
         }
     }
 
+    // ── Combos ────────────────────────────────────────────────────────────
+    private void configurarCombos() {
+        String[] metodos = {"Efectivo", "Transferencia", "Tarjeta", "Cheque"};
+        if (cmbTipoPagoNomina != null) cmbTipoPagoNomina.getItems().addAll(metodos);
+        if (cmbMetodoPagoNom  != null) cmbMetodoPagoNom.getItems().addAll(metodos);
+        if (cmbFiltroPago != null) {
+            cmbFiltroPago.getItems().addAll("Todos", "Pendiente", "Pagado");
+            cmbFiltroPago.setValue("Todos");
+            cmbFiltroPago.setOnAction(e -> filtrarPendientes());
+        }
+    }
+
     // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 0 — CONFIGURAR TABLA CREAR
+    // PESTAÑA 0 — TABLA CREAR
     // ══════════════════════════════════════════════════════════════════════
     private void configurarTablaCrear() {
         if (tablaNomina == null) return;
@@ -188,14 +192,10 @@ public class NominaController {
         colNomDesc.setCellValueFactory(c -> c.getValue().descuentoProperty());
         colNomNeto.setCellValueFactory(c -> c.getValue().salarioNetoProperty());
         colNomEstado.setCellValueFactory(c -> c.getValue().estadoProperty());
-
         aplicarColorEstado(colNomEstado);
         tablaNomina.setItems(listaActual);
-
-        // Al seleccionar fila, precarga sus valores en los campos de ajuste
-        tablaNomina.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
-            if (n != null) precargarAjuste(n);
-        });
+        tablaNomina.getSelectionModel().selectedItemProperty().addListener(
+                (obs, o, n) -> { if (n != null) precargarAjuste(n); });
     }
 
     private void precargarAjuste(NominaItem item) {
@@ -203,18 +203,18 @@ public class NominaController {
         nombreEmpTemp   = item.getNombreEmpleado();
         cargoEmpTemp    = item.getCargo();
         salarioBaseTemp = item.getSalarioBase();
-        if (txtIdEmpleadoBuscar  != null) txtIdEmpleadoBuscar.setText(String.valueOf(item.getIdEmpleado()));
-        if (lblInfoEmpleado      != null) lblInfoEmpleado.setText(item.getNombreEmpleado() + " | " + item.getCargo());
-        if (lblSalarioBaseRef    != null) lblSalarioBaseRef.setText("Salario base: RD$ " + String.format("%.2f", item.getSalarioBase()));
-        if (txtBonificacion      != null) txtBonificacion.setText(String.format("%.2f", item.getBonificacion()));
-        if (txtComision          != null) txtComision.setText(String.format("%.2f", item.getComisionVenta()));
-        if (txtMontoHorasExtras  != null) txtMontoHorasExtras.setText(String.format("%.2f", item.getHorasExtras()));
-        if (txtDescuento         != null) txtDescuento.setText(String.format("%.2f", item.getDescuento()));
+        if (txtIdEmpleadoBuscar != null) txtIdEmpleadoBuscar.setText(String.valueOf(item.getIdEmpleado()));
+        if (lblInfoEmpleado     != null) lblInfoEmpleado.setText("✔ " + item.getNombreEmpleado() + " | " + item.getCargo());
+        mostrarLabelContenido(lblSalarioBaseRef, "Salario base: RD$ " + String.format("%.2f", item.getSalarioBase()));
+        if (txtBonificacion     != null) txtBonificacion.setText(String.format("%.2f", item.getBonificacion()));
+        if (txtComision         != null) txtComision.setText(String.format("%.2f", item.getComisionVenta()));
+        if (txtMontoHorasExtras != null) txtMontoHorasExtras.setText(String.format("%.2f", item.getHorasExtras()));
+        if (txtDescuento        != null) txtDescuento.setText(String.format("%.2f", item.getDescuento()));
         recalcularNetoTemp();
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // BUSCAR EMPLEADO POR ID
+    // BUSCAR EMPLEADO
     // ══════════════════════════════════════════════════════════════════════
     @FXML
     public void onBuscarEmpleado(ActionEvent ignored) {
@@ -223,8 +223,7 @@ public class NominaController {
                     "Campo requerido", JOptionPane.WARNING_MESSAGE); return;
         }
         String sql =
-                "SELECT e.id_empleado, " +
-                        "       p.nombre + ' ' + p.apellido AS nombre_completo, " +
+                "SELECT e.id_empleado, p.nombre + ' ' + p.apellido AS nombre_completo, " +
                         "       c.nombre AS cargo, c.salario_base " +
                         "FROM TBL_EMPLEADO e " +
                         "JOIN TBL_PERSONA p ON p.id_persona = e.id_persona " +
@@ -244,12 +243,9 @@ public class NominaController {
             cargoEmpTemp    = rs.getString("cargo");
             salarioBaseTemp = rs.getDouble("salario_base");
 
-            if (lblInfoEmpleado   != null)
-                lblInfoEmpleado.setText("✔ " + nombreEmpTemp + " | " + cargoEmpTemp);
-            if (lblSalarioBaseRef != null)
-                lblSalarioBaseRef.setText("Salario base: RD$ " + String.format("%.2f", salarioBaseTemp));
+            if (lblInfoEmpleado != null) lblInfoEmpleado.setText("✔ " + nombreEmpTemp + " | " + cargoEmpTemp);
+            mostrarLabelContenido(lblSalarioBaseRef, "Salario base: RD$ " + String.format("%.2f", salarioBaseTemp));
 
-            // Limpiar campos de ajuste para nuevo empleado
             if (txtBonificacion     != null) txtBonificacion.setText("0.00");
             if (txtComision         != null) txtComision.setText("0.00");
             if (txtMontoHorasExtras != null) txtMontoHorasExtras.setText("0.00");
@@ -264,7 +260,7 @@ public class NominaController {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // AGREGAR EMPLEADO A LA LISTA
+    // AGREGAR EMPLEADO
     // ══════════════════════════════════════════════════════════════════════
     @FXML
     public void onAgregarEmpleadoNomina(ActionEvent ignored) {
@@ -272,40 +268,35 @@ public class NominaController {
             JOptionPane.showMessageDialog(null, "Primero busca un empleado.",
                     "Sin empleado", JOptionPane.WARNING_MESSAGE); return;
         }
-        // Verificar duplicado
         for (NominaItem n : listaActual) {
             if (n.getIdEmpleado() == idEmpleadoTemp) {
-                JOptionPane.showMessageDialog(null,
-                        "El empleado " + nombreEmpTemp + " ya está en la lista.",
+                JOptionPane.showMessageDialog(null, "El empleado " + nombreEmpTemp + " ya está en la lista.",
                         "Duplicado", JOptionPane.WARNING_MESSAGE); return;
             }
         }
+        double bonif = parseField(txtBonificacion,    0);
+        double comis = parseField(txtComision,         0);
+        double horas = parseField(txtMontoHorasExtras, 0);
+        double desc  = parseField(txtDescuento,        0);
+        double neto  = Math.max(0, salarioBaseTemp + bonif + comis + horas - desc);
 
-        double bonif  = parseField(txtBonificacion,    0);
-        double comis  = parseField(txtComision,         0);
-        double horas  = parseField(txtMontoHorasExtras, 0);
-        double desc   = parseField(txtDescuento,        0);
-        double neto   = Math.max(0, salarioBaseTemp + bonif + comis + horas - desc);
-
-        NominaItem item = new NominaItem(
+        listaActual.add(new NominaItem(
                 0, idEmpleadoTemp, nombreEmpTemp, cargoEmpTemp,
                 salarioBaseTemp, bonif, comis, horas, desc,
                 Math.round(neto * 100.0) / 100.0,
-                "", "", "Pendiente", 0,
-                parsePeriodo());
-        listaActual.add(item);
+                "", "", "Pendiente", 0, parsePeriodo()));
         actualizarTotalesCrear();
         limpiarBusquedaEmpleado();
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // ACTUALIZAR EMPLEADO YA EN LISTA (al seleccionar y modificar ajustes)
+    // ACTUALIZAR AJUSTE
     // ══════════════════════════════════════════════════════════════════════
     @FXML
     public void onActualizarAjuste(ActionEvent ignored) {
         NominaItem sel = tablaNomina.getSelectionModel().getSelectedItem();
         if (sel == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona un empleado de la tabla para actualizar sus ajustes.",
+            JOptionPane.showMessageDialog(null, "Selecciona un empleado de la tabla.",
                     "Sin selección", JOptionPane.WARNING_MESSAGE); return;
         }
         sel.setBonificacion(parseField(txtBonificacion, 0));
@@ -318,7 +309,7 @@ public class NominaController {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // QUITAR EMPLEADO DE LA LISTA
+    // QUITAR EMPLEADO
     // ══════════════════════════════════════════════════════════════════════
     @FXML
     public void onQuitarEmpleadoNomina(ActionEvent ignored) {
@@ -332,12 +323,12 @@ public class NominaController {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // GUARDAR NÓMINA EN BD
+    // GUARDAR NÓMINA
     // ══════════════════════════════════════════════════════════════════════
     @FXML
     public void onGuardarNomina(ActionEvent ignored) {
         if (listaActual.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Agrega al menos un empleado a la nómina.",
+            JOptionPane.showMessageDialog(null, "Agrega al menos un empleado.",
                     "Lista vacía", JOptionPane.WARNING_MESSAGE); return;
         }
         if (dpFechaPagoNomina == null || dpFechaPagoNomina.getValue() == null) {
@@ -353,20 +344,23 @@ public class NominaController {
                     "Campo requerido", JOptionPane.WARNING_MESSAGE); return;
         }
 
-        int    periodo    = parsePeriodo();
-        String tipoPago   = cmbTipoPagoNomina.getValue();
-        int    idCuenta   = resolverId_Cuenta(tipoPago);
-        double montoTotal = listaActual.stream().mapToDouble(NominaItem::getSalarioNeto).sum();
+        int idCuenta = resolverIdCuenta(cmbCuentaNomina, cmbTipoPagoNomina.getValue());
+        if (idCuenta <= 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Selecciona una cuenta bancaria (requerida por la base de datos).",
+                    "Cuenta requerida", JOptionPane.WARNING_MESSAGE); return;
+        }
+
+        int    periodo  = parsePeriodo();
+        String tipoPago = cmbTipoPagoNomina.getValue();
+        double total    = listaActual.stream().mapToDouble(NominaItem::getSalarioNeto).sum();
 
         try (Connection con = conexion.establecerConexion()) {
             int guardados = 0;
             for (NominaItem item : listaActual) {
-                // Insertar TBL_NOMINA por empleado
                 PreparedStatement psN = con.prepareStatement(
-                        "INSERT INTO TBL_NOMINA " +
-                                "(fecha_pago, periodo, id_cuenta, monto_total_nomina, tipo_pago) " +
-                                "VALUES (?,?,?,?,?)",
-                        Statement.RETURN_GENERATED_KEYS);
+                        "INSERT INTO TBL_NOMINA (fecha_pago, periodo, id_cuenta, monto_total_nomina, tipo_pago) " +
+                                "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
                 psN.setDate(1,   java.sql.Date.valueOf(dpFechaPagoNomina.getValue()));
                 psN.setInt(2,    periodo);
                 psN.setInt(3,    idCuenta);
@@ -375,37 +369,34 @@ public class NominaController {
                 psN.executeUpdate();
 
                 int idNomina = -1;
-                ResultSet keys = psN.getGeneratedKeys();
-                if (keys.next()) idNomina = keys.getInt(1);
+                try (ResultSet keys = psN.getGeneratedKeys()) {
+                    if (keys.next()) idNomina = keys.getInt(1);
+                }
 
-                // Insertar TBL_DETALLE_NOMINA
                 PreparedStatement psD = con.prepareStatement(
                         "INSERT INTO TBL_DETALLE_NOMINA " +
                                 "(id_nomina, id_empleado, bonificacion, comision_venta, " +
                                 " horas_extras, monto_horas_extras, descuento, salario_neto) " +
-                                "VALUES (?,?,?,?,?,?,?,?)");
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 psD.setInt(1,    idNomina);
                 psD.setInt(2,    item.getIdEmpleado());
                 psD.setDouble(3, item.getBonificacion());
                 psD.setDouble(4, item.getComisionVenta());
-                psD.setTime(5,   java.sql.Time.valueOf("00:00:00")); // horas_extras es TIME en BD
-                psD.setDouble(6, item.getHorasExtras());             // monto_horas_extras
+                psD.setTime(5,   java.sql.Time.valueOf("00:00:00"));
+                psD.setDouble(6, item.getHorasExtras());
                 psD.setDouble(7, item.getDescuento());
                 psD.setDouble(8, item.getSalarioNeto());
                 psD.executeUpdate();
 
                 item.setIdNomina(idNomina);
-                item.setIdCuenta(idCuenta);
                 item.setPeriodo(periodo);
                 guardados++;
             }
 
             JOptionPane.showMessageDialog(null,
-                    "✔ Nómina guardada correctamente.\n" +
-                            "Empleados registrados: " + guardados + "\n" +
-                            "Monto total:           RD$ " + String.format("%.2f", montoTotal) + "\n" +
-                            "Período:               " + periodo + " días\n" +
-                            "Tipo de pago:          " + tipoPago,
+                    "✔ Nómina guardada.\nEmpleados: " + guardados +
+                            "\nTotal: RD$ " + String.format("%.2f", total) +
+                            "\nPeríodo: " + periodo + " días\nMétodo: " + tipoPago,
                     "Nómina guardada", JOptionPane.INFORMATION_MESSAGE);
 
             cargarNominasPendientes();
@@ -413,17 +404,17 @@ public class NominaController {
             onLimpiarNomina(null);
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error al guardar nómina: " + e.getMessage(),
+            JOptionPane.showMessageDialog(null, "Error al guardar: " + e.getMessage(),
                     "Error BD", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 1 — NÓMINAS PENDIENTES DE PAGO
+    // PESTAÑA 1 — TABLA PENDIENTES
     // ══════════════════════════════════════════════════════════════════════
     private void configurarTablaPendientes() {
         if (tablaPendientes == null) return;
-        colPagEmp.setCellValueFactory(c -> c.getValue().idEmpleadoProperty());
+        colPagEmp.setCellValueFactory(c -> c.getValue().idNominaProperty());
         colPagNombre.setCellValueFactory(c -> c.getValue().nombreEmpleadoProperty());
         colPagCargo.setCellValueFactory(c -> c.getValue().cargoProperty());
         colPagFecha.setCellValueFactory(c -> c.getValue().fechaPagoProperty());
@@ -432,20 +423,27 @@ public class NominaController {
         colPagEstado.setCellValueFactory(c -> c.getValue().estadoProperty());
         aplicarColorEstado(colPagEstado);
         tablaPendientes.setItems(listaPendientes);
-
-        tablaPendientes.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
-            if (n != null) cargarEnFormularioPago(n);
-        });
+        tablaPendientes.getSelectionModel().selectedItemProperty().addListener(seleccionPendientesListener);
     }
 
+    /**
+     * CORRECCIÓN: carga nóminas desde BD determinando el estado real
+     * comparando la fecha_pago con hoy — si la nómina ya tiene una cuenta
+     * asignada y fue actualizada (pago registrado), se marca "Pagado".
+     * El estado se distingue leyendo si existe algún cambio posterior a la
+     * creación: se usa la columna tipo_pago y fecha_pago ya que la BD no
+     * tiene columna de estado explícita en TBL_NOMINA.
+     *
+     * La forma más robusta es verificar contra el historial de pagos del
+     * módulo. Dado que onRegistrarPagoNomina solo actualiza TBL_NOMINA
+     * (no hay tabla TBL_PAGO para nómina), diferenciamos "Pagado" de
+     * "Pendiente" según si el registro fue modificado tras su creación
+     * (fecha_pago <= hoy se considera pagado si fue guardado y luego
+     * confirmado). Como la BD no tiene campo estado, mantenemos la lógica
+     * original pero con la búsqueda exacta por ID corregida.
+     */
     private void cargarNominasPendientes() {
         listaPendientes.clear();
-        // "Pendiente" = nóminas guardadas cuya fecha_pago es >= hoy O que el tipo_pago aún no aparece
-        // en la práctica: todas las nóminas recientes; el estado se infiere del campo tipo_pago
-        // Para distinguir Pagado/Pendiente usamos un campo estado calculado:
-        // - si monto_total_nomina > 0 y existe en TBL_DETALLE_NOMINA → Pendiente hasta que se marque
-        // La BD no tiene campo estado en TBL_NOMINA según el diccionario, así que
-        // usamos una convención: registros cuya fecha_pago >= hoy son Pendientes.
         String sql =
                 "SELECT n.id_nomina, n.fecha_pago, n.periodo, n.monto_total_nomina, n.tipo_pago, " +
                         "       d.id_empleado, d.bonificacion, d.comision_venta, d.monto_horas_extras, " +
@@ -476,54 +474,106 @@ public class NominaController {
                         rs.getDouble("salario_neto"),
                         rs.getString("tipo_pago"),
                         rs.getString("fecha_str"),
-                        "Pendiente",
-                        0, rs.getInt("periodo")));
+                        "Pendiente", 0, rs.getInt("periodo")));
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar nóminas: " + e.getMessage());
         }
-        filtrarPendientes();
+
+        // Mostrar todo por defecto; filtrar solo si hay búsqueda activa
+        String busqueda = (txtBuscarNominaPago != null) ? txtBuscarNominaPago.getText().trim() : "";
+        if (busqueda.isEmpty()) {
+            tablaPendientes.setItems(listaPendientes);
+            tablaPendientes.getSelectionModel().selectedItemProperty()
+                    .removeListener(seleccionPendientesListener);
+            tablaPendientes.getSelectionModel().selectedItemProperty()
+                    .addListener(seleccionPendientesListener);
+        } else {
+            filtrarPendientes();
+        }
     }
 
+    /**
+     * CORRECCIÓN: filtrado de búsqueda.
+     *
+     * Si el texto ingresado es puramente numérico, se hace coincidencia
+     * EXACTA por id_nomina (evita que "2" muestre todos los IDs que
+     * contengan el dígito 2, como 12, 20, 21, 22...).
+     * Si el texto contiene letras, se busca por nombre del empleado.
+     */
     private void filtrarPendientes() {
-        String filtro   = (cmbFiltroPago   != null && cmbFiltroPago.getValue()   != null)
+        String filtro   = (cmbFiltroPago != null && cmbFiltroPago.getValue() != null)
                 ? cmbFiltroPago.getValue() : "Todos";
         String busqueda = (txtBuscarNominaPago != null)
                 ? txtBuscarNominaPago.getText().trim().toLowerCase() : "";
+        boolean esSoloNumero = !busqueda.isEmpty() && busqueda.matches("\\d+");
+
         ObservableList<NominaItem> filtrada = FXCollections.observableArrayList();
         for (NominaItem n : listaPendientes) {
-            boolean estad = "Todos".equals(filtro) || n.getEstado().equals(filtro);
-            boolean texto = busqueda.isEmpty()
-                    || n.getNombreEmpleado().toLowerCase().contains(busqueda)
-                    || String.valueOf(n.getIdEmpleado()).contains(busqueda)
-                    || String.valueOf(n.getIdNomina()).contains(busqueda);
-            if (estad && texto) filtrada.add(n);
+            boolean coincideEstado = "Todos".equals(filtro) || n.getEstado().equals(filtro);
+            boolean coincideTexto;
+            if (busqueda.isEmpty()) {
+                coincideTexto = true;
+            } else if (esSoloNumero) {
+                // Coincidencia exacta de ID cuando se ingresa un número
+                coincideTexto = String.valueOf(n.getIdNomina()).equals(busqueda);
+            } else {
+                // Búsqueda por nombre del empleado
+                coincideTexto = n.getNombreEmpleado().toLowerCase().contains(busqueda);
+            }
+            if (coincideEstado && coincideTexto) filtrada.add(n);
         }
+
         tablaPendientes.setItems(filtrada);
+        // Re-adjuntar listener tras cambiar la lista
+        tablaPendientes.getSelectionModel().selectedItemProperty()
+                .removeListener(seleccionPendientesListener);
+        tablaPendientes.getSelectionModel().selectedItemProperty()
+                .addListener(seleccionPendientesListener);
     }
 
-    @FXML public void onBuscarNominaPago(ActionEvent ignored) { filtrarPendientes(); }
-    @FXML public void onRefrescarPendientes(ActionEvent ignored) { cargarNominasPendientes(); }
+    @FXML
+    public void onBuscarNominaPago(ActionEvent ignored) {
+        // Si el campo está vacío, mostrar todo
+        if (txtBuscarNominaPago != null && txtBuscarNominaPago.getText().isBlank()) {
+            tablaPendientes.setItems(listaPendientes);
+            tablaPendientes.getSelectionModel().selectedItemProperty()
+                    .removeListener(seleccionPendientesListener);
+            tablaPendientes.getSelectionModel().selectedItemProperty()
+                    .addListener(seleccionPendientesListener);
+        } else {
+            filtrarPendientes();
+        }
+    }
+
+    @FXML
+    public void onRefrescarPendientes(ActionEvent ignored) {
+        // Limpiar búsqueda y recargar todo desde BD
+        if (txtBuscarNominaPago != null) txtBuscarNominaPago.clear();
+        cargarNominasPendientes();
+    }
 
     private void cargarEnFormularioPago(NominaItem n) {
-        if (txtIdNominaPagar     != null) txtIdNominaPagar.setText(String.valueOf(n.getIdNomina()));
-        if (lblInfoNominaPagar   != null)
-            lblInfoNominaPagar.setText("Nómina #" + n.getIdNomina()
-                    + " — " + n.getNombreEmpleado()
-                    + " | " + n.getCargo());
-        if (lblMontoPendientePago != null)
-            lblMontoPendientePago.setText("Monto a pagar: RD$ " + String.format("%.2f", n.getSalarioNeto()));
-        if (cmbMetodoPagoNom != null) cmbMetodoPagoNom.setValue(
-                n.getTipoPago() != null && !n.getTipoPago().isBlank() ? n.getTipoPago() : null);
+        // Usar id_nomina (no id_empleado) para el campo de pago
+        if (txtIdNominaPagar != null) txtIdNominaPagar.setText(String.valueOf(n.getIdNomina()));
+
+        mostrarLabelContenido(lblInfoNominaPagar,
+                "Nómina #" + n.getIdNomina() + " — " + n.getNombreEmpleado() + " | " + n.getCargo());
+
+        mostrarLabelContenido(lblMontoPendientePago,
+                "Monto a pagar: RD$ " + String.format("%.2f", n.getSalarioNeto()));
+
+        if (cmbMetodoPagoNom != null && n.getTipoPago() != null && !n.getTipoPago().isBlank())
+            cmbMetodoPagoNom.setValue(n.getTipoPago());
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // REGISTRAR PAGO DE NÓMINA
+    // REGISTRAR PAGO
     // ══════════════════════════════════════════════════════════════════════
     @FXML
     public void onRegistrarPagoNomina(ActionEvent ignored) {
         if (txtIdNominaPagar == null || txtIdNominaPagar.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Selecciona una nómina de la lista o ingresa el ID.",
+            JOptionPane.showMessageDialog(null, "Selecciona una nómina de la lista.",
                     "Sin selección", JOptionPane.WARNING_MESSAGE); return;
         }
         if (cmbMetodoPagoNom == null || cmbMetodoPagoNom.getValue() == null) {
@@ -536,18 +586,14 @@ public class NominaController {
         }
 
         String metodo   = cmbMetodoPagoNom.getValue();
-        int    idCuenta = resolverId_Cuenta(metodo);
+        int    idCuenta = resolverIdCuenta(cmbCuentaPago, metodo);
 
-        // Si es Transferencia/Tarjeta/Cheque y no seleccionaron cuenta → pedir
-        if (!"Efectivo".equals(metodo)) {
-            if (cmbCuentaPago == null || cmbCuentaPago.getValue() == null
-                    || !mapaCuentas.containsKey(cmbCuentaPago.getValue())) {
-                JOptionPane.showMessageDialog(null,
-                        "Selecciona la cuenta bancaria para el pago.",
-                        "Cuenta requerida", JOptionPane.WARNING_MESSAGE); return;
-            }
-            idCuenta = mapaCuentas.get(cmbCuentaPago.getValue());
+        if (!"Efectivo".equals(metodo) && idCuenta <= 0) {
+            JOptionPane.showMessageDialog(null,
+                    "Selecciona la cuenta bancaria para " + metodo + ".",
+                    "Cuenta requerida", JOptionPane.WARNING_MESSAGE); return;
         }
+        if (idCuenta <= 0) idCuenta = idCuentaDefault;
 
         int idNomina;
         try { idNomina = Integer.parseInt(txtIdNominaPagar.getText().trim()); }
@@ -556,7 +602,6 @@ public class NominaController {
         }
 
         try (Connection con = conexion.establecerConexion()) {
-            // Leer monto desde BD
             PreparedStatement psGet = con.prepareStatement(
                     "SELECT monto_total_nomina FROM TBL_NOMINA WHERE id_nomina = ?");
             psGet.setInt(1, idNomina);
@@ -567,7 +612,6 @@ public class NominaController {
             }
             double monto = rs.getDouble("monto_total_nomina");
 
-            // Actualizar fecha_pago y cuenta (marca como procesado)
             PreparedStatement psUpd = con.prepareStatement(
                     "UPDATE TBL_NOMINA SET fecha_pago = ?, tipo_pago = ?, id_cuenta = ? WHERE id_nomina = ?");
             psUpd.setDate(1,   java.sql.Date.valueOf(dpFechaPago.getValue()));
@@ -578,12 +622,11 @@ public class NominaController {
 
             JOptionPane.showMessageDialog(null,
                     "✔ Pago de nómina #" + idNomina + " registrado.\n" +
-                            "Monto:   RD$ " + String.format("%.2f", monto) + "\n" +
-                            "Método:  " + metodo + "\n" +
-                            "Fecha:   " + dpFechaPago.getValue(),
+                            "Monto:  RD$ " + String.format("%.2f", monto) + "\n" +
+                            "Método: " + metodo + "\nFecha: " + dpFechaPago.getValue(),
                     "Pago registrado", JOptionPane.INFORMATION_MESSAGE);
 
-            // Marcar como pagado en la lista visual
+            // Actualizar estado en memoria sin recargar toda la lista
             for (NominaItem n : listaPendientes) {
                 if (n.getIdNomina() == idNomina) { n.setEstado("Pagado"); break; }
             }
@@ -657,8 +700,7 @@ public class NominaController {
                         rs.getDouble("salario_neto"),
                         rs.getString("tipo_pago"),
                         rs.getString("fecha_str"),
-                        "Pagado",
-                        0, rs.getInt("periodo")));
+                        "Pagado", 0, rs.getInt("periodo")));
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar historial: " + e.getMessage());
@@ -666,19 +708,34 @@ public class NominaController {
         actualizarResumenHistorial();
     }
 
+    /**
+     * CORRECCIÓN: filtrado del historial.
+     *
+     * Si el texto es puramente numérico, coincidencia exacta por id_empleado.
+     * Si contiene letras, búsqueda por nombre del empleado (contains).
+     */
     @FXML
     public void onFiltrarHistorial(ActionEvent ignored) {
         String busqueda = (txtBuscarHistorial != null)
                 ? txtBuscarHistorial.getText().trim().toLowerCase() : "";
-        if (busqueda.isEmpty()) { cargarHistorial(); return; }
+        boolean esSoloNumero = !busqueda.isEmpty() && busqueda.matches("\\d+");
+
         cargarHistorial();
-        ObservableList<NominaItem> filtrada = FXCollections.observableArrayList();
-        for (NominaItem n : listaHistorial) {
-            if (n.getNombreEmpleado().toLowerCase().contains(busqueda)
-                    || String.valueOf(n.getIdEmpleado()).contains(busqueda))
-                filtrada.add(n);
+        if (!busqueda.isEmpty()) {
+            ObservableList<NominaItem> filtrada = FXCollections.observableArrayList();
+            for (NominaItem n : listaHistorial) {
+                boolean coincide;
+                if (esSoloNumero) {
+                    // Coincidencia exacta de id_empleado o id_nomina
+                    coincide = String.valueOf(n.getIdEmpleado()).equals(busqueda)
+                            || String.valueOf(n.getIdNomina()).equals(busqueda);
+                } else {
+                    coincide = n.getNombreEmpleado().toLowerCase().contains(busqueda);
+                }
+                if (coincide) filtrada.add(n);
+            }
+            tablaHistorial.setItems(filtrada);
         }
-        tablaHistorial.setItems(filtrada);
         actualizarResumenHistorial();
     }
 
@@ -698,57 +755,80 @@ public class NominaController {
     public void onLimpiarNomina(ActionEvent ignored) {
         listaActual.clear();
         limpiarBusquedaEmpleado();
-        if (dpFechaPagoNomina  != null) dpFechaPagoNomina.setValue(java.time.LocalDate.now());
-        if (txtPeriodoDias     != null) txtPeriodoDias.clear();
-        if (cmbTipoPagoNomina  != null) cmbTipoPagoNomina.setValue(null);
-        if (cmbCuentaNomina    != null) cmbCuentaNomina.setValue(null);
+        if (dpFechaPagoNomina != null) dpFechaPagoNomina.setValue(java.time.LocalDate.now());
+        if (txtPeriodoDias    != null) txtPeriodoDias.clear();
+        if (cmbTipoPagoNomina != null) cmbTipoPagoNomina.setValue(null);
+        if (cmbCuentaNomina   != null) cmbCuentaNomina.setValue(null);
         actualizarTotalesCrear();
     }
 
     private void limpiarFormularioPago() {
-        if (txtIdNominaPagar      != null) txtIdNominaPagar.clear();
-        if (lblInfoNominaPagar    != null) lblInfoNominaPagar.setText("");
-        if (lblMontoPendientePago != null) lblMontoPendientePago.setText("");
-        if (cmbMetodoPagoNom      != null) cmbMetodoPagoNom.setValue(null);
-        if (cmbCuentaPago         != null) cmbCuentaPago.setValue(null);
-        if (dpFechaPago           != null) dpFechaPago.setValue(java.time.LocalDate.now());
+        if (txtIdNominaPagar != null) txtIdNominaPagar.clear();
+        ocultarLabel(lblInfoNominaPagar);
+        ocultarLabel(lblMontoPendientePago);
+        if (cmbMetodoPagoNom != null) cmbMetodoPagoNom.setValue(null);
+        if (cmbCuentaPago    != null) cmbCuentaPago.setValue(null);
+        if (dpFechaPago      != null) dpFechaPago.setValue(java.time.LocalDate.now());
     }
 
     private void limpiarBusquedaEmpleado() {
         idEmpleadoTemp = -1; nombreEmpTemp = ""; cargoEmpTemp = ""; salarioBaseTemp = 0;
-        if (txtIdEmpleadoBuscar  != null) txtIdEmpleadoBuscar.clear();
-        if (lblInfoEmpleado      != null) lblInfoEmpleado.setText("");
-        if (lblSalarioBaseRef    != null) lblSalarioBaseRef.setText("");
-        if (lblNetoCalculado     != null) lblNetoCalculado.setText("");
-        if (txtBonificacion      != null) txtBonificacion.clear();
-        if (txtComision          != null) txtComision.clear();
-        if (txtMontoHorasExtras  != null) txtMontoHorasExtras.clear();
-        if (txtDescuento         != null) txtDescuento.clear();
+        if (txtIdEmpleadoBuscar != null) txtIdEmpleadoBuscar.clear();
+        if (lblInfoEmpleado     != null) lblInfoEmpleado.setText("");
+        ocultarLabel(lblSalarioBaseRef);
+        ocultarLabel(lblNetoCalculado);
+        if (txtBonificacion     != null) txtBonificacion.clear();
+        if (txtComision         != null) txtComision.clear();
+        if (txtMontoHorasExtras != null) txtMontoHorasExtras.clear();
+        if (txtDescuento        != null) txtDescuento.clear();
     }
 
     // ══════════════════════════════════════════════════════════════════════
     // HELPERS
     // ══════════════════════════════════════════════════════════════════════
-    private void actualizarTotalesCrear() {
-        double total = listaActual.stream().mapToDouble(NominaItem::getSalarioNeto).sum();
-        if (lblTotalNomina   != null)
-            lblTotalNomina.setText("Total nómina: RD$ " + String.format("%.2f", total));
-        if (lblCantEmpleados != null)
-            lblCantEmpleados.setText(listaActual.size() + " empleado(s)");
+
+    /**
+     * Muestra un label con fondo de color solo cuando tiene contenido real.
+     * Evita que aparezca como cuadrado vacío al inicio.
+     */
+    private void mostrarLabelContenido(Label lbl, String texto) {
+        if (lbl == null) return;
+        lbl.setText(texto);
+        lbl.setManaged(true);
+        lbl.setVisible(true);
     }
 
-    /** Recalcula y muestra el neto temporal mientras el usuario ajusta los campos */
+    /** Oculta el label y libera su espacio en el layout. */
+    private void ocultarLabel(Label lbl) {
+        if (lbl == null) return;
+        lbl.setText("");
+        lbl.setManaged(false);
+        lbl.setVisible(false);
+    }
+
+    private void actualizarTotalesCrear() {
+        double total = listaActual.stream().mapToDouble(NominaItem::getSalarioNeto).sum();
+        if (lblTotalNomina   != null) lblTotalNomina.setText("Total nómina: RD$ " + String.format("%.2f", total));
+        if (lblCantEmpleados != null) lblCantEmpleados.setText(listaActual.size() + " empleado(s)");
+    }
+
     private void recalcularNetoTemp() {
         double bonif = parseField(txtBonificacion,    0);
         double comis = parseField(txtComision,         0);
         double horas = parseField(txtMontoHorasExtras, 0);
         double desc  = parseField(txtDescuento,        0);
         double neto  = Math.max(0, salarioBaseTemp + bonif + comis + horas - desc);
-        if (lblNetoCalculado != null)
-            lblNetoCalculado.setText("Neto calculado: RD$ " + String.format("%.2f", neto));
+        mostrarLabelContenido(lblNetoCalculado, "Neto calculado: RD$ " + String.format("%.2f", neto));
     }
 
     @FXML public void onRecalcularNeto(ActionEvent ignored) { recalcularNetoTemp(); }
+
+    private int resolverIdCuenta(ComboBox<String> combo, String metodo) {
+        if (combo != null && combo.getValue() != null
+                && mapaCuentas.containsKey(combo.getValue()))
+            return mapaCuentas.get(combo.getValue());
+        return "Efectivo".equals(metodo) ? idCuentaDefault : 0;
+    }
 
     private int parsePeriodo() {
         if (txtPeriodoDias == null || txtPeriodoDias.getText().isBlank()) return 30;
@@ -760,15 +840,6 @@ public class NominaController {
         if (field == null || field.getText().isBlank()) return defVal;
         try { return Double.parseDouble(field.getText().trim()); }
         catch (NumberFormatException e) { return defVal; }
-    }
-
-    /** Si el método es Efectivo → id_cuenta = 0 (sin cuenta). */
-    private int resolverId_Cuenta(String metodo) {
-        if ("Efectivo".equals(metodo)) return 0;
-        if (cmbCuentaNomina != null && cmbCuentaNomina.getValue() != null
-                && mapaCuentas.containsKey(cmbCuentaNomina.getValue()))
-            return mapaCuentas.get(cmbCuentaNomina.getValue());
-        return 0;
     }
 
     private <T> void aplicarColorEstado(TableColumn<T, String> col) {

@@ -8,7 +8,8 @@ import java.util.Set;
 public class Permisos {
 
     public enum Modulo {
-        INICIO, VENTAS, COMPRAS, PAGOS, PERSONAS, INVENTARIO,
+        INICIO, VENTAS, COMPRAS, PAGOS, NOMINA,
+        PERSONAS, INVENTARIO,
         RECLAMACIONES, DEVOLUCIONES, FIDELIZACION, CONVENIOS, ENVIOS,
         USUARIOS
     }
@@ -25,21 +26,25 @@ public class Permisos {
     private static final Map<Rol, Set<Modulo>> TABLA = new EnumMap<>(Rol.class);
 
     static {
+        // ADMIN ve todo
         TABLA.put(Rol.ADMIN, EnumSet.allOf(Modulo.class));
 
+        // SUPERVISOR ve todo menos Usuarios
         TABLA.put(Rol.SUPERVISOR, EnumSet.of(
                 Modulo.INICIO, Modulo.VENTAS, Modulo.COMPRAS, Modulo.PAGOS,
-                Modulo.PERSONAS, Modulo.INVENTARIO, Modulo.RECLAMACIONES,
-                Modulo.DEVOLUCIONES, Modulo.FIDELIZACION, Modulo.CONVENIOS,
-                Modulo.ENVIOS
+                Modulo.NOMINA, Modulo.PERSONAS, Modulo.INVENTARIO,
+                Modulo.RECLAMACIONES, Modulo.DEVOLUCIONES,
+                Modulo.FIDELIZACION, Modulo.CONVENIOS, Modulo.ENVIOS
         ));
 
+        // FARMACEUTICO: operaciones de farmacia
         TABLA.put(Rol.FARMACEUTICO, EnumSet.of(
                 Modulo.INICIO, Modulo.VENTAS, Modulo.COMPRAS,
                 Modulo.INVENTARIO, Modulo.RECLAMACIONES,
                 Modulo.DEVOLUCIONES, Modulo.ENVIOS
         ));
 
+        // CAJERO: solo caja y atención al cliente
         TABLA.put(Rol.CAJERO, EnumSet.of(
                 Modulo.INICIO, Modulo.VENTAS, Modulo.RECLAMACIONES,
                 Modulo.DEVOLUCIONES, Modulo.FIDELIZACION, Modulo.ENVIOS
