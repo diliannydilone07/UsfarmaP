@@ -7,7 +7,7 @@
 <VBox spacing="0" style="-fx-background-color: #F4F6F8;"
       xmlns="http://javafx.com/javafx/17.0.12"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.farmaventa.NominaController">
+      fx:controller="com.example.farmaventa.NominaController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
 
     <!-- ══ ENCABEZADO ══════════════════════════════════════════════════════ -->
     <HBox alignment="CENTER_LEFT" spacing="10"
@@ -160,7 +160,7 @@
                                     style="-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-font-weight: bold;
                                            -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;
                                            -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="✎  Actualizar ajuste" />
-                            <Button onAction="#onQuitarEmpleadoNomina"
+                            <Button fx:id="btnQuitarEmpleadoNomina" onAction="#onQuitarEmpleadoNomina"
                                     style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
                                            -fx-background-radius: 6; -fx-border-color: #FFCDD2; -fx-border-radius: 6;
                                            -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 18 8 18;" text="✕  Quitar" />
@@ -196,7 +196,7 @@
                                 style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
                                        -fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;
                                        -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 10 22 10 22;" text="✕  Limpiar todo" />
-                        <Button onAction="#onGuardarNomina"
+                        <Button fx:id="btnGuardarNomina" onAction="#onGuardarNomina"
                                 style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-size: 13px;
                                        -fx-font-weight: bold; -fx-background-radius: 6;
                                        -fx-cursor: hand; -fx-padding: 10 28 10 28;" text="💾  Guardar Nómina" />
@@ -281,7 +281,7 @@
                     <Separator />
 
                     <HBox spacing="8">
-                        <Button maxWidth="Infinity" onAction="#onRegistrarPagoNomina"
+                        <Button maxWidth="Infinity" fx:id="btnRegistrarPagoNomina" onAction="#onRegistrarPagoNomina"
                                 style="-fx-background-color: #388E3C; -fx-text-fill: white; -fx-font-weight: bold;
                                        -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 0 10 0;"
                                 text="✔  Confirmar Pago" HBox.hgrow="ALWAYS" />

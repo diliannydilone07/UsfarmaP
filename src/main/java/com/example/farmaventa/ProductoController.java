@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Producto;
 import com.example.farmaventa.modelo.PresentacionDetalle;
@@ -21,6 +22,11 @@ public class ProductoController {
     // ═══════════════════════════════════════════════════════════════════════
     //  FORMULARIO PRINCIPAL
     // ═══════════════════════════════════════════════════════════════════════
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnGuardarProducto;
+    @FXML private Button btnAnadirStock;
+    @FXML private Button btnEliminarDetalle;
+
     @FXML private TextField        txtId;
     @FXML private TextField        txtNombre;
     @FXML private TextField        txtStockActual;
@@ -101,6 +107,12 @@ public class ProductoController {
         tablaDetalle.setItems(listaDetalle);
 
         actualizarTabla();
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnGuardarProducto, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnAnadirStock,     Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminarDetalle, Permisos.Accion.ELIMINAR);
+
     }
 
     // ═══════════════════════════════════════════════════════════════════════

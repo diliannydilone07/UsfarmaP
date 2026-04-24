@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Convenio;
 import javafx.collections.FXCollections;
@@ -16,6 +17,11 @@ public class ConvenioController {
     Conexion conexion = new Conexion();
 
     // ── Formulario ────────────────────────────────────────────────────────
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnGuardarConvenio;
+    @FXML private Button btnEditarConvenio;
+    @FXML private Button btnEliminarConvenio;
+
     @FXML private TextField  txtIdProveedor;
     @FXML private TextField  txtIdProducto;
     @FXML private DatePicker dpFechaInicio;
@@ -58,6 +64,10 @@ public class ConvenioController {
                     if (newSel != null) cargarEnFormulario(newSel);
                 });
 
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnGuardarConvenio,  Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEditarConvenio,   Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminarConvenio, Permisos.Accion.ELIMINAR);
         cargarConvenios();
     }
 

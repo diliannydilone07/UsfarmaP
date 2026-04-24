@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.DevolucionVenta;
 import javafx.collections.FXCollections;
@@ -20,6 +21,12 @@ public class DevolucionVentaController implements Initializable {
     Conexion conexion = new Conexion();
 
     // ── Formulario ────────────────────────────────────────────────────────────
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnRegistrarDevolucion;
+    @FXML private Button btnCompletar;
+    @FXML private Button btnAnular;
+    @FXML private Button btnEliminar;
+
     @FXML private TextField        txtIdDevolucion;
     @FXML private TextField        txtIdReclamacion;
     @FXML private TextField        txtIdVenta;
@@ -91,6 +98,13 @@ public class DevolucionVentaController implements Initializable {
 
         dpFechaDevolucion.setValue(LocalDate.now());
         actualizarTabla();
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnRegistrarDevolucion, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnCompletar,           Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnAnular,              Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnEliminar,            Permisos.Accion.ELIMINAR);
+
     }
 
     // ── Buscar por ID de Reclamacion → trae id_venta, cliente y monto ─────────

@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox minHeight="700" spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.ProductoController">
+<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.ProductoController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
 
     <!-- ══════════════════════ CABECERA ══════════════════════ -->
     <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
@@ -126,12 +126,12 @@
                 </TableView>
 
                 <!-- Botón quitar fila seleccionada -->
-                <Button onAction="#onQuitarPresentacionDetalle" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-font-size: 11px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-border-color: #FFCDD2;                                -fx-border-radius: 6; -fx-padding: 6 12 6 12;" text="🗑  Quitar seleccionada" />
+                <Button fx:id="btnEliminarDetalle" onAction="#onQuitarPresentacionDetalle" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-font-size: 11px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-border-color: #FFCDD2;                                -fx-border-radius: 6; -fx-padding: 6 12 6 12;" text="🗑  Quitar seleccionada" />
             </VBox>
 
             <!-- ─── BOTONES GUARDAR / LIMPIAR ─────────────────────── -->
             <HBox spacing="8">
-                <Button maxWidth="Infinity" onAction="#onGuardarProductoClick" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                -fx-font-weight: bold; -fx-font-size: 13px;                                -fx-background-radius: 8; -fx-cursor: hand;                                -fx-padding: 11 0 11 0;" text="💾  Guardar Producto" HBox.hgrow="ALWAYS" />
+                <Button maxWidth="Infinity" fx:id="btnGuardarProducto" onAction="#onGuardarProductoClick" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                -fx-font-weight: bold; -fx-font-size: 13px;                                -fx-background-radius: 8; -fx-cursor: hand;                                -fx-padding: 11 0 11 0;" text="💾  Guardar Producto" HBox.hgrow="ALWAYS" />
                 <Button onAction="#Limpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                -fx-background-radius: 8; -fx-cursor: hand;                                -fx-padding: 11 16 11 16;" text="✖" />
             </HBox>
 
@@ -170,7 +170,7 @@
             <HBox alignment="CENTER_RIGHT" spacing="10">
                 <Label style="-fx-font-size: 12px; -fx-text-fill: #757575;" text="Cantidad:" />
                 <Spinner fx:id="spinCantidad" prefWidth="80" style="-fx-background-radius: 6;" />
-                <Button onAction="#onAñadirClick" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                                -fx-font-weight: bold; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="🛒  Añadir a Venta" />
+                <Button fx:id="btnAnadirStock" onAction="#onAñadirClick" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                                -fx-font-weight: bold; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="🛒  Añadir a Venta" />
                 <Button onAction="#onCancelarClick" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-border-color: #FFCDD2; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="🗑  Eliminar Producto" />
             </HBox>
         </VBox>

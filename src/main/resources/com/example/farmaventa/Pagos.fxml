@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.PagosController">
+<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.PagosController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
 
     <!-- ══ ENCABEZADO ══════════════════════════════════════════════════════ -->
     <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #E0E0E0;                  -fx-border-width: 0 0 1 0;">
@@ -28,7 +28,7 @@
                 <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
                 <!-- COLUMNA IZQUIERDA — Formulario Pago Compra -->
-                <VBox prefHeight="813.0" prefWidth="282.0" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;                              -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+                <VBox prefWidth="282.0" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;                              -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
                     <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Registrar Pago" />
@@ -80,7 +80,7 @@
                     <Separator />
 
                     <HBox spacing="8">
-                        <Button maxWidth="Infinity" onAction="#onRegistrarPagoCompra" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="✔  Registrar Pago" HBox.hgrow="ALWAYS" />
+                        <Button maxWidth="Infinity" fx:id="btnPagarCompra" onAction="#onRegistrarPagoCompra" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="✔  Registrar Pago" HBox.hgrow="ALWAYS" />
                         <Button onAction="#onLimpiarPagoCompra" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                        -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 14 10 14;" text="Limpiar" />
                     </HBox>
                 </VBox>
@@ -184,7 +184,7 @@
                     <Separator />
 
                     <HBox spacing="8">
-                        <Button maxWidth="Infinity" onAction="#onRegistrarPagoVenta" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="✔  Registrar Cobro" HBox.hgrow="ALWAYS" />
+                        <Button maxWidth="Infinity" fx:id="btnPagarVenta" onAction="#onRegistrarPagoVenta" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="✔  Registrar Cobro" HBox.hgrow="ALWAYS" />
                         <Button onAction="#onLimpiarPagoVenta" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                        -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 14 10 14;" text="Limpiar" />
                     </HBox>
                 </VBox>
@@ -293,7 +293,7 @@
                     <Separator />
 
                     <HBox spacing="8">
-                        <Button maxWidth="Infinity" onAction="#onRegistrarPagoSeguro" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="✔  Registrar Cobro" HBox.hgrow="ALWAYS" />
+                        <Button maxWidth="Infinity" fx:id="btnPagarSeguro" onAction="#onRegistrarPagoSeguro" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="✔  Registrar Cobro" HBox.hgrow="ALWAYS" />
                         <Button onAction="#onLimpiarPagoSeguro" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                        -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 14 10 14;" text="Limpiar" />
                     </HBox>
                 </VBox>

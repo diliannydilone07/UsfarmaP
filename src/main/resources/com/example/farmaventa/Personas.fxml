@@ -4,10 +4,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox minHeight="650" spacing="0" style="-fx-background-color: #F4F6F8;"
+<VBox spacing="0" style="-fx-background-color: #F4F6F8;"
       xmlns="http://javafx.com/javafx/17.0.12"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.farmaventa.PersonaController">
+      fx:controller="com.example.farmaventa.PersonaController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
 
     <!-- ENCABEZADO -->
     <HBox alignment="CENTER_LEFT" spacing="10"
@@ -199,7 +199,7 @@
                 <padding><Insets bottom="18" left="18" right="18" top="10" /></padding>
                 <Separator style="-fx-background-color: #E0E0E0;" />
                 <HBox spacing="8">
-                    <Button maxWidth="Infinity" onAction="#onGuardarPersona"
+                    <Button maxWidth="Infinity" fx:id="btnGuardarPersona" onAction="#onGuardarPersona"
                             style="-fx-background-color: #388E3C; -fx-text-fill: white;
                                    -fx-font-weight: bold; -fx-background-radius: 6;
                                    -fx-cursor: hand; -fx-padding: 10 0 10 0;"
@@ -245,12 +245,12 @@
             </TableView>
 
             <HBox alignment="CENTER_RIGHT" spacing="10">
-                <Button onAction="#onEditarPersona"
+                <Button fx:id="btnEditarPersona" onAction="#onEditarPersona"
                         style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;
                                -fx-font-weight: bold; -fx-font-size: 12px;
                                -fx-background-radius: 6; -fx-border-color: #BBDEFB;
                                -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="✏  Editar Persona" />
-                <Button onAction="#onEliminarPersona"
+                <Button fx:id="btnEliminarPersona" onAction="#onEliminarPersona"
                         style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
                                -fx-border-color: #FFCDD2; -fx-font-size: 12px;
                                -fx-background-radius: 6; -fx-cursor: hand;

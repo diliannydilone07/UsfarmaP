@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.SistemaFidelizacion;
 import javafx.collections.FXCollections;
@@ -20,6 +21,13 @@ public class FidelizacionController implements Initializable {
     Conexion conexion = new Conexion();
 
     // ── Formulario ────────────────────────────────────────────────────────────
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnRegistrarFidelizacion;
+    @FXML private Button btnAgregarPuntos;
+    @FXML private Button btnCanjearPuntos;
+    @FXML private Button btnEliminarFidelizacion;
+    @FXML private Button btnRenovarCaducidad;
+
     @FXML private TextField  txtIdFidelizacion;
     @FXML private TextField  txtIdCliente;
     @FXML private TextField  txtNombreCliente;
@@ -83,6 +91,14 @@ public class FidelizacionController implements Initializable {
 
         dpFechaCaducidad.setValue(LocalDate.now().plusYears(1));
         actualizarTabla();
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnRegistrarFidelizacion, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnAgregarPuntos,         Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnCanjearPuntos,         Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminarFidelizacion,  Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnRenovarCaducidad,      Permisos.Accion.EDITAR);
+
     }
 
     // ── Buscar cliente por ID ─────────────────────────────────────────────────

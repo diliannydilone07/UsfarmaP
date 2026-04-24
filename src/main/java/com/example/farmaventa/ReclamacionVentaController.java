@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.HistoricoReclamacion;
 import com.example.farmaventa.modelo.ReclamacionVenta;
@@ -19,6 +20,12 @@ import java.util.ResourceBundle;
 public class ReclamacionVentaController implements Initializable {
 
     Conexion conexion = new Conexion();
+
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnRegistrarReclamacion;
+    @FXML private Button btnAprobar;
+    @FXML private Button btnRechazar;
+    @FXML private Button btnEliminar;
 
     @FXML private TextField        txtIdReclamacion;
     @FXML private TextField        txtIdVenta;
@@ -96,6 +103,13 @@ public class ReclamacionVentaController implements Initializable {
         });
 
         actualizarTabla();
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnRegistrarReclamacion, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnAprobar,              Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnRechazar,             Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminar,             Permisos.Accion.ELIMINAR);
+
     }
 
     @FXML public void onBuscarVenta() {

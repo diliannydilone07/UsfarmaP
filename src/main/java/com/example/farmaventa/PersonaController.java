@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Persona;
 import javafx.beans.value.ChangeListener;
@@ -18,6 +19,11 @@ public class PersonaController {
     Conexion conexion = new Conexion();
 
     // ── Rol ───────────────────────────────────────────────────────────────
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnGuardarPersona;
+    @FXML private Button btnEditarPersona;
+    @FXML private Button btnEliminarPersona;
+
     @FXML private RadioButton      rbCliente;
     @FXML private RadioButton      rbEmpleado;
     @FXML private RadioButton      rbProveedor;
@@ -116,6 +122,12 @@ public class PersonaController {
         cargarCombo("SELECT id_categoriaproveedor, nombre FROM TBL_CATEGORIA_PROVEEDOR ORDER BY nombre", cmbCategoriaProveedor);
 
         cargarPersonas();
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnGuardarPersona,  Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEditarPersona,   Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminarPersona, Permisos.Accion.ELIMINAR);
+
     }
 
     // ── Visibilidad de paneles según rol ──────────────────────────────────

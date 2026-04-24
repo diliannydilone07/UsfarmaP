@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Envio;
 import javafx.collections.FXCollections;
@@ -16,6 +17,11 @@ public class EnvioController {
     Conexion conexion = new Conexion();
 
     // ── Formulario ────────────────────────────────────────────────────────
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnGuardarEnvio;
+    @FXML private Button btnEditarEnvio;
+    @FXML private Button btnEliminarEnvio;
+
     @FXML private TextField        txtIdVenta;
     @FXML private TextField        txtPersonaRecibe;
     @FXML private TextField        txtCostoServicio;
@@ -63,6 +69,10 @@ public class EnvioController {
                     if (newSel != null) cargarEnFormulario(newSel);
                 });
 
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnGuardarEnvio,  Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEditarEnvio,   Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminarEnvio, Permisos.Accion.ELIMINAR);
         cargarEnvios();
     }
 

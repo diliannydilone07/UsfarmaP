@@ -1,5 +1,8 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
+import Usuarios.SesionUsuario;
+import Usuarios.Usuario;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Venta;
 import com.example.farmaventa.modelo.VentaSeguroItem;
@@ -19,6 +22,14 @@ import java.sql.*;
 public class HelloController {
 
     Conexion conexion = new Conexion();
+
+    @FXML private Button btnEditar;
+    @FXML private Button btnEliminar;
+    @FXML private Button btnRegistrarVenta;
+    @FXML private Button btnEditarSeguro;
+    @FXML private Button btnQuitarProdSeguro;
+    @FXML private Button btnEditarVenta;
+    @FXML private Button btnQuitarProducto;
 
     // ══ HEADER ═══════════════════════════════════════════════════════════
     @FXML private TabPane tabPane;
@@ -149,6 +160,20 @@ public class HelloController {
                 int idx = tabPane.getSelectionModel().getSelectedIndex();
                 lblTipoActivo.setText(idx == 1 ? "Venta con Seguro" : "Venta Normal");
             });
+        }
+
+        Permisos.aplicarBtn(btnEditar,           Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminar,         Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnRegistrarVenta,   Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEditarSeguro,     Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnQuitarProdSeguro, Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnEditarVenta,      Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnQuitarProducto,   Permisos.Accion.ELIMINAR);
+
+        // Cajero no puede buscar ventas existentes
+        if (!Permisos.puedeHacer(Permisos.Accion.EDITAR)) {
+            if (txtIdVenta != null)       { txtIdVenta.setDisable(true);       txtIdVenta.setPromptText("Sin permiso"); }
+            if (txtIdVentaSeguro != null) { txtIdVentaSeguro.setDisable(true); txtIdVentaSeguro.setPromptText("Sin permiso"); }
         }
     }
 

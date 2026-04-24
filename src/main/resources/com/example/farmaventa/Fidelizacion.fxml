@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.FidelizacionController">
+<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.FidelizacionController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
 
     <!-- ══ ENCABEZADO ══════════════════════════════════════════════════════ -->
     <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
@@ -60,9 +60,9 @@
 
         <!-- Fila 2: Botones de acción -->
         <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-padding: 10 0 0 0;">
-            <Button onAction="#onRegistrar" style="-fx-background-color: #388E3C; -fx-text-fill: white;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="📋  Registrar" />
-            <Button onAction="#onAgregarPuntos" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="➕  Agregar Puntos" />
-            <Button onAction="#onRenovarCaducidad" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="📅  Renovar Caducidad" />
+            <Button fx:id="btnRegistrarFidelizacion" onAction="#onRegistrar" style="-fx-background-color: #388E3C; -fx-text-fill: white;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="📋  Registrar" />
+            <Button fx:id="btnAgregarPuntos" onAction="#onAgregarPuntos" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="➕  Agregar Puntos" />
+            <Button fx:id="btnRenovarCaducidad" onAction="#onRenovarCaducidad" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                            -fx-font-weight: bold; -fx-font-size: 12px;                            -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="📅  Renovar Caducidad" />
             <Button onAction="#onLimpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                            -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand;                            -fx-pref-height: 34; -fx-padding: 0 16 0 16;" text="✖  Limpiar" />
         </HBox>
 
@@ -99,7 +99,7 @@
             </TableView>
 
             <HBox alignment="CENTER_RIGHT" spacing="8">
-                <Button onAction="#onEliminar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                -fx-font-size: 12px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 7 12 7 12;" text="🗑  Eliminar" />
+                <Button fx:id="btnEliminarFidelizacion" onAction="#onEliminar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                -fx-font-size: 12px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 7 12 7 12;" text="🗑  Eliminar" />
             </HBox>
         </VBox>
 
@@ -133,7 +133,7 @@
                 <Label fx:id="lblPuntosRestantes" style="-fx-font-size: 11px; -fx-text-fill: #BF360C; -fx-font-weight: bold;" text="Restantes: —" />
                 <HBox alignment="CENTER_LEFT" spacing="6">
                     <TextField fx:id="txtPuntosACanjear" onKeyReleased="#onCanjearInput" promptText="Puntos a canjear" style="-fx-background-radius: 6; -fx-border-color: #FFD54F;                                       -fx-border-radius: 6; -fx-pref-height: 32;" HBox.hgrow="ALWAYS" />
-                    <Button onAction="#onCanjearPuntos" style="-fx-background-color: #E65100; -fx-text-fill: white;                                    -fx-font-weight: bold; -fx-background-radius: 6;                                    -fx-cursor: hand; -fx-pref-height: 32; -fx-padding: 0 12 0 12;" text="Canjear ✔" />
+                    <Button fx:id="btnCanjearPuntos" onAction="#onCanjearPuntos" style="-fx-background-color: #E65100; -fx-text-fill: white;                                    -fx-font-weight: bold; -fx-background-radius: 6;                                    -fx-cursor: hand; -fx-pref-height: 32; -fx-padding: 0 12 0 12;" text="Canjear ✔" />
                 </HBox>
             </VBox>
 

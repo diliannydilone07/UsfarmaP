@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.HistoricoReclamacionCompra;
 import com.example.farmaventa.modelo.ReclamacionCompra;
@@ -21,6 +22,12 @@ public class ReclamacionCompraController implements Initializable {
     Conexion conexion = new Conexion();
 
     // ── Formulario ────────────────────────────────────────────────────────────
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnRegistrarReclamacion;
+    @FXML private Button btnAprobar;
+    @FXML private Button btnRechazar;
+    @FXML private Button btnEliminar;
+
     @FXML private TextField        txtIdReclamacion;
     @FXML private TextField        txtIdCompra;
     @FXML private TextField        txtProveedor;
@@ -107,6 +114,13 @@ public class ReclamacionCompraController implements Initializable {
         });
 
         actualizarTabla();
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnRegistrarReclamacion, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnAprobar,              Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnRechazar,             Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminar,             Permisos.Accion.ELIMINAR);
+
     }
 
     // ── Buscar compra por ID ──────────────────────────────────────────────────

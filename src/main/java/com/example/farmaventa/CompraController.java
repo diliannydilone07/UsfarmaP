@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Compra;
 import com.example.farmaventa.modelo.Pago;
@@ -19,6 +20,14 @@ import java.util.LinkedHashMap;
 public class CompraController {
 
     Conexion conexion = new Conexion();
+
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnRegistrarCompra;
+    @FXML private Button btnEditarCompra;
+    @FXML private Button btnAgregarProducto;
+    @FXML private Button btnQuitarProducto;
+    @FXML private Button btnRegistrarPago;
+    @FXML private Button btnEliminarPago;
 
     // ── Formulario Compra ─────────────────────────────────────────────────
     @FXML private TextField        txtIdCompra;
@@ -104,6 +113,14 @@ public class CompraController {
         colPagoCuenta.setCellValueFactory(p -> p.getValue().cuentaProperty());
         colPagoEstado.setCellValueFactory(p -> p.getValue().estadoProperty());
         tablaPagos.setItems(listaPagos);
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnRegistrarCompra, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEditarCompra,    Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnAgregarProducto, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnQuitarProducto,  Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnRegistrarPago,   Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEliminarPago,    Permisos.Accion.ELIMINAR);
     }
 
     // ── Abrir catálogo de productos ───────────────────────────────────────

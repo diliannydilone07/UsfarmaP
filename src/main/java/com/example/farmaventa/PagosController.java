@@ -1,5 +1,6 @@
 package com.example.farmaventa;
 
+import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.CuentaPendiente;
 import com.example.farmaventa.modelo.CuentaPendiente.TipoCuenta;
@@ -58,6 +59,11 @@ public class PagosController {
     Conexion conexion = new Conexion();
 
     // ── TabPane principal ─────────────────────────────────────────────────
+    // ── Botones con restricción de permisos ───────────────────────────────
+    @FXML private Button btnPagarCompra;
+    @FXML private Button btnPagarVenta;
+    @FXML private Button btnPagarSeguro;
+
     @FXML private TabPane tabPanePagos;
 
     // ══════════════════════════════════════════════════════════════════════
@@ -169,6 +175,12 @@ public class PagosController {
         configurarFiltros();
         configurarTablas();
         cargarTodosLosDatos();
+
+        // ── Permisos ──────────────────────────────────────────────────────
+        Permisos.aplicarBtn(btnPagarCompra, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnPagarVenta,  Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnPagarSeguro, Permisos.Accion.REGISTRAR);
+
     }
 
     // ── Configurar combos de filtro ───────────────────────────────────────

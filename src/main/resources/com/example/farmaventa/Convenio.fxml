@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox minHeight="650" spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.ConvenioController">
+<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.ConvenioController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
 
     <!-- ══════  ENCABEZADO  ══════ -->
     <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
@@ -91,12 +91,12 @@
                 <Separator />
 
                 <!-- Solo inserta nuevo -->
-                <Button maxWidth="Infinity" onAction="#onGuardarConvenio" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                -fx-font-weight: bold; -fx-font-size: 11px;                                -fx-background-radius: 6; -fx-cursor: hand;                                -fx-padding: 10 6 10 6;" text="✔ Guardar Nuevo" />
+                <Button maxWidth="Infinity" fx:id="btnGuardarConvenio" onAction="#onGuardarConvenio" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                -fx-font-weight: bold; -fx-font-size: 11px;                                -fx-background-radius: 6; -fx-cursor: hand;                                -fx-padding: 10 6 10 6;" text="✔ Guardar Nuevo" />
 
                 <!-- Solo actualiza el seleccionado -->
-                <Button maxWidth="Infinity" onAction="#onEditarConvenio" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                                -fx-font-weight: bold; -fx-font-size: 11px;                                -fx-background-radius: 6; -fx-border-color: #BBDEFB;                                -fx-cursor: hand; -fx-padding: 10 6 10 6;" text="✏ Editar Convenio" />
+                <Button maxWidth="Infinity" fx:id="btnEditarConvenio" onAction="#onEditarConvenio" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                                -fx-font-weight: bold; -fx-font-size: 11px;                                -fx-background-radius: 6; -fx-border-color: #BBDEFB;                                -fx-cursor: hand; -fx-padding: 10 6 10 6;" text="✏ Editar Convenio" />
 
-                <Button maxWidth="Infinity" onAction="#onEliminarConvenio" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-font-size: 11px; -fx-background-radius: 6;                                -fx-border-color: #FFCDD2; -fx-cursor: hand;                                -fx-padding: 9 6 9 6;" text="🗑 Eliminar Convenio" />
+                <Button fx:id="btnEliminarConvenio" maxWidth="Infinity" onAction="#onEliminarConvenio" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-font-size: 11px; -fx-background-radius: 6;                                -fx-border-color: #FFCDD2; -fx-cursor: hand;                                -fx-padding: 9 6 9 6;" text="🗑 Eliminar Convenio" />
 
                 <Button maxWidth="Infinity" onAction="#limpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                -fx-font-size: 11px; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 9 6 9 6;" text="🔄 Limpiar" />
             </VBox>
