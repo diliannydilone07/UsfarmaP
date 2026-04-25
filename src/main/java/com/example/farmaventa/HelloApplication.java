@@ -12,9 +12,11 @@ public class HelloApplication extends Application {
         FXMLLoader loader = new FXMLLoader(
                 HelloApplication.class.getResource("/Usuarios/Login.fxml")
         );
-        Scene scene = new Scene(loader.load(), 820, 520);
+        Scene scene = new Scene(loader.load());
         stage.setTitle("UsFarma — Iniciar Sesión");
         stage.setScene(scene);
+        stage.setResizable(false);
+        stage.centerOnScreen();
         stage.show();
     }
 
