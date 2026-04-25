@@ -22,10 +22,10 @@ public class ProductoController {
     // ═══════════════════════════════════════════════════════════════════════
     //  FORMULARIO PRINCIPAL
     // ═══════════════════════════════════════════════════════════════════════
-    // ── Botones con restricción de permisos ───────────────────────────────
     @FXML private Button btnGuardarProducto;
     @FXML private Button btnAnadirStock;
     @FXML private Button btnEliminarDetalle;
+    @FXML private Button btnEliminarProducto;   // ← NUEVO: botón "Eliminar Producto"
 
     @FXML private TextField        txtId;
     @FXML private TextField        txtNombre;
@@ -40,21 +40,19 @@ public class ProductoController {
     // ═══════════════════════════════════════════════════════════════════════
     //  SECCIÓN DETALLE DE PRESENTACIONES
     // ═══════════════════════════════════════════════════════════════════════
-    @FXML private ComboBox<String> cmbDetPresentacion;  // selector de presentación
-    @FXML private TextField        txtNuevaPresentacion; // campo para crear nueva presentación
-    @FXML private TextField        txtDetPrecio;         // precio_venta
-    @FXML private DatePicker       dpDetFechaCaducidad;  // fecha_caducidad
+    @FXML private ComboBox<String> cmbDetPresentacion;
+    @FXML private TextField        txtNuevaPresentacion;
+    @FXML private TextField        txtDetPrecio;
+    @FXML private DatePicker       dpDetFechaCaducidad;
 
     @FXML private TableView<PresentacionDetalle>           tablaDetalle;
     @FXML private TableColumn<PresentacionDetalle, String> colDetNombre;
     @FXML private TableColumn<PresentacionDetalle, Number> colDetPrecio;
     @FXML private TableColumn<PresentacionDetalle, String> colDetFecha;
 
-    /** Lista temporal de presentaciones que se insertarán al guardar el producto */
     private final ObservableList<PresentacionDetalle> listaDetalle =
             FXCollections.observableArrayList();
 
-    /** Mapa nombre → id_presentacion para el combo del detalle */
     private final Map<String, Integer> mapPresentaciones = new LinkedHashMap<>();
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -109,10 +107,10 @@ public class ProductoController {
         actualizarTabla();
 
         // ── Permisos ──────────────────────────────────────────────────────
-        Permisos.aplicarBtn(btnGuardarProducto, Permisos.Accion.REGISTRAR);
-        Permisos.aplicarBtn(btnAnadirStock,     Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnEliminarDetalle, Permisos.Accion.ELIMINAR);
-
+        Permisos.aplicarBtn(btnGuardarProducto,  Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnAnadirStock,      Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminarDetalle,  Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnEliminarProducto, Permisos.Accion.ELIMINAR); // ← NUEVO
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -173,7 +171,6 @@ public class ProductoController {
             JOptionPane.showMessageDialog(null, "Presentación no válida."); return;
         }
 
-        // Verificar si ya está en la lista
         for (PresentacionDetalle d : listaDetalle) {
             if (d.getIdPresentacion() == idPres) {
                 JOptionPane.showMessageDialog(null,
@@ -189,11 +186,9 @@ public class ProductoController {
             JOptionPane.showMessageDialog(null, "El precio debe ser un número válido."); return;
         }
 
-        String fecha = dpDetFechaCaducidad.getValue().toString(); // yyyy-MM-dd
-
+        String fecha = dpDetFechaCaducidad.getValue().toString();
         listaDetalle.add(new PresentacionDetalle(idPres, nombrePres, precio, fecha));
 
-        // Limpiar los campos del detalle
         cmbDetPresentacion.setValue(null);
         txtDetPrecio.clear();
         dpDetFechaCaducidad.setValue(null);
@@ -220,7 +215,6 @@ public class ProductoController {
         if (nombre.isBlank()) {
             JOptionPane.showMessageDialog(null, "Escribe el nombre de la nueva presentación."); return;
         }
-        // Verificar que no exista ya
         if (mapPresentaciones.containsKey(nombre)) {
             JOptionPane.showMessageDialog(null,
                     "Ya existe una presentación con ese nombre.\n" +
@@ -237,10 +231,9 @@ public class ProductoController {
                 if (keys.next()) nuevoId = keys.getInt(1);
             }
             if (nuevoId != -1) {
-                // Agregar al mapa y al combo sin recargar todo
                 mapPresentaciones.put(nombre, nuevoId);
                 cmbDetPresentacion.getItems().add(nombre);
-                cmbDetPresentacion.setValue(nombre); // seleccionar automáticamente
+                cmbDetPresentacion.setValue(nombre);
                 txtNuevaPresentacion.clear();
                 JOptionPane.showMessageDialog(null,
                         "Presentación \"" + nombre + "\" creada y seleccionada.");
@@ -279,7 +272,6 @@ public class ProductoController {
         if (cmbCategoria.getValue() == null) {
             JOptionPane.showMessageDialog(null, "Selecciona una categoría."); return;
         }
-        // El producto DEBE tener al menos una presentación registrada
         if (listaDetalle.isEmpty()) {
             JOptionPane.showMessageDialog(null,
                     "Debes agregar al menos una presentación con precio y\n" +
@@ -317,13 +309,11 @@ public class ProductoController {
             ps.setInt(6,    idCategoria);
             ps.executeUpdate();
 
-            // Obtener ID generado
             int idProducto = -1;
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) idProducto = keys.getInt(1);
             }
 
-            // Insertar todas las filas del detalle de presentaciones
             if (idProducto != -1 && !listaDetalle.isEmpty()) {
                 insertarDetallePresentaciones(con, idProducto);
             }
@@ -362,9 +352,7 @@ public class ProductoController {
             ps.setInt(7,    idProducto);
             ps.executeUpdate();
 
-            // Sincronizar presentaciones solo si el usuario modificó la lista
             if (!listaDetalle.isEmpty()) {
-                // Borrar las existentes y reemplazar con lo que está en la mini-tabla
                 try (PreparedStatement psDel = con.prepareStatement(
                         "DELETE FROM TBL_PRESENTACION_PRODUCTO WHERE id_producto = ?")) {
                     psDel.setInt(1, idProducto);
@@ -419,7 +407,6 @@ public class ProductoController {
         int idProducto = Integer.parseInt(txtId.getText().trim());
 
         try (Connection con = conexion.establecerConexion()) {
-            // Eliminar enfermedades de medicamentos asociados
             try (PreparedStatement psMedIds = con.prepareStatement(
                     "SELECT id_medicamento FROM TBL_MEDICAMENTO WHERE id_producto=?")) {
                 psMedIds.setInt(1, idProducto);
@@ -472,7 +459,6 @@ public class ProductoController {
     // ═══════════════════════════════════════════════════════════════════════
     @FXML
     public void Limpiar() {
-        // Datos del producto
         txtId.clear();
         txtNombre.clear();
         txtStockActual.clear();
@@ -482,7 +468,6 @@ public class ProductoController {
         txtBusqueda.clear();
         cmbCategoria.setValue(null);
 
-        // Detalle de presentaciones
         cmbDetPresentacion.setValue(null);
         txtDetPrecio.clear();
         dpDetFechaCaducidad.setValue(null);
@@ -588,15 +573,10 @@ public class ProductoController {
         txtDescuento.setText(String.valueOf(p.getDescuento()));
         txtUbicacion.setText(p.getUbicacion());
 
-        // Cargar presentaciones existentes del producto en la mini-tabla
         listaDetalle.clear();
         cargarDetallePresentaciones(p.getIdProducto());
     }
 
-    /**
-     * Carga en la mini-tabla las filas ya existentes en TBL_PRESENTACION_PRODUCTO
-     * para el producto seleccionado. Esto permite editar las presentaciones.
-     */
     private void cargarDetallePresentaciones(int idProducto) {
         String sql =
                 "SELECT pp.id_presentacion, pr.nombre, pp.precio_venta, pp.fecha_caducidad " +
@@ -613,7 +593,7 @@ public class ProductoController {
                             rs.getInt("id_presentacion"),
                             rs.getString("nombre"),
                             rs.getDouble("precio_venta"),
-                            rs.getDate("fecha_caducidad").toString()  // yyyy-MM-dd
+                            rs.getDate("fecha_caducidad").toString()
                     ));
                 }
             }

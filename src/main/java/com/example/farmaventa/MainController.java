@@ -38,7 +38,7 @@ public class MainController implements Initializable {
     @FXML private Button btnFidelizacion;
     @FXML private Button btnConvenios;
     @FXML private Button btnEnvios;
-    @FXML private Button btnUsuarios; // ← NUEVO
+    @FXML private Button btnUsuarios;
 
     @FXML private Button btnReclamacionesToggle;
     @FXML private Button btnDevolucionesToggle;
@@ -50,6 +50,7 @@ public class MainController implements Initializable {
     @FXML private Button btnDevolucionesCompra;
 
     private Button  btnActivo;
+    private Button  btnSubActivo;
     private boolean reclamacionesExpandido = false;
     private boolean devolucionesExpandido  = false;
 
@@ -84,6 +85,17 @@ public class MainController implements Initializable {
         if (lblFecha != null)
             lblFecha.setText(LocalDate.now()
                     .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+
+        // FIX BUG: asegurar que los submenús empiecen cerrados
+        if (vboxReclamaciones != null) {
+            vboxReclamaciones.setVisible(false);
+            vboxReclamaciones.setManaged(false);
+        }
+        if (vboxDevoluciones != null) {
+            vboxDevoluciones.setVisible(false);
+            vboxDevoluciones.setManaged(false);
+        }
+
         resetarTodos();
         aplicarPermisos();
         cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema");
@@ -101,7 +113,7 @@ public class MainController implements Initializable {
         ocultarSi(btnEnvios,              !Permisos.tieneAcceso(Permisos.Modulo.ENVIOS));
         ocultarSi(btnReclamacionesToggle, !Permisos.tieneAcceso(Permisos.Modulo.RECLAMACIONES));
         ocultarSi(btnDevolucionesToggle,  !Permisos.tieneAcceso(Permisos.Modulo.DEVOLUCIONES));
-        ocultarSi(btnUsuarios,            !Permisos.tieneAcceso(Permisos.Modulo.USUARIOS)); // ← NUEVO
+        ocultarSi(btnUsuarios,            !Permisos.tieneAcceso(Permisos.Modulo.USUARIOS));
     }
 
     private void ocultarSi(Button btn, boolean ocultar) {
@@ -115,7 +127,7 @@ public class MainController implements Initializable {
             lblUsuario.setText(nombreCompleto);
     }
 
-    // ── Navegación ────────────────────────────────────────────────────────
+    // ── Navegación principal ──────────────────────────────────────────────
     @FXML private void onMenuInicio() {
         cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema"); }
     @FXML private void onMenuVentas() {
@@ -145,17 +157,18 @@ public class MainController implements Initializable {
             contentArea.getChildren().setAll(vista);
             if (lblModuloActual    != null) lblModuloActual.setText("Usuarios");
             if (lblSubtituloActual != null) lblSubtituloActual.setText("Gestión de accesos al sistema");
-            if (btnActivo != null) btnActivo.setStyle(S_NORMAL);
+            desactivarBtnActivo();
             btnUsuarios.setStyle(S_ACTIVO);
             btnActivo = btnUsuarios;
             limpiarSubs();
+            btnSubActivo = null;
         } catch (IOException e) {
             System.err.println("Error cargando Usuarios/Registro.fxml");
             e.printStackTrace();
         }
     }
 
-    // ── Submenús ──────────────────────────────────────────────────────────
+    // ── Toggle Reclamaciones ──────────────────────────────────────────────
     @FXML
     private void onToggleReclamaciones() {
         reclamacionesExpandido = !reclamacionesExpandido;
@@ -164,19 +177,26 @@ public class MainController implements Initializable {
         btnReclamacionesToggle.setText(reclamacionesExpandido
                 ? "📋  Reclamaciones  ∨" : "📋  Reclamaciones  ›");
         btnReclamacionesToggle.setStyle(reclamacionesExpandido ? S_TOGGLE_ABIERTO : S_NORMAL);
+
+        // FIX BUG: no pueden estar ambos abiertos al mismo tiempo
+        if (reclamacionesExpandido && devolucionesExpandido) {
+            cerrarDevoluciones();
+        }
     }
 
     @FXML private void onMenuReclamaciones() {
-        cargarVista("Reclamacionventa.fxml", null,
-                "Reclamaciones · Ventas", "Gestión de reclamaciones de ventas");
-        activarSub(btnReclamaciones);
-    }
-    @FXML private void onMenuReclamacionesCompra() {
-        cargarVista("ReclamacionCompra.fxml", null,
-                "Reclamaciones · Compras", "Gestión de reclamaciones de compras");
-        activarSub(btnReclamacionesCompra);
+        cargarVistaConSub("Reclamacionventa.fxml",
+                "Reclamaciones · Ventas", "Gestión de reclamaciones de ventas",
+                btnReclamaciones);
     }
 
+    @FXML private void onMenuReclamacionesCompra() {
+        cargarVistaConSub("ReclamacionCompra.fxml",
+                "Reclamaciones · Compras", "Gestión de reclamaciones de compras",
+                btnReclamacionesCompra);
+    }
+
+    // ── Toggle Devoluciones ───────────────────────────────────────────────
     @FXML
     private void onToggleDevoluciones() {
         devolucionesExpandido = !devolucionesExpandido;
@@ -185,17 +205,40 @@ public class MainController implements Initializable {
         btnDevolucionesToggle.setText(devolucionesExpandido
                 ? "↩  Devoluciones  ∨" : "↩  Devoluciones  ›");
         btnDevolucionesToggle.setStyle(devolucionesExpandido ? S_TOGGLE_ABIERTO : S_NORMAL);
+
+        // FIX BUG: no pueden estar ambos abiertos al mismo tiempo
+        if (devolucionesExpandido && reclamacionesExpandido) {
+            cerrarReclamaciones();
+        }
     }
 
     @FXML private void onMenuDevoluciones() {
-        cargarVista("DevolucionVenta.fxml", null,
-                "Devoluciones · Ventas", "Procesamiento de devoluciones de ventas");
-        activarSub(btnDevoluciones);
+        cargarVistaConSub("DevolucionVenta.fxml",
+                "Devoluciones · Ventas", "Procesamiento de devoluciones de ventas",
+                btnDevoluciones);
     }
+
     @FXML private void onMenuDevolucionesCompra() {
-        cargarVista("DevolucionCompra.fxml", null,
-                "Devoluciones · Compras", "Procesamiento de devoluciones de compras");
-        activarSub(btnDevolucionesCompra);
+        cargarVistaConSub("DevolucionCompra.fxml",
+                "Devoluciones · Compras", "Procesamiento de devoluciones de compras",
+                btnDevolucionesCompra);
+    }
+
+    // ── Helpers de cierre de submenús ─────────────────────────────────────
+    private void cerrarReclamaciones() {
+        reclamacionesExpandido = false;
+        vboxReclamaciones.setVisible(false);
+        vboxReclamaciones.setManaged(false);
+        btnReclamacionesToggle.setText("📋  Reclamaciones  ›");
+        btnReclamacionesToggle.setStyle(S_NORMAL);
+    }
+
+    private void cerrarDevoluciones() {
+        devolucionesExpandido = false;
+        vboxDevoluciones.setVisible(false);
+        vboxDevoluciones.setManaged(false);
+        btnDevolucionesToggle.setText("↩  Devoluciones  ›");
+        btnDevolucionesToggle.setStyle(S_NORMAL);
     }
 
     // ── Cerrar sesión ─────────────────────────────────────────────────────
@@ -219,7 +262,9 @@ public class MainController implements Initializable {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // ── Helpers de carga ──────────────────────────────────────────────────
+
+    /** Carga una vista principal (Inicio, Ventas, etc.) */
     private void cargarVista(String fxml, Button boton, String titulo, String subtitulo) {
         try {
             URL ruta = getClass().getResource("/com/example/farmaventa/" + fxml);
@@ -229,10 +274,11 @@ public class MainController implements Initializable {
             if (lblModuloActual    != null) lblModuloActual.setText(titulo);
             if (lblSubtituloActual != null) lblSubtituloActual.setText(subtitulo);
             if (boton != null) {
-                if (btnActivo != null) btnActivo.setStyle(S_NORMAL);
+                desactivarBtnActivo();
                 boton.setStyle(S_ACTIVO);
                 btnActivo = boton;
                 limpiarSubs();
+                btnSubActivo = null;
             }
         } catch (IOException e) {
             System.err.println("Error cargando: " + fxml);
@@ -240,22 +286,51 @@ public class MainController implements Initializable {
         }
     }
 
-    private void activarSub(Button sub) {
-        if (btnActivo != null) { btnActivo.setStyle(S_NORMAL); btnActivo = null; }
-        limpiarSubs();
-        sub.setStyle(S_SUB_ACTIVO);
+    /**
+     * Carga una vista de sub-item (Reclamaciones·Ventas, Devoluciones·Compras, etc.)
+     * El toggle padre mantiene su estilo S_TOGGLE_ABIERTO; solo se marca el sub activo.
+     */
+    private void cargarVistaConSub(String fxml, String titulo, String subtitulo, Button subBtn) {
+        try {
+            URL ruta = getClass().getResource("/com/example/farmaventa/" + fxml);
+            if (ruta == null) { System.err.println("FXML no encontrado: " + fxml); return; }
+            Node vista = FXMLLoader.load(ruta);
+            contentArea.getChildren().setAll(vista);
+            if (lblModuloActual    != null) lblModuloActual.setText(titulo);
+            if (lblSubtituloActual != null) lblSubtituloActual.setText(subtitulo);
+
+            // Desactivar btn principal activo (si hubiera uno)
+            desactivarBtnActivo();
+            btnActivo = null;
+
+            // Marcar sub activo
+            limpiarSubs();
+            subBtn.setStyle(S_SUB_ACTIVO);
+            btnSubActivo = subBtn;
+
+        } catch (IOException e) {
+            System.err.println("Error cargando sub-vista: " + fxml);
+            e.printStackTrace();
+        }
+    }
+
+    private void desactivarBtnActivo() {
+        if (btnActivo != null) {
+            btnActivo.setStyle(S_NORMAL);
+            btnActivo = null;
+        }
     }
 
     private void limpiarSubs() {
         List.of(btnReclamaciones, btnReclamacionesCompra,
                         btnDevoluciones, btnDevolucionesCompra)
-                .forEach(b -> b.setStyle(S_SUB_NORMAL));
+                .forEach(b -> { if (b != null) b.setStyle(S_SUB_NORMAL); });
     }
 
     private void resetarTodos() {
         List.of(btnInicio, btnVentas, btnCompras, btnPagos, btnNomina, btnPersonas,
                         btnInventario, btnFidelizacion, btnConvenios, btnEnvios,
-                        btnUsuarios, // ← NUEVO
+                        btnUsuarios,
                         btnReclamacionesToggle, btnDevolucionesToggle)
                 .forEach(b -> { if (b != null) b.setStyle(S_NORMAL); });
         limpiarSubs();
@@ -278,5 +353,5 @@ public class MainController implements Initializable {
     public Button getBtnFidelizacion()        { return btnFidelizacion; }
     public Button getBtnConvenios()           { return btnConvenios; }
     public Button getBtnEnvios()              { return btnEnvios; }
-    public Button getBtnUsuarios()            { return btnUsuarios; } // ← NUEVO
+    public Button getBtnUsuarios()            { return btnUsuarios; }
 }

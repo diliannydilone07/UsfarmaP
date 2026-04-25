@@ -96,7 +96,7 @@ public class DevolucionVentaController implements Initializable {
         // ── FIX 2: Permisos — incluye btnAgregarNota con acción REGISTRAR ──
         Permisos.aplicarBtn(btnRegistrarDevolucion, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnCompletar,           Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnAnular,              Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnAnular,              Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnEliminar,            Permisos.Accion.ELIMINAR);
         Permisos.aplicarBtn(btnAgregarNota,         Permisos.Accion.REGISTRAR); // ← NUEVO
     }
