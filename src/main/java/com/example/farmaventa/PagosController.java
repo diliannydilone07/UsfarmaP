@@ -14,61 +14,17 @@ import javax.swing.JOptionPane;
 import java.sql.*;
 import java.util.LinkedHashMap;
 
-/**
- * Módulo independiente de Pagos.
- *
- * Pestaña 0 — Cuentas por Pagar       : compras a proveedores con saldo pendiente
- * Pestaña 1 — Cuentas por Cobrar       : ventas normales con saldo pendiente
- * Pestaña 2 — Cuentas por Cobrar Seguro: ventas con seguro (aseguradora + cliente)
- *
- * ── Cambios BD aplicados ────────────────────────────────────────────────
- *  TBL_VENTA_SEGURO:
- *    - Eliminadas: fk_venta_seguro_venta, id_venta
- *    - Agregadas : monto_total, monto_pendiente, id_empleado, id_cliente,
- *                  fecha_transaccion, condicion
- *    - FK nuevas : fk_vs_empleado → TBL_EMPLEADO, fk_vs_cliente → TBL_CLIENTE
- *
- *  TBL_VENTA_PRODUCTO_SEGURO (nueva):
- *    PK (id_ventaseguro, id_producto, id_presentacion)
- *    Campos: cantidad, precio_unitario, fecha_venta,
- *            porcentaje_cobertura, porcentaje_cliente
- *
- *  TBL_PAGO_ASEGURADORA_SEGURO (nueva):
- *    id_pagoventaseguro (IDENTITY), id_ventaseguro → TBL_VENTA_SEGURO,
- *    id_pago → TBL_PAGO
- *
- *  TBL_PAGO_CLIENTE_SEGURO (nueva):
- *    id_pagoventaseguro (IDENTITY), id_ventaseguro → TBL_VENTA_SEGURO,
- *    id_pago → TBL_PAGO
- *
- *  TBL_PAGO_VENTA_SEGURO ya NO se usa para seguros.
- * ────────────────────────────────────────────────────────────────────────
- *
- * ── CORRECCIONES APLICADAS ───────────────────────────────────────────────
- *  1. Búsqueda por ID exacto: si el texto es puramente numérico se hace
- *     coincidencia exacta de ID en lugar de contains, evitando que "2"
- *     muestre todos los IDs que contengan el dígito 2.
- *
- *  2. Sincronización de monto_pendiente: al cargar compras y ventas se
- *     recalcula monto_pendiente desde los pagos reales registrados en BD,
- *     corrigiendo casos donde un pago anterior no actualizó el campo.
- * ────────────────────────────────────────────────────────────────────────
- */
 public class PagosController {
 
     Conexion conexion = new Conexion();
 
-    // ── TabPane principal ─────────────────────────────────────────────────
-    // ── Botones con restricción de permisos ───────────────────────────────
     @FXML private Button btnPagarCompra;
     @FXML private Button btnPagarVenta;
     @FXML private Button btnPagarSeguro;
 
     @FXML private TabPane tabPanePagos;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 0 — CUENTAS POR PAGAR (Compras)
-    // ══════════════════════════════════════════════════════════════════════
+    // ══ PESTAÑA 0 — CUENTAS POR PAGAR ════════════════════════════════════
     @FXML private TextField                            txtBuscarCompra;
     @FXML private ComboBox<String>                     cmbFiltroCompra;
     @FXML private TableView<CuentaPendiente>           tablaCompras;
@@ -97,9 +53,7 @@ public class PagosController {
     @FXML private TableColumn<HistorialPagoItem, String> colHCmpCuenta;
     @FXML private TableColumn<HistorialPagoItem, String> colHCmpEstado;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 1 — CUENTAS POR COBRAR (Ventas normales)
-    // ══════════════════════════════════════════════════════════════════════
+    // ══ PESTAÑA 1 — CUENTAS POR COBRAR ═══════════════════════════════════
     @FXML private TextField                            txtBuscarVenta;
     @FXML private ComboBox<String>                     cmbFiltroVenta;
     @FXML private TableView<CuentaPendiente>           tablaVentas;
@@ -126,9 +80,7 @@ public class PagosController {
     @FXML private TableColumn<HistorialPagoItem, String> colHVntMetodo;
     @FXML private TableColumn<HistorialPagoItem, String> colHVntEstado;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 2 — CUENTAS POR COBRAR SEGURO
-    // ══════════════════════════════════════════════════════════════════════
+    // ══ PESTAÑA 2 — CUENTAS POR COBRAR SEGURO ════════════════════════════
     @FXML private TextField                            txtBuscarSeguro;
     @FXML private ComboBox<String>                     cmbFiltroSeguro;
     @FXML private TableView<CuentaPendiente>           tablaSeguro;
@@ -176,11 +128,32 @@ public class PagosController {
         configurarTablas();
         cargarTodosLosDatos();
 
-        // ── Permisos ──────────────────────────────────────────────────────
+        // Ocultar labels al inicio (igual que Nómina)
+        ocultarLabel(lblInfoCompraPago);
+        ocultarLabel(lblSaldoCompra);
+        ocultarLabel(lblInfoVentaPago);
+        ocultarLabel(lblSaldoVenta);
+        ocultarLabel(lblInfoSeguroPago);
+        ocultarLabel(lblSaldoSeguro);
+
         Permisos.aplicarBtn(btnPagarCompra, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnPagarVenta,  Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnPagarSeguro, Permisos.Accion.REGISTRAR);
+    }
 
+    // ── Helpers: mostrar / ocultar label (igual que NominaController) ─────
+    private void mostrarLabelContenido(Label lbl, String texto) {
+        if (lbl == null) return;
+        lbl.setText(texto);
+        lbl.setManaged(true);
+        lbl.setVisible(true);
+    }
+
+    private void ocultarLabel(Label lbl) {
+        if (lbl == null) return;
+        lbl.setText("");
+        lbl.setManaged(false);
+        lbl.setVisible(false);
     }
 
     // ── Configurar combos de filtro ───────────────────────────────────────
@@ -219,7 +192,7 @@ public class PagosController {
         if (dpFechaPagoSeguro != null) dpFechaPagoSeguro.setValue(java.time.LocalDate.now());
     }
 
-    // ── Configurar columnas de tablas ─────────────────────────────────────
+    // ── Configurar columnas ───────────────────────────────────────────────
     private void configurarTablas() {
         if (tablaCompras != null) {
             colCmpId.setCellValueFactory(c -> c.getValue().idRefProperty());
@@ -319,26 +292,16 @@ public class PagosController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // CARGA DE DATOS
-    // ══════════════════════════════════════════════════════════════════════
-
+    // ══ CARGA DE DATOS ════════════════════════════════════════════════════
     private void cargarTodosLosDatos() {
         cargarComprasPendientes();
         cargarVentasPendientes();
         cargarSegurosPendientes();
     }
 
-    // ── Compras pendientes ────────────────────────────────────────────────
-    /**
-     * CORRECCIÓN: antes de leer, sincroniza monto_pendiente con los pagos
-     * reales de TBL_PAGO_COMPRA → TBL_PAGO para corregir registros donde
-     * un pago anterior no actualizó el campo correctamente.
-     */
     private void cargarComprasPendientes() {
         listaCompras.clear();
 
-        // ── Sincronizar monto_pendiente con pagos reales ──────────────────
         String sqlSync =
                 "UPDATE tbl_COMPRA " +
                         "SET monto_pendiente = " +
@@ -366,7 +329,6 @@ public class PagosController {
                     .log(System.Logger.Level.WARNING, "No se pudo sincronizar monto_pendiente compras", e);
         }
 
-        // ── Cargar lista actualizada ──────────────────────────────────────
         String sql =
                 "SELECT c.id_compra, pr.nombre AS proveedor, " +
                         "CONVERT(VARCHAR(10), c.fecha_transaccion, 120) AS fecha, " +
@@ -394,15 +356,9 @@ public class PagosController {
         actualizarResumen(listaCompras, lblResumenCompras, "pagar");
     }
 
-    // ── Ventas pendientes ─────────────────────────────────────────────────
-    /**
-     * CORRECCIÓN: igual que compras, sincroniza monto_pendiente desde
-     * TBL_PAGO_VENTA → TBL_PAGO antes de leer la lista.
-     */
     private void cargarVentasPendientes() {
         listaVentas.clear();
 
-        // ── Sincronizar monto_pendiente con pagos reales ──────────────────
         String sqlSync =
                 "UPDATE TBL_VENTA " +
                         "SET monto_pendiente = " +
@@ -430,7 +386,6 @@ public class PagosController {
                     .log(System.Logger.Level.WARNING, "No se pudo sincronizar monto_pendiente ventas", e);
         }
 
-        // ── Cargar lista actualizada ──────────────────────────────────────
         String sql =
                 "SELECT v.id_venta, p.nombre + ' ' + p.apellido AS cliente, " +
                         "CONVERT(VARCHAR(10), v.fecha_transaccion, 120) AS fecha, " +
@@ -458,7 +413,6 @@ public class PagosController {
         actualizarResumen(listaVentas, lblResumenVentas, "cobrar (clientes)");
     }
 
-    // ── Ventas seguro pendientes ──────────────────────────────────────────
     private void cargarSegurosPendientes() {
         listaSeguro.clear();
 
@@ -512,7 +466,6 @@ public class PagosController {
                 double pagadoCli     = rs.getDouble("pagado_cli");
                 double pendienteCli  = Math.max(0, montoCli - pagadoCli);
 
-                // Fila 1 — Aseguradora
                 listaSeguro.add(new CuentaPendiente(
                         idVS,
                         rs.getString("aseguradora") + (condicion != null && !condicion.isBlank()
@@ -523,7 +476,6 @@ public class PagosController {
                         "Aseguradora",
                         TipoCuenta.SEGURO_ASEGURADORA));
 
-                // Fila 2 — Cliente
                 listaSeguro.add(new CuentaPendiente(
                         idVS,
                         rs.getString("cliente") + (condicion != null && !condicion.isBlank()
@@ -540,37 +492,40 @@ public class PagosController {
         actualizarResumen(listaSeguro, lblResumenSeguro, "cobrar (seguros)");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // CARGAR EN FORMULARIOS AL SELECCIONAR FILA
-    // ══════════════════════════════════════════════════════════════════════
-
+    // ══ CARGAR EN FORMULARIOS ════════════════════════════════════════════
     private void cargarEnFormularioCompra(CuentaPendiente c) {
-        if (txtIdCompraPago   != null) txtIdCompraPago.setText(String.valueOf(c.getIdRef()));
-        if (lblInfoCompraPago != null) {
-            lblInfoCompraPago.setText("Compra #" + c.getIdRef() + " — " + c.getDescripcion()
-                    + " | Pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+        if (txtIdCompraPago != null) txtIdCompraPago.setText(String.valueOf(c.getIdRef()));
+
+        mostrarLabelContenido(lblInfoCompraPago,
+                "Compra #" + c.getIdRef() + " — " + c.getDescripcion()
+                        + " | Pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+        if (lblInfoCompraPago != null)
             lblInfoCompraPago.setStyle(c.getMontoPendiente() <= 0
                     ? "-fx-text-fill: #2E7D32; -fx-font-size: 11px;"
                     : "-fx-text-fill: #C62828; -fx-font-size: 11px;");
-        }
-        if (lblSaldoCompra    != null)
-            lblSaldoCompra.setText("Saldo pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+
+        mostrarLabelContenido(lblSaldoCompra,
+                "Saldo pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+
         if (txtMontoPagoCompra != null)
             txtMontoPagoCompra.setText(String.format("%.2f", c.getMontoPendiente()));
         cargarHistorialCompra(c.getIdRef());
     }
 
     private void cargarEnFormularioVenta(CuentaPendiente c) {
-        if (txtIdVentaPago   != null) txtIdVentaPago.setText(String.valueOf(c.getIdRef()));
-        if (lblInfoVentaPago != null) {
-            lblInfoVentaPago.setText("Venta #" + c.getIdRef() + " — " + c.getDescripcion()
-                    + " | Pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+        if (txtIdVentaPago != null) txtIdVentaPago.setText(String.valueOf(c.getIdRef()));
+
+        mostrarLabelContenido(lblInfoVentaPago,
+                "Venta #" + c.getIdRef() + " — " + c.getDescripcion()
+                        + " | Pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+        if (lblInfoVentaPago != null)
             lblInfoVentaPago.setStyle(c.getMontoPendiente() <= 0
                     ? "-fx-text-fill: #2E7D32; -fx-font-size: 11px;"
                     : "-fx-text-fill: #C62828; -fx-font-size: 11px;");
-        }
-        if (lblSaldoVenta    != null)
-            lblSaldoVenta.setText("Saldo pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+
+        mostrarLabelContenido(lblSaldoVenta,
+                "Saldo pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+
         if (txtMontoPagoVenta != null)
             txtMontoPagoVenta.setText(String.format("%.2f", c.getMontoPendiente()));
         cargarHistorialVenta(c.getIdRef());
@@ -579,25 +534,25 @@ public class PagosController {
     private void cargarEnFormularioSeguro(CuentaPendiente c) {
         if (txtIdSeguroPago      != null) txtIdSeguroPago.setText(String.valueOf(c.getIdRef()));
         if (cmbTipoFacturaSeguro != null) cmbTipoFacturaSeguro.setValue(c.getTipo());
-        if (lblInfoSeguroPago    != null) {
-            lblInfoSeguroPago.setText("VentaSeguro #" + c.getIdRef()
-                    + " [" + c.getTipo() + "] — " + c.getDescripcion()
-                    + " | Pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+
+        mostrarLabelContenido(lblInfoSeguroPago,
+                "VentaSeguro #" + c.getIdRef()
+                        + " [" + c.getTipo() + "] — " + c.getDescripcion()
+                        + " | Pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+        if (lblInfoSeguroPago != null)
             lblInfoSeguroPago.setStyle(c.getMontoPendiente() <= 0
                     ? "-fx-text-fill: #2E7D32; -fx-font-size: 11px;"
                     : "-fx-text-fill: #C62828; -fx-font-size: 11px;");
-        }
-        if (lblSaldoSeguro    != null)
-            lblSaldoSeguro.setText("Saldo pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+
+        mostrarLabelContenido(lblSaldoSeguro,
+                "Saldo pendiente: RD$ " + String.format("%.2f", c.getMontoPendiente()));
+
         if (txtMontoPagoSeguro != null)
             txtMontoPagoSeguro.setText(String.format("%.2f", c.getMontoPendiente()));
         cargarHistorialSeguro(c.getIdRef());
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // HISTORIAL DE PAGOS
-    // ══════════════════════════════════════════════════════════════════════
-
+    // ══ HISTORIAL DE PAGOS ════════════════════════════════════════════════
     private void cargarHistorialCompra(int idCompra) {
         histCompra.clear();
         String sql =
@@ -694,10 +649,7 @@ public class PagosController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // REGISTRAR PAGOS
-    // ══════════════════════════════════════════════════════════════════════
-
+    // ══ REGISTRAR PAGOS ═══════════════════════════════════════════════════
     @FXML
     public void onRegistrarPagoCompra(ActionEvent ignored) {
         if (txtIdCompraPago == null || txtIdCompraPago.getText().isBlank()) {
@@ -719,7 +671,6 @@ public class PagosController {
 
             double nuevoPendiente = Math.max(0.0, Math.round((montoPendiente - montoPago) * 100.0) / 100.0);
 
-            // 1. Insertar en TBL_PAGO
             PreparedStatement psPago = con.prepareStatement(
                     "INSERT INTO TBL_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) " +
                             "VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
@@ -733,7 +684,6 @@ public class PagosController {
             int idPago = -1;
             try (ResultSet keys = psPago.getGeneratedKeys()) { if (keys.next()) idPago = keys.getInt(1); }
 
-            // 2. Insertar en TBL_PAGO_COMPRA (tabla puente)
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO TBL_PAGO_COMPRA (id_compra, id_cuenta, id_pago) VALUES (?,?,?)");
             ps.setInt(1, idCompra);
@@ -741,7 +691,6 @@ public class PagosController {
             ps.setInt(3, idPago);
             ps.executeUpdate();
 
-            // 3. Actualizar monto_pendiente en la compra
             PreparedStatement psUpd = con.prepareStatement(
                     "UPDATE tbl_COMPRA SET monto_pendiente = ? WHERE id_compra = ?");
             psUpd.setDouble(1, nuevoPendiente);
@@ -756,8 +705,8 @@ public class PagosController {
 
             cargarComprasPendientes();
             cargarHistorialCompra(idCompra);
-            actualizarInfoLuegoDePago(idCompra, nuevoPendiente,
-                    lblInfoCompraPago, lblSaldoCompra, "Compra", txtMontoPagoCompra);
+            actualizarInfoLuegoDePago(nuevoPendiente, lblInfoCompraPago, lblSaldoCompra, txtMontoPagoCompra);
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al registrar pago: " + e.getMessage(),
                     "Error BD", JOptionPane.ERROR_MESSAGE);
@@ -784,7 +733,6 @@ public class PagosController {
 
             double nuevoPendiente = Math.max(0.0, Math.round((montoPendiente - montoPago) * 100.0) / 100.0);
 
-            // 1. Insertar en TBL_PAGO
             PreparedStatement psPago = con.prepareStatement(
                     "INSERT INTO TBL_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) " +
                             "VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
@@ -798,14 +746,12 @@ public class PagosController {
             int idPago = -1;
             try (ResultSet keys = psPago.getGeneratedKeys()) { if (keys.next()) idPago = keys.getInt(1); }
 
-            // 2. Insertar en TBL_PAGO_VENTA (tabla puente)
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO TBL_PAGO_VENTA (id_venta, id_pago) VALUES (?,?)");
             ps.setInt(1, idVenta);
             ps.setInt(2, idPago);
             ps.executeUpdate();
 
-            // 3. Actualizar monto_pendiente en la venta
             PreparedStatement psUpd = con.prepareStatement(
                     "UPDATE TBL_VENTA SET monto_pendiente = ? WHERE id_venta = ?");
             psUpd.setDouble(1, nuevoPendiente);
@@ -820,8 +766,8 @@ public class PagosController {
 
             cargarVentasPendientes();
             cargarHistorialVenta(idVenta);
-            actualizarInfoLuegoDePago(idVenta, nuevoPendiente,
-                    lblInfoVentaPago, lblSaldoVenta, "Venta", txtMontoPagoVenta);
+            actualizarInfoLuegoDePago(nuevoPendiente, lblInfoVentaPago, lblSaldoVenta, txtMontoPagoVenta);
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al registrar pago: " + e.getMessage(),
                     "Error BD", JOptionPane.ERROR_MESSAGE);
@@ -901,13 +847,14 @@ public class PagosController {
                                 "Monto ingresado:  RD$ " + String.format("%.2f", montoPago) + "\n" +
                                 "Máximo permitido: RD$ " + String.format("%.2f", pendienteTarget),
                         "Monto excedido", JOptionPane.WARNING_MESSAGE);
-                txtMontoPagoSeguro.setText(String.format("%.2f", pendienteTarget));
-                txtMontoPagoSeguro.requestFocus();
-                txtMontoPagoSeguro.selectAll();
+                if (txtMontoPagoSeguro != null) {
+                    txtMontoPagoSeguro.setText(String.format("%.2f", pendienteTarget));
+                    txtMontoPagoSeguro.requestFocus();
+                    txtMontoPagoSeguro.selectAll();
+                }
                 return;
             }
 
-            // Insertar en TBL_PAGO
             PreparedStatement psPago = con.prepareStatement(
                     "INSERT INTO TBL_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) " +
                             "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
@@ -928,7 +875,6 @@ public class PagosController {
                         "Error interno", JOptionPane.ERROR_MESSAGE); return;
             }
 
-            // Insertar en tabla puente correspondiente
             String tablaPuente = tipoFact.equals("Aseguradora")
                     ? "TBL_PAGO_ASEGURADORA_SEGURO"
                     : "TBL_PAGO_CLIENTE_SEGURO";
@@ -939,7 +885,6 @@ public class PagosController {
             psPuente.setInt(2, idPago);
             psPuente.executeUpdate();
 
-            // Si es pago del cliente, actualizar monto_pendiente
             if (tipoFact.equals("Cliente")) {
                 double nuevoPendienteCli = Math.max(0.0, Math.round((pendienteCli - montoPago) * 100.0) / 100.0);
                 PreparedStatement psUpd = con.prepareStatement(
@@ -959,9 +904,9 @@ public class PagosController {
 
             cargarSegurosPendientes();
             cargarHistorialSeguro(idVS);
-            if (lblSaldoSeguro != null)
-                lblSaldoSeguro.setText("Saldo pendiente " + tipoFact
-                        + ": RD$ " + String.format("%.2f", nuevoPendiente));
+
+            mostrarLabelContenido(lblSaldoSeguro,
+                    "Saldo pendiente " + tipoFact + ": RD$ " + String.format("%.2f", nuevoPendiente));
             if (txtMontoPagoSeguro != null) txtMontoPagoSeguro.clear();
 
         } catch (SQLException e) {
@@ -970,10 +915,7 @@ public class PagosController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // BÚSQUEDA EN TABLAS
-    // ══════════════════════════════════════════════════════════════════════
-
+    // ══ BÚSQUEDA ══════════════════════════════════════════════════════════
     @FXML public void onBuscarEnCompras(ActionEvent ignored) {
         filtrarTabla(tablaCompras, listaCompras,
                 cmbFiltroCompra != null ? cmbFiltroCompra.getValue() : "Todos", txtBuscarCompra);
@@ -987,13 +929,6 @@ public class PagosController {
                 cmbFiltroSeguro != null ? cmbFiltroSeguro.getValue() : "Todos", txtBuscarSeguro);
     }
 
-    /**
-     * CORRECCIÓN: filtrado de búsqueda.
-     *
-     * Si el texto ingresado es puramente numérico, se hace coincidencia EXACTA
-     * por ID (evita que "2" muestre todos los IDs que contengan el dígito 2).
-     * Si el texto contiene letras, se busca por descripción (contains).
-     */
     private void filtrarTabla(TableView<CuentaPendiente> tabla,
                               ObservableList<CuentaPendiente> listaCompleta,
                               String estado, TextField txtBuscar) {
@@ -1007,10 +942,8 @@ public class PagosController {
             if (busqueda.isEmpty()) {
                 coincideTexto = true;
             } else if (esSoloNumero) {
-                // Coincidencia exacta de ID cuando se ingresa un número
                 coincideTexto = String.valueOf(c.getIdRef()).equals(busqueda);
             } else {
-                // Búsqueda por nombre/descripción
                 coincideTexto = c.getDescripcion().toLowerCase().contains(busqueda);
             }
             if (coincideEstado && coincideTexto) filtrada.add(c);
@@ -1039,10 +972,7 @@ public class PagosController {
         histSeguro.clear();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // HELPERS
-    // ══════════════════════════════════════════════════════════════════════
-
+    // ══ HELPERS ═══════════════════════════════════════════════════════════
     private double[] leerSaldoCompra(Connection con, int idCompra) throws SQLException {
         PreparedStatement ps = con.prepareStatement(
                 "SELECT monto_total, monto_pendiente FROM tbl_COMPRA WHERE id_compra = ?");
@@ -1120,14 +1050,19 @@ public class PagosController {
         return true;
     }
 
-    private void actualizarInfoLuegoDePago(int idRef, double nuevoPendiente,
+    /**
+     * Actualiza los labels de info y saldo luego de registrar un pago.
+     * lblInfo cambia de color según si queda saldo; lblSaldo muestra el nuevo monto.
+     */
+    private void actualizarInfoLuegoDePago(double nuevoPendiente,
                                            Label lblInfo, Label lblSaldo,
-                                           String tipo, TextField txtMonto) {
-        if (lblInfo  != null) lblInfo.setStyle(nuevoPendiente <= 0
-                ? "-fx-text-fill: #2E7D32; -fx-font-size: 11px;"
-                : "-fx-text-fill: #C62828; -fx-font-size: 11px;");
-        if (lblSaldo != null)
-            lblSaldo.setText("Saldo pendiente: RD$ " + String.format("%.2f", nuevoPendiente));
+                                           TextField txtMonto) {
+        if (lblInfo != null)
+            lblInfo.setStyle(nuevoPendiente <= 0
+                    ? "-fx-text-fill: #2E7D32; -fx-font-size: 11px;"
+                    : "-fx-text-fill: #C62828; -fx-font-size: 11px;");
+        mostrarLabelContenido(lblSaldo,
+                "Saldo pendiente: RD$ " + String.format("%.2f", nuevoPendiente));
         if (txtMonto != null) txtMonto.clear();
     }
 
@@ -1139,8 +1074,8 @@ public class PagosController {
         if (cmbMetodo != null) cmbMetodo.setValue(null);
         if (cmbCuenta != null) cmbCuenta.setValue(null);
         if (dp        != null) dp.setValue(java.time.LocalDate.now());
-        if (lblInfo   != null) lblInfo.setText("");
-        if (lblSaldo  != null) lblSaldo.setText("");
+        ocultarLabel(lblInfo);
+        ocultarLabel(lblSaldo);
     }
 
     private void actualizarResumen(ObservableList<CuentaPendiente> lista, Label lbl, String tipo) {
@@ -1170,7 +1105,7 @@ public class PagosController {
         });
     }
 
-    // ── Clase interna para historial de pagos ─────────────────────────────
+    // ── Clase interna historial ───────────────────────────────────────────
     public static class HistorialPagoItem {
         private final javafx.beans.property.SimpleIntegerProperty idPago     = new javafx.beans.property.SimpleIntegerProperty();
         private final javafx.beans.property.SimpleStringProperty  fecha      = new javafx.beans.property.SimpleStringProperty();

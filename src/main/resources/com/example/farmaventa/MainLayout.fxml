@@ -48,9 +48,9 @@
 
                 <VBox alignment="CENTER_LEFT" spacing="1">
                     <Label fx:id="lblUsuario" prefHeight="0.0" prefWidth="99.0" style="-fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold;" text="Juan Pérez García">
-                  <font>
-                     <Font size="10.0" />
-                  </font></Label>
+                        <font>
+                            <Font size="10.0" />
+                        </font></Label>
                     <HBox alignment="CENTER_LEFT" spacing="4">
                         <Label style="-fx-text-fill: #43A047; -fx-font-size: 9px;" text="●" />
                         <Label style="-fx-text-fill: #78909C; -fx-font-size: 10px;" text="En línea" />

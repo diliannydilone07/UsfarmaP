@@ -4,213 +4,165 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.ProductoController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
+<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.ProductoController">
 
-    <!-- ══════════════════════ CABECERA ══════════════════════ -->
-    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;
-                 -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+    <!-- ══ ENCABEZADO ══ -->
+    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #DCE8DC; -fx-border-width: 0 0 1 0;                  -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.07), 8, 0, 0, 2);">
         <padding><Insets bottom="18" left="24" right="24" top="18" /></padding>
         <VBox spacing="2">
-            <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Gestión de Inventario" />
-            <Label style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;" text="Administra el stock y presentaciones de productos de la farmacia" />
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Gestión de Inventario" />
+            <Label style="-fx-font-size: 12px; -fx-text-fill: #78909C;" text="Administra el stock y presentaciones de productos de la farmacia" />
         </VBox>
     </HBox>
 
     <HBox spacing="16" VBox.vgrow="ALWAYS">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-        <!-- ══════════════════════════════════════════════════════════
-             COLUMNA IZQUIERDA: formulario principal + detalle
-        ══════════════════════════════════════════════════════════════ -->
-        <VBox prefWidth="320" spacing="14">
+        <!-- ══ COLUMNA IZQUIERDA: formulario + presentaciones ══ -->
+        <VBox prefHeight="996.0" prefWidth="452.0" spacing="14">
 
-            <!-- ─── DATOS DEL PRODUCTO ─────────────────────────────── -->
-            <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
-                             -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
-                <padding><Insets bottom="18" left="16" right="16" top="18" /></padding>
+            <!-- Datos del Producto -->
+            <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                          -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                          -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
+                <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
 
-                <Label style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #2E7D32;" text="Datos del Producto" />
-                <Separator />
+                <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Datos del Producto" />
+                <Separator style="-fx-background-color: #E8F5E9;" />
 
                 <VBox spacing="4">
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="ID Producto" />
-                    <TextField fx:id="txtId" promptText="Automático" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="ID Producto" />
+                    <TextField fx:id="txtId" promptText="Automático" style="-fx-background-color: #F5F5F5; -fx-background-radius: 8;                                       -fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-border-width: 1;                                       -fx-text-fill: #9E9E9E; -fx-padding: 8;" />
                 </VBox>
 
                 <VBox spacing="4">
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Nombre del Producto *" />
-                    <TextField fx:id="txtNombre" promptText="Ej. Paracetamol 500mg" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Nombre del Producto *" />
+                    <TextField fx:id="txtNombre" promptText="Ej. Paracetamol 500mg" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                       -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
                 </VBox>
 
                 <VBox spacing="4">
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Categoría *" />
-                    <ComboBox fx:id="cmbCategoria" maxWidth="Infinity" promptText="Seleccionar..." style="-fx-background-radius: 6;" />
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Categoría *" />
+                    <ComboBox fx:id="cmbCategoria" maxWidth="Infinity" promptText="Seleccionar..." style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;" />
                 </VBox>
 
-                <HBox spacing="8">
+                <HBox spacing="10">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Stock Disponible" />
-                        <TextField fx:id="txtStockActual" promptText="0" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                        <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Stock Disponible" />
+                        <TextField fx:id="txtStockActual" promptText="0" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                           -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
                     </VBox>
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Stock Mínimo" />
-                        <TextField fx:id="txtStockMinimo" promptText="5" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                        <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Stock Mínimo" />
+                        <TextField fx:id="txtStockMinimo" promptText="5" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                           -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
                     </VBox>
                 </HBox>
 
-                <HBox spacing="8">
+                <HBox spacing="10">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Descuento (%)" />
-                        <TextField fx:id="txtDescuento" promptText="0" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                        <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Descuento (%)" />
+                        <TextField fx:id="txtDescuento" promptText="0" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                           -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
                     </VBox>
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Ubicación en almacén" />
-                        <TextField fx:id="txtUbicacion" promptText="Pasillo A - Est. 3" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                        <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Ubicación en almacén" />
+                        <TextField fx:id="txtUbicacion" promptText="Pasillo A - Est. 3" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                           -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
                     </VBox>
                 </HBox>
             </VBox>
 
-            <!-- ─── DETALLE DE PRESENTACIONES ─────────────────────── -->
-            <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
-                             -fx-border-color: #C8E6C9; -fx-border-radius: 10; -fx-border-width: 1;">
-                <padding><Insets bottom="16" left="16" right="16" top="16" /></padding>
+            <!-- Presentaciones -->
+            <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                          -fx-border-color: #C8E6C9; -fx-border-radius: 12; -fx-border-width: 1;                          -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" VBox.vgrow="ALWAYS">
+                <padding><Insets bottom="16" left="18" right="18" top="16" /></padding>
 
-                <HBox alignment="CENTER_LEFT" spacing="6">
-                    <Label prefHeight="20.0" prefWidth="24.0" style="-fx-font-size: 14px;" text="📦" />
+                <HBox alignment="CENTER_LEFT" spacing="8">
                     <VBox spacing="1">
-                        <Label style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #2E7D32;" text="Presentaciones del Producto" />
-                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E;" text="Agrega una o más presentaciones con su precio y caducidad" />
+                        <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Presentaciones del Producto" />
+                        <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E;" text="Agrega una o más presentaciones con precio y caducidad" />
                     </VBox>
                 </HBox>
-                <Separator />
+                <Separator style="-fx-background-color: #E8F5E9;" />
 
-                <!-- ── Registrar nueva presentación ─────────────── -->
-                <VBox spacing="6" style="-fx-background-color: #F9FBF9; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1;">
-                    <padding><Insets bottom="10" left="10" right="10" top="10" /></padding>
+                <!-- Nueva presentación: campo + botón al mismo alto -->
+                <VBox spacing="6" style="-fx-background-color: #F4F8F4; -fx-background-radius: 9;                              -fx-border-color: #DCE8DC; -fx-border-radius: 9; -fx-border-width: 1;">
+                    <padding><Insets bottom="10" left="12" right="12" top="10" /></padding>
                     <Label style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="¿Nueva presentación? Regístrala aquí" />
-                    <HBox alignment="CENTER_LEFT" spacing="6">
-                        <TextField fx:id="txtNuevaPresentacion" promptText="Ej. Blister x 10 Tabletas"
-                                   style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6; -fx-font-size: 11px;"
-                                   HBox.hgrow="ALWAYS" />
-                        <Button onAction="#onCrearPresentacion"
-                                style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold;
-                                       -fx-font-size: 11px; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 12 7 12;"
-                                text="+ Crear" />
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <TextField fx:id="txtNuevaPresentacion" promptText="Ej. Blister x 10 Tabletas" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                           -fx-border-radius: 8; -fx-border-width: 1;                                           -fx-padding: 8; -fx-font-size: 11px; -fx-pref-height: 34;" HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onCrearPresentacion" style="-fx-background-color: #1B5E20; -fx-text-fill: #FFFFFF;                                        -fx-font-size: 12px; -fx-font-weight: bold;                                        -fx-background-radius: 8; -fx-border-color: #145214;                                        -fx-border-radius: 8; -fx-border-width: 1;                                        -fx-cursor: hand; -fx-pref-height: 34; -fx-padding: 0 14 0 14;" text="+ " />
                     </HBox>
                 </VBox>
 
                 <VBox spacing="4">
-                    <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Tipo de Presentación" />
-                    <ComboBox fx:id="cmbDetPresentacion" maxWidth="Infinity" promptText="Ej. Tabletas, Jarabe, Cápsulas..." style="-fx-background-radius: 6;" />
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Tipo de Presentación" />
+                    <ComboBox fx:id="cmbDetPresentacion" maxWidth="Infinity" promptText="Ej. Tabletas, Jarabe, Cápsulas..." style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;" />
                 </VBox>
 
-                <HBox spacing="8">
+                <HBox spacing="10">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Precio de Venta (RD$)" />
-                        <TextField fx:id="txtDetPrecio" promptText="0.00" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                        <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Precio de Venta (RD$)" />
+                        <TextField fx:id="txtDetPrecio" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                           -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
                     </VBox>
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Fecha de Caducidad" />
-                        <DatePicker fx:id="dpDetFechaCaducidad" maxWidth="Infinity" promptText="yyyy-MM-dd" style="-fx-background-radius: 6;" />
+                        <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Fecha de Caducidad" />
+                        <DatePicker fx:id="dpDetFechaCaducidad" maxWidth="Infinity" promptText="yyyy-MM-dd" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;" />
                     </VBox>
                 </HBox>
 
-                <Button maxWidth="Infinity" onAction="#onAgregarPresentacionDetalle"
-                        style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;
-                               -fx-font-weight: bold; -fx-font-size: 11px;
-                               -fx-background-radius: 6; -fx-cursor: hand;
-                               -fx-border-color: #A5D6A7; -fx-border-radius: 6;
-                               -fx-padding: 8 0 8 0;" text="➕  Agregar presentación a la lista" />
+                <Button maxWidth="Infinity" onAction="#onAgregarPresentacionDetalle" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                                -fx-font-size: 12px; -fx-font-weight: bold;                                -fx-background-radius: 8; -fx-border-color: #C8E6C9;                                -fx-border-radius: 8; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 9 16 9 16;" text="➕ Agregar presentación a la lista" />
 
-                <TableView fx:id="tablaDetalle" prefHeight="130"
-                           style="-fx-background-color: transparent; -fx-font-size: 11px;">
+                <TableView fx:id="tablaDetalle" prefHeight="130" style="-fx-background-color: transparent;                                   -fx-border-color: #E8F0E8; -fx-border-radius: 8;                                   -fx-font-size: 11px;">
                     <columns>
-                        <TableColumn fx:id="colDetNombre" prefWidth="120" text="Presentación" />
-                        <TableColumn fx:id="colDetPrecio" prefWidth="85"  text="Precio RD$" />
-                        <TableColumn fx:id="colDetFecha"  prefWidth="90"  text="Caducidad" />
+                        <TableColumn fx:id="colDetNombre" prefWidth="150" text="Presentación" />
+                        <TableColumn fx:id="colDetPrecio" prefWidth="100" text="Precio RD$" />
+                        <TableColumn fx:id="colDetFecha" prefWidth="100" text="Caducidad" />
                     </columns>
                     <placeholder>
-                        <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 11px;" text="Sin presentaciones agregadas" />
+                        <Label style="-fx-text-fill: #90A4AE; -fx-font-size: 11px;" text="Sin presentaciones agregadas" />
                     </placeholder>
                 </TableView>
 
-                <!-- fx:id ya existía -->
-                <Button fx:id="btnEliminarDetalle" onAction="#onQuitarPresentacionDetalle"
-                        style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
-                               -fx-font-size: 11px; -fx-background-radius: 6;
-                               -fx-cursor: hand; -fx-border-color: #FFCDD2;
-                               -fx-border-radius: 6; -fx-padding: 6 12 6 12;" text="🗑  Quitar seleccionada" />
+                <Button fx:id="btnEliminarDetalle" onAction="#onQuitarPresentacionDetalle" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-font-size: 12px; -fx-font-weight: bold;                                -fx-background-radius: 8; -fx-border-color: #FFCDD2;                                -fx-border-radius: 8; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="🗑 Quitar seleccionada" />
             </VBox>
 
-            <!-- ─── BOTONES GUARDAR / LIMPIAR ─────────────────────── -->
+            <!-- Botones Guardar / Limpiar -->
             <HBox spacing="8">
-                <Button maxWidth="Infinity" fx:id="btnGuardarProducto" onAction="#onGuardarProductoClick"
-                        style="-fx-background-color: #388E3C; -fx-text-fill: white;
-                               -fx-font-weight: bold; -fx-font-size: 13px;
-                               -fx-background-radius: 8; -fx-cursor: hand;
-                               -fx-padding: 11 0 11 0;" text="💾  Guardar Producto" HBox.hgrow="ALWAYS" />
-                <Button onAction="#Limpiar"
-                        style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;
-                               -fx-background-radius: 8; -fx-cursor: hand;
-                               -fx-padding: 11 16 11 16;" text="✖" />
+                <Button fx:id="btnGuardarProducto" maxWidth="Infinity" onAction="#onGuardarProductoClick" style="-fx-background-color: #1B5E20; -fx-text-fill: #FFFFFF;                                -fx-font-size: 13px; -fx-font-weight: bold;                                -fx-background-radius: 9; -fx-border-color: #145214;                                -fx-border-radius: 9; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 10 18 10 18;" text="💾 Guardar Producto" HBox.hgrow="ALWAYS" />
+                <Button onAction="#Limpiar" style="-fx-background-color: #ECEFF1; -fx-text-fill: #455A64;                                -fx-font-size: 12px; -fx-background-radius: 9;                                -fx-border-color: #CFD8DC; -fx-border-radius: 9; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 10 16 10 16;" text="✕ Limpiar" />
             </HBox>
-
         </VBox>
 
-        <!-- ══════════════════════════════════════════════════════════
-             COLUMNA DERECHA: tabla principal de inventario
-        ══════════════════════════════════════════════════════════════ -->
-        <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
-                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);
-                      -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;"
-              HBox.hgrow="ALWAYS">
+        <!-- ══ COLUMNA DERECHA: tabla de inventario ══ -->
+        <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Inventario General" />
-                <Region HBox.hgrow="ALWAYS" />
-                <TextField fx:id="txtBusqueda" prefWidth="220"
-                           promptText="🔍 Buscar por nombre, categoría o ID..."
-                           style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Inventario General" />
+                    <Label style="-fx-font-size: 11px; -fx-text-fill: #90A4AE;" text="Selecciona un producto para editarlo" />
+                </VBox>
+                <TextField fx:id="txtBusqueda" prefWidth="240" promptText="🔍 Buscar por nombre, categoría o ID..." style="-fx-background-radius: 20; -fx-border-color: #C8D8C8;                                   -fx-border-radius: 20; -fx-border-width: 1; -fx-padding: 7 14 7 14;" />
             </HBox>
-            <Separator />
+            <Separator style="-fx-background-color: #E8F5E9;" />
 
-            <TableView fx:id="tablaProductos" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+            <TableView fx:id="tablaProductos" style="-fx-background-color: transparent; -fx-border-color: #E8F0E8; -fx-border-radius: 8;" VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colId"           prefWidth="50"  text="ID" />
-                    <TableColumn fx:id="colNombre"       prefWidth="155" text="Nombre" />
-                    <TableColumn fx:id="colCategoria"    prefWidth="105" text="Categoría" />
-                    <TableColumn fx:id="colStock"        prefWidth="60"  text="Stock" />
-                    <TableColumn fx:id="colMinimo"       prefWidth="50"  text="Mín." />
-                    <TableColumn fx:id="colPrecio"       prefWidth="80"  text="Precio" />
-                    <TableColumn fx:id="colDescuento"    prefWidth="60"  text="Desc.%" />
-                    <TableColumn fx:id="colPresentacion" prefWidth="105" text="Presentación" />
-                    <TableColumn fx:id="colUbicacion"    prefWidth="100" text="Ubicación" />
+                    <TableColumn fx:id="colId" prefWidth="50" text="ID" />
+                    <TableColumn fx:id="colNombre" prefWidth="160" text="Nombre" />
+                    <TableColumn fx:id="colCategoria" prefWidth="110" text="Categoría" />
+                    <TableColumn fx:id="colStock" prefWidth="65" text="Stock" />
+                    <TableColumn fx:id="colMinimo" prefWidth="55" text="Mín." />
+                    <TableColumn fx:id="colPrecio" prefWidth="85" text="Precio" />
+                    <TableColumn fx:id="colDescuento" prefWidth="65" text="Desc.%" />
+                    <TableColumn fx:id="colPresentacion" prefWidth="110" text="Presentación" />
+                    <TableColumn fx:id="colUbicacion" prefWidth="105" text="Ubicación" />
                 </columns>
                 <placeholder>
-                    <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="No hay productos en el inventario" />
+                    <Label style="-fx-text-fill: #90A4AE; -fx-font-size: 13px;" text="No hay productos en el inventario" />
                 </placeholder>
             </TableView>
 
+            <!-- Barra inferior: spinner cantidad + botones de acción -->
             <HBox alignment="CENTER_RIGHT" spacing="10">
-                <Label style="-fx-font-size: 12px; -fx-text-fill: #757575;" text="Cantidad:" />
-                <Spinner fx:id="spinCantidad" prefWidth="80" style="-fx-background-radius: 6;" />
-
-                <!-- fx:id ya existía -->
-                <Button fx:id="btnAnadirStock" onAction="#onAñadirClick"
-                        style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;
-                               -fx-font-weight: bold; -fx-font-size: 12px;
-                               -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;"
-                        text="🛒  Añadir a Venta" />
-
-                <!-- ← ÚNICO CAMBIO EN EL FXML: se agrega fx:id="btnEliminarProducto" -->
-                <Button fx:id="btnEliminarProducto" onAction="#onCancelarClick"
-                        style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;
-                               -fx-border-color: #FFCDD2; -fx-font-size: 12px;
-                               -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 14 8 14;"
-                        text="🗑  Eliminar Producto" />
+                <Label style="-fx-font-size: 12px; -fx-text-fill: #757575; -fx-font-weight: bold;" text="Cantidad:" />
+                <Spinner fx:id="spinCantidad" prefWidth="75" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;" />
+                <Button fx:id="btnAnadirStock" onAction="#onAñadirClick" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                                -fx-font-size: 12px; -fx-font-weight: bold;                                -fx-background-radius: 8; -fx-border-color: #C8E6C9;                                -fx-border-radius: 8; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="🛒 Añadir a Venta" />
+                <Button fx:id="btnEliminarProducto" onAction="#onCancelarClick" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-font-size: 12px; -fx-font-weight: bold;                                -fx-background-radius: 8; -fx-border-color: #FFCDD2;                                -fx-border-radius: 8; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="🗑 Eliminar Producto" />
             </HBox>
         </VBox>
     </HBox>

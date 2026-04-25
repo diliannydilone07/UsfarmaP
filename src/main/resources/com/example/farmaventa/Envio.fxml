@@ -4,83 +4,87 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0" style="-fx-background-color: #F4F6F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.EnvioController" maxHeight="Infinity" VBox.vgrow="ALWAYS">
+<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.EnvioController">
 
-    <!-- ENCABEZADO -->
-    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0;">
+    <!-- ══ ENCABEZADO ══ -->
+    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #DCE8DC; -fx-border-width: 0 0 1 0;                  -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.07), 8, 0, 0, 2);">
         <padding><Insets bottom="18" left="24" right="24" top="18" /></padding>
         <VBox spacing="2">
-            <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Gestión de Envíos" />
-            <Label style="-fx-font-size: 12px; -fx-text-fill: #9E9E9E;" text="Registra y administra los envíos de ventas" />
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;" text="Gestión de Envíos" />
+            <Label style="-fx-font-size: 12px; -fx-text-fill: #78909C;" text="Registra y administra los envíos de ventas" />
         </VBox>
     </HBox>
 
+    <!-- ══ CUERPO ══ -->
     <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-        <!-- ── FORMULARIO (igual ancho que Inventario) ── -->
-        <VBox prefWidth="290" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);                      -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;">
+        <!-- ── FORMULARIO (ancho cómodo, igual que Convenio) ── -->
+        <VBox prefHeight="554.0" prefWidth="453.0" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
-            <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Registro de Envío" />
-            <Separator />
+            <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Registro de Envío" />
+            <Separator style="-fx-background-color: #E8F5E9;" />
 
+            <!-- ID Venta + botón buscar al mismo alto que el campo -->
             <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="ID Venta" />
-                <HBox spacing="8">
-                    <TextField fx:id="txtIdVenta" promptText="Ej. 5" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" HBox.hgrow="ALWAYS" />
-                    <Button onAction="#onBuscarVenta" prefHeight="27.0" prefWidth="48.0" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                    -fx-font-weight: bold; -fx-font-size: 12px;                                    -fx-background-radius: 6; -fx-cursor: hand;                                    -fx-padding: 0 12 0 12;" text="🔍" />
+                <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="ID Venta" />
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <TextField fx:id="txtIdVenta" prefWidth="320.0" promptText="Ej. 5" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                       -fx-border-radius: 8; -fx-border-width: 1;                                       -fx-padding: 8; -fx-pref-height: 36;" HBox.hgrow="ALWAYS" />
+                    <Button onAction="#onBuscarVenta" prefWidth="269.0" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20;                                    -fx-font-size: 12px; -fx-font-weight: bold;                                    -fx-background-radius: 8; -fx-border-color: #C8E6C9;                                    -fx-border-radius: 8; -fx-border-width: 1;                                    -fx-cursor: hand; -fx-pref-height: 36; -fx-padding: 0 14 0 14;" text="🔍 Buscar" />
                 </HBox>
                 <Label fx:id="lblInfoVenta" style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
             </VBox>
 
             <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Persona que Recibe" />
-                <TextField fx:id="txtPersonaRecibe" promptText="Nombre completo" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Persona que Recibe" />
+                <TextField fx:id="txtPersonaRecibe" promptText="Nombre completo" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                   -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
             </VBox>
 
             <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Método de Envío" />
-                <ComboBox fx:id="cmbMetodoEnvio" maxWidth="Infinity" promptText="Seleccionar..." style="-fx-background-radius: 6;" />
+                <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Método de Envío" />
+                <ComboBox fx:id="cmbMetodoEnvio" maxWidth="Infinity" promptText="Seleccionar..." style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;" />
             </VBox>
 
             <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Costo del Servicio (RD$)" />
-                <TextField fx:id="txtCostoServicio" promptText="0.00" style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+                <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Costo del Servicio (RD$)" />
+                <TextField fx:id="txtCostoServicio" promptText="0.00" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8;                                   -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;" />
             </VBox>
 
-            <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Fecha de Envío" />
-                <DatePicker fx:id="dpFechaEnvio" maxWidth="Infinity" style="-fx-background-radius: 6;" />
-            </VBox>
-
-            <VBox spacing="4">
-                <Label style="-fx-font-size: 11px; -fx-text-fill: #757575;" text="Estado" />
-                <ComboBox fx:id="cmbEstado" maxWidth="Infinity" promptText="Seleccionar estado..." style="-fx-background-radius: 6;" />
-            </VBox>
+            <HBox spacing="10">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Fecha de Envío" />
+                    <DatePicker fx:id="dpFechaEnvio" maxWidth="Infinity" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;" />
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Estado" />
+                    <ComboBox fx:id="cmbEstado" maxWidth="Infinity" promptText="Seleccionar estado..." style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;" />
+                </VBox>
+            </HBox>
 
             <Region VBox.vgrow="ALWAYS" />
-            <Separator />
+            <Separator style="-fx-background-color: #E8F5E9;" />
 
-            <!-- BOTONES — igual que Inventario -->
             <HBox spacing="8">
-                <Button maxWidth="Infinity" fx:id="btnGuardarEnvio" onAction="#onGuardarEnvio" style="-fx-background-color: #388E3C; -fx-text-fill: white;                                -fx-font-weight: bold; -fx-background-radius: 6;                                -fx-cursor: hand; -fx-padding: 10 0 10 0;" text="💾  Guardar Envío" HBox.hgrow="ALWAYS" />
-                <Button onAction="#limpiar" style="-fx-background-color: #F5F5F5; -fx-text-fill: #757575;                                -fx-background-radius: 6; -fx-cursor: hand;                                -fx-padding: 10 14 10 14;" text="✖" />
+                <Button fx:id="btnGuardarEnvio" maxWidth="Infinity" onAction="#onGuardarEnvio" prefHeight="42.0" prefWidth="348.0" style="-fx-background-color: #1B5E20; -fx-text-fill: #FFFFFF;                                -fx-font-size: 13px; -fx-font-weight: bold;                                -fx-background-radius: 9; -fx-border-color: #145214;                                -fx-border-radius: 9; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 10 18 10 18;" text="💾 Guardar" HBox.hgrow="ALWAYS" />
+                <Button onAction="#limpiar" prefHeight="40.0" prefWidth="305.0" style="-fx-background-color: #ECEFF1; -fx-text-fill: #455A64;                                -fx-font-size: 12px; -fx-background-radius: 9;                                -fx-border-color: #CFD8DC; -fx-border-radius: 9; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 10 16 10 16;" text="✕ Limpiar" />
             </HBox>
         </VBox>
 
         <!-- ── TABLA ── -->
-        <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);                      -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
+        <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E7D32;" text="Envíos Registrados" />
-                <Region HBox.hgrow="ALWAYS" />
-                <TextField fx:id="txtBuscar" prefWidth="220" promptText="🔍 Buscar envío..." style="-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;" />
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <VBox HBox.hgrow="ALWAYS">
+                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Envíos Registrados" />
+                    <Label style="-fx-font-size: 11px; -fx-text-fill: #90A4AE;" text="Selecciona uno para editarlo" />
+                </VBox>
+                <TextField fx:id="txtBuscar" prefWidth="230" promptText="🔍  Buscar envío..." style="-fx-background-radius: 20; -fx-border-color: #C8D8C8;                                   -fx-border-radius: 20; -fx-border-width: 1; -fx-padding: 7 14 7 14;" />
             </HBox>
-            <Separator />
+            <Separator style="-fx-background-color: #E8F5E9;" />
 
-            <TableView fx:id="tablaEnvios" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+            <TableView fx:id="tablaEnvios" style="-fx-background-color: transparent; -fx-border-color: #E8F0E8; -fx-border-radius: 8;" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="colId" prefWidth="50" text="#" />
                     <TableColumn fx:id="colInfoVenta" prefWidth="200" text="Venta" />
@@ -91,16 +95,14 @@
                     <TableColumn fx:id="colEstado" prefWidth="120" text="Estado" />
                 </columns>
                 <placeholder>
-                    <Label style="-fx-text-fill: #BDBDBD; -fx-font-size: 13px;" text="No hay envíos registrados aún 🚚" />
+                    <Label style="-fx-text-fill: #90A4AE; -fx-font-size: 13px;" text="No hay envíos registrados aún 🚚" />
                 </placeholder>
             </TableView>
 
-            <!-- BOTONES INFERIORES — igual que Inventario -->
             <HBox alignment="CENTER_RIGHT" spacing="10">
-                <Button fx:id="btnEditarEnvio" onAction="#onEditarEnvio" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                                -fx-font-weight: bold; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-border-color: #BBDEFB;                                -fx-cursor: hand; -fx-padding: 8 14 8 14;" text="✏  Editar Envío" />
-                <Button fx:id="btnEliminarEnvio" onAction="#onEliminarEnvio" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-border-color: #FFCDD2; -fx-font-size: 12px;                                -fx-background-radius: 6; -fx-cursor: hand;                                -fx-padding: 8 14 8 14;" text="🗑  Eliminar Envío" />
+                <Button fx:id="btnEditarEnvio" onAction="#onEditarEnvio" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0;                                -fx-font-size: 12px; -fx-font-weight: bold;                                -fx-background-radius: 8; -fx-border-color: #BBDEFB;                                -fx-border-radius: 8; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="✏ Editar Envío" />
+                <Button fx:id="btnEliminarEnvio" onAction="#onEliminarEnvio" style="-fx-background-color: #FFEBEE; -fx-text-fill: #C62828;                                -fx-font-size: 12px; -fx-font-weight: bold;                                -fx-background-radius: 8; -fx-border-color: #FFCDD2;                                -fx-border-radius: 8; -fx-border-width: 1;                                -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="🗑 Eliminar Envío" />
             </HBox>
         </VBox>
-
     </HBox>
 </VBox>
