@@ -25,7 +25,9 @@ public class HelloController {
 
     @FXML private Button btnEditar;
     @FXML private Button btnEliminar;
+    // ── FIX 1: estos dos ahora tienen fx:id para poder aplicarles permisos ──
     @FXML private Button btnRegistrarVenta;
+    @FXML private Button btnRegistrarVentaSeguro;
     @FXML private Button btnEditarSeguro;
     @FXML private Button btnQuitarProdSeguro;
     @FXML private Button btnEditarVenta;
@@ -162,13 +164,15 @@ public class HelloController {
             });
         }
 
-        Permisos.aplicarBtn(btnEditar,           Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnEliminar,         Permisos.Accion.ELIMINAR);
-        Permisos.aplicarBtn(btnRegistrarVenta,   Permisos.Accion.REGISTRAR);
-        Permisos.aplicarBtn(btnEditarSeguro,     Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnQuitarProdSeguro, Permisos.Accion.ELIMINAR);
-        Permisos.aplicarBtn(btnEditarVenta,      Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnQuitarProducto,   Permisos.Accion.ELIMINAR);
+        // ── FIX 1: Aplicar permisos a TODOS los botones, incluyendo Registrar ──
+        Permisos.aplicarBtn(btnEditar,                Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminar,              Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnRegistrarVenta,        Permisos.Accion.REGISTRAR);   // ← antes no tenía fx:id
+        Permisos.aplicarBtn(btnRegistrarVentaSeguro,  Permisos.Accion.REGISTRAR);   // ← antes no tenía fx:id
+        Permisos.aplicarBtn(btnEditarSeguro,          Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnQuitarProdSeguro,      Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnEditarVenta,           Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnQuitarProducto,        Permisos.Accion.ELIMINAR);
 
         // Cajero no puede buscar ventas existentes
         if (!Permisos.puedeHacer(Permisos.Accion.EDITAR)) {
@@ -280,7 +284,6 @@ public class HelloController {
 
     @FXML
     public void onAgregarProducto(ActionEvent event) {
-        // ── Validar que el producto fue buscado primero ───────────────────
         if (txtIdProducto.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
             return;
@@ -311,7 +314,6 @@ public class HelloController {
             int    cant   = Integer.parseInt(txtCantidadProducto.getText().trim());
             double precio = Double.parseDouble(txtPrecioProducto.getText().trim());
 
-            // ── Validar que el precio no supere el de BD ──────────────────
             double precioMax = (double) txtPrecioProducto.getUserData();
             if (precio > precioMax + 0.001) {
                 JOptionPane.showMessageDialog(null,
@@ -332,7 +334,6 @@ public class HelloController {
             tablaVentaProducto.setItems(listaTemporal);
             actualizarTotalesNormal();
 
-            // ── Limpiar campos del producto ───────────────────────────────
             txtIdProducto.clear();
             txtNombreProducto.clear();
             txtCantidadProducto.clear();
@@ -480,7 +481,6 @@ public class HelloController {
         lblCantProductos.setText("0 productos");
     }
 
-    // Mantener compatibilidad con SelectorProductoController si usa Limpiar()
     @FXML
     public void Limpiar() { onLimpiarVenta(null); }
 
@@ -607,8 +607,6 @@ public class HelloController {
         if (idSeguroCliente == -1) {
             JOptionPane.showMessageDialog(null, "El cliente no tiene seguro medico registrado."); return;
         }
-
-        // ── Validar que el producto fue buscado primero ───────────────────
         if (txtIdProdSeg.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
             return;
@@ -637,7 +635,6 @@ public class HelloController {
             int    cant   = Integer.parseInt(txtCantProdSeg.getText().trim());
             double precio = Double.parseDouble(txtPrecioProdSeg.getText().trim());
 
-            // ── Validar que el precio no supere el de BD ──────────────────
             double precioMax = (double) txtPrecioProdSeg.getUserData();
             if (precio > precioMax + 0.001) {
                 JOptionPane.showMessageDialog(null,
@@ -659,7 +656,6 @@ public class HelloController {
             tablaSeguro.setItems(listaSeguro);
             actualizarResumenSeguro();
 
-            // ── Limpiar campos del producto ───────────────────────────────
             txtIdProdSeg.clear();
             txtNombreProdSeg.clear();
             txtCantProdSeg.clear();
@@ -837,7 +833,7 @@ public class HelloController {
                 fldNombre.setText(rs.getString("nombre"));
                 double precio = rs.getDouble("precio_venta");
                 fldPrecio.setText(precio > 0 ? String.format("%.2f", precio) : "0.00");
-                fldPrecio.setUserData(precio);   // <-- guardar precio real de BD
+                fldPrecio.setUserData(precio);
                 fldPrecio.setEditable(false);
                 fldPrecio.setStyle("-fx-background-color: #F1F8E9; -fx-background-radius: 6; -fx-border-color: #C8E6C9; -fx-border-radius: 6;");
             } else {
@@ -872,7 +868,6 @@ public class HelloController {
         });
     }
 
-    // Compatibilidad con restaurarEstadoEn si se usa desde SelectorProducto
     public void restaurarEstadoEn(HelloController destino) {
         destino.listaTemporal.setAll(this.listaTemporal);
         destino.tablaVentaProducto.setItems(destino.listaTemporal);

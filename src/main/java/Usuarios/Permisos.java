@@ -63,7 +63,7 @@ public class Permisos {
 
     static {
         ACCIONES.put(Rol.ADMIN,        EnumSet.allOf(Accion.class));
-        ACCIONES.put(Rol.SUPERVISOR,   EnumSet.allOf(Accion.class));
+        ACCIONES.put(Rol.SUPERVISOR,   EnumSet.of(Accion.VER));
         ACCIONES.put(Rol.FARMACEUTICO, EnumSet.of(Accion.REGISTRAR, Accion.VER));
         ACCIONES.put(Rol.CAJERO,       EnumSet.of(Accion.REGISTRAR, Accion.VER));
     }

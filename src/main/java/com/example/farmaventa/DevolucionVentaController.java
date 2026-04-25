@@ -20,12 +20,13 @@ public class DevolucionVentaController implements Initializable {
 
     Conexion conexion = new Conexion();
 
-    // ── Formulario ────────────────────────────────────────────────────────────
     // ── Botones con restricción de permisos ───────────────────────────────
     @FXML private Button btnRegistrarDevolucion;
     @FXML private Button btnCompletar;
     @FXML private Button btnAnular;
     @FXML private Button btnEliminar;
+    // FIX 2: botón de agregar nota ahora tiene fx:id para aplicar permisos
+    @FXML private Button btnAgregarNota;
 
     @FXML private TextField        txtIdDevolucion;
     @FXML private TextField        txtIdReclamacion;
@@ -34,9 +35,8 @@ public class DevolucionVentaController implements Initializable {
     @FXML private TextField        txtMontoVenta;
     @FXML private DatePicker       dpFechaDevolucion;
     @FXML private ComboBox<String> cmbEstado;
-    @FXML private TextField txtRazon;
+    @FXML private TextField        txtRazon;
 
-    // ── Tabla devoluciones ────────────────────────────────────────────────────
     @FXML private TableView<DevolucionVenta>              tablaDevolucion;
     @FXML private TableColumn<DevolucionVenta, Integer>   colId;
     @FXML private TableColumn<DevolucionVenta, Integer>   colReclamacion;
@@ -47,21 +47,17 @@ public class DevolucionVentaController implements Initializable {
     @FXML private TableColumn<DevolucionVenta, String>    colMonto;
     @FXML private TableColumn<DevolucionVenta, String>    colRazon;
 
-    // ── Filtros ───────────────────────────────────────────────────────────────
     @FXML private ComboBox<String> cmbFiltroEstado;
     @FXML private TextField        txtBusqueda;
 
-    // ── Panel Nota de Crédito ─────────────────────────────────────────────────
     @FXML private Label            lblNotaDe;
     @FXML private TextArea         txtRazonNota;
     @FXML private ListView<String> listNotas;
 
-    // ── Pastillas de conteo ───────────────────────────────────────────────────
     @FXML private Label lblContPendiente;
     @FXML private Label lblContCompletada;
     @FXML private Label lblContAnulada;
 
-    // ── Listas ────────────────────────────────────────────────────────────────
     private ObservableList<DevolucionVenta> listaDevoluciones = FXCollections.observableArrayList();
     private ObservableList<String>          listaNotas        = FXCollections.observableArrayList();
 
@@ -69,7 +65,6 @@ public class DevolucionVentaController implements Initializable {
     private static final String COMPLETADA = "COMPLETADA";
     private static final String ANULADA    = "ANULADA";
 
-    // ── Inicializar ───────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         colId.setCellValueFactory(new PropertyValueFactory<>("idDevolucionventa"));
@@ -91,7 +86,6 @@ public class DevolucionVentaController implements Initializable {
 
         listNotas.setItems(listaNotas);
 
-        // Clic en fila → cargar formulario y notas
         tablaDevolucion.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) { cargarEnFormulario(sel); cargarNotas(sel); }
         });
@@ -99,15 +93,14 @@ public class DevolucionVentaController implements Initializable {
         dpFechaDevolucion.setValue(LocalDate.now());
         actualizarTabla();
 
-        // ── Permisos ──────────────────────────────────────────────────────
+        // ── FIX 2: Permisos — incluye btnAgregarNota con acción REGISTRAR ──
         Permisos.aplicarBtn(btnRegistrarDevolucion, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnCompletar,           Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnAnular,              Permisos.Accion.ELIMINAR);
         Permisos.aplicarBtn(btnEliminar,            Permisos.Accion.ELIMINAR);
-
+        Permisos.aplicarBtn(btnAgregarNota,         Permisos.Accion.REGISTRAR); // ← NUEVO
     }
 
-    // ── Buscar por ID de Reclamacion → trae id_venta, cliente y monto ─────────
     @FXML
     public void onBuscarReclamacion() {
         String idR = txtIdReclamacion.getText().trim();
@@ -136,12 +129,10 @@ public class DevolucionVentaController implements Initializable {
         }
     }
 
-    // ── Buscar en tabla ───────────────────────────────────────────────────────
     @FXML
     private void fnBuscar() {
         String busqueda = txtBusqueda.getText().trim().toLowerCase();
         String estado   = cmbFiltroEstado.getValue();
-
         ObservableList<DevolucionVenta> listaFiltrada = FXCollections.observableArrayList();
         for (DevolucionVenta d : listaDevoluciones) {
             boolean okEstado = "Todos".equals(estado) || estado == null || d.getEstadoNombre().equals(estado);
@@ -154,7 +145,6 @@ public class DevolucionVentaController implements Initializable {
         tablaDevolucion.setItems(listaFiltrada);
     }
 
-    // ── Registrar nueva devolución ────────────────────────────────────────────
     @FXML
     private void onRegistrarDevolucion() {
         if (txtIdReclamacion.getText().isBlank()) {
@@ -186,7 +176,6 @@ public class DevolucionVentaController implements Initializable {
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) idDev = keys.getInt(1);
 
-            // Nota de crédito automática si hay monto
             if (idDev != -1 && !txtMontoVenta.getText().isBlank()) {
                 PreparedStatement psNota = con.prepareStatement(
                         "INSERT INTO TBL_NOTA_CREDITO (razon, id_devolucionventa) VALUES (?, ?)");
@@ -204,7 +193,6 @@ public class DevolucionVentaController implements Initializable {
         }
     }
 
-    // ── Completar ─────────────────────────────────────────────────────────────
     @FXML
     private void onCompletar() {
         DevolucionVenta sel = tablaDevolucion.getSelectionModel().getSelectedItem();
@@ -212,7 +200,6 @@ public class DevolucionVentaController implements Initializable {
         cambiarEstado(sel.getIdDevolucionventa(), 1, COMPLETADA);
     }
 
-    // ── Anular ────────────────────────────────────────────────────────────────
     @FXML
     private void onAnular() {
         DevolucionVenta sel = tablaDevolucion.getSelectionModel().getSelectedItem();
@@ -220,7 +207,6 @@ public class DevolucionVentaController implements Initializable {
         cambiarEstado(sel.getIdDevolucionventa(), 0, ANULADA);
     }
 
-    // ── Eliminar ──────────────────────────────────────────────────────────────
     @FXML
     private void onEliminar() {
         DevolucionVenta sel = tablaDevolucion.getSelectionModel().getSelectedItem();
@@ -232,30 +218,19 @@ public class DevolucionVentaController implements Initializable {
         if (confirm != JOptionPane.YES_OPTION) return;
 
         int idDev = sel.getIdDevolucionventa();
-
         try (Connection con = conexion.establecerConexion()) {
-            PreparedStatement ps1 = con.prepareStatement(
-                    "DELETE FROM TBL_NOTA_CREDITO WHERE id_devolucionventa = ?");
-            ps1.setInt(1, idDev);
-            ps1.executeUpdate();
-
-            PreparedStatement ps2 = con.prepareStatement(
-                    "DELETE FROM TBL_DEVOLUCION_VENTA WHERE id_devolucionventa = ?");
-            ps2.setInt(1, idDev);
-            ps2.executeUpdate();
-
+            con.prepareStatement("DELETE FROM TBL_NOTA_CREDITO WHERE id_devolucionventa = " + idDev).executeUpdate();
+            con.prepareStatement("DELETE FROM TBL_DEVOLUCION_VENTA WHERE id_devolucionventa = " + idDev).executeUpdate();
             listaNotas.clear();
             if (lblNotaDe != null) lblNotaDe.setText("—");
             actualizarTabla();
             limpiar();
             JOptionPane.showMessageDialog(null, "Devolución eliminada correctamente.");
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
         }
     }
 
-    // ── Ver notas de crédito ──────────────────────────────────────────────────
     @FXML
     private void onVerNotas() {
         DevolucionVenta sel = tablaDevolucion.getSelectionModel().getSelectedItem();
@@ -263,7 +238,7 @@ public class DevolucionVentaController implements Initializable {
         cargarNotas(sel);
     }
 
-    // ── Agregar nota de crédito ───────────────────────────────────────────────
+    // FIX 2: onAgregarNota controlado por permisos vía btnAgregarNota
     @FXML
     private void onAgregarNota() {
         DevolucionVenta sel = tablaDevolucion.getSelectionModel().getSelectedItem();
@@ -273,7 +248,6 @@ public class DevolucionVentaController implements Initializable {
         if (razonNota.isBlank()) { JOptionPane.showMessageDialog(null, "Escribe la razón de la nota primero."); return; }
 
         String sql = "INSERT INTO TBL_NOTA_CREDITO (razon, id_devolucionventa) VALUES (?, ?)";
-
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, razonNota);
@@ -287,17 +261,13 @@ public class DevolucionVentaController implements Initializable {
         }
     }
 
-    // ── Limpiar ───────────────────────────────────────────────────────────────
     @FXML
     private void onLimpiarFormulario() { limpiar(); }
 
     @FXML
     public void limpiar() {
-        txtIdDevolucion.clear();
-        txtIdReclamacion.clear();
-        txtIdVenta.clear();
-        txtCliente.clear();
-        txtMontoVenta.clear();
+        txtIdDevolucion.clear(); txtIdReclamacion.clear(); txtIdVenta.clear();
+        txtCliente.clear(); txtMontoVenta.clear();
         dpFechaDevolucion.setValue(LocalDate.now());
         cmbEstado.setValue(PENDIENTE);
         txtRazon.clear();
@@ -305,7 +275,6 @@ public class DevolucionVentaController implements Initializable {
         tablaDevolucion.setItems(listaDevoluciones);
     }
 
-    // ── Cargar tabla desde BD ─────────────────────────────────────────────────
     private void actualizarTabla() {
         String sql = "SELECT d.id_devolucionventa, d.id_venta, d.id_reclamacionventa, " +
                 "p.nombre + ' ' + p.apellido AS nombre_cliente, " +
@@ -343,34 +312,28 @@ public class DevolucionVentaController implements Initializable {
         }
     }
 
-    // ── Cargar notas de crédito ───────────────────────────────────────────────
     private void cargarNotas(DevolucionVenta d) {
         listaNotas.clear();
         if (lblNotaDe != null) lblNotaDe.setText("Dev. #" + d.getIdDevolucionventa());
-
         String sql = "SELECT id_notacredito, razon FROM TBL_NOTA_CREDITO " +
                 "WHERE id_devolucionventa = ? ORDER BY id_notacredito";
-
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, d.getIdDevolucionventa());
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
+            while (rs.next())
                 listaNotas.add("#" + rs.getInt("id_notacredito") + "  —  " + rs.getString("razon"));
-            }
             listNotas.setItems(listaNotas);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar notas: " + e.getMessage());
         }
     }
 
-    // ── Cambiar estado ────────────────────────────────────────────────────────
     private void cambiarEstado(int idDev, int bit, String estadoUI) {
         String sql = "UPDATE TBL_DEVOLUCION_VENTA SET estado_devolucion = ? WHERE id_devolucionventa = ?";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, bit);
-            ps.setInt(2, idDev);
+            ps.setInt(1, bit); ps.setInt(2, idDev);
             ps.executeUpdate();
             actualizarTabla();
             JOptionPane.showMessageDialog(null, "Estado actualizado a: " + estadoUI);
@@ -379,7 +342,6 @@ public class DevolucionVentaController implements Initializable {
         }
     }
 
-    // ── Cargar fila en formulario ─────────────────────────────────────────────
     private void cargarEnFormulario(DevolucionVenta d) {
         txtIdDevolucion.setText(String.valueOf(d.getIdDevolucionventa()));
         if (txtIdReclamacion != null && d.getIdReclamacionventa() > 0)
@@ -392,7 +354,6 @@ public class DevolucionVentaController implements Initializable {
         txtRazon.setText(d.getRazon());
     }
 
-    // ── Pastillas de conteo ───────────────────────────────────────────────────
     private void actualizarContadores() {
         int pend = 0, comp = 0, anul = 0;
         for (DevolucionVenta d : listaDevoluciones) {

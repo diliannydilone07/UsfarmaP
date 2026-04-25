@@ -21,12 +21,13 @@ public class ReclamacionCompraController implements Initializable {
 
     Conexion conexion = new Conexion();
 
-    // ── Formulario ────────────────────────────────────────────────────────────
     // ── Botones con restricción de permisos ───────────────────────────────
     @FXML private Button btnRegistrarReclamacion;
     @FXML private Button btnAprobar;
     @FXML private Button btnRechazar;
     @FXML private Button btnEliminar;
+    // FIX 2: botón de agregar nota ahora tiene fx:id para aplicar permisos
+    @FXML private Button btnAgregarNota;
 
     @FXML private TextField        txtIdReclamacion;
     @FXML private TextField        txtIdCompra;
@@ -35,10 +36,9 @@ public class ReclamacionCompraController implements Initializable {
     @FXML private ComboBox<String> cmbEstadoActual;
     @FXML private TextField        txtCantidadDevolver;
     @FXML private TextField        txtDescripcion;
-    @FXML private TextField        txtIdProducto;      // ← NUEVO
-    @FXML private TextField        txtNombreProducto;  // ← NUEVO
+    @FXML private TextField        txtIdProducto;
+    @FXML private TextField        txtNombreProducto;
 
-    // ── Tabla reclamaciones ───────────────────────────────────────────────────
     @FXML private TableView<ReclamacionCompra>              tablaReclamaciones;
     @FXML private TableColumn<ReclamacionCompra, Integer>   colId;
     @FXML private TableColumn<ReclamacionCompra, Integer>   colCompra;
@@ -48,11 +48,9 @@ public class ReclamacionCompraController implements Initializable {
     @FXML private TableColumn<ReclamacionCompra, Integer>   colCantidad;
     @FXML private TableColumn<ReclamacionCompra, String>    colDescripcion;
 
-    // ── Filtros ───────────────────────────────────────────────────────────────
     @FXML private ComboBox<String> cmbFiltroEstado;
     @FXML private TextField        txtBusqueda;
 
-    // ── Historial ─────────────────────────────────────────────────────────────
     @FXML private TableView<HistoricoReclamacionCompra>              tablaHistorico;
     @FXML private TableColumn<HistoricoReclamacionCompra, Integer>   colHistId;
     @FXML private TableColumn<HistoricoReclamacionCompra, LocalDate> colHistFecha;
@@ -61,13 +59,11 @@ public class ReclamacionCompraController implements Initializable {
     @FXML private TextArea txtNuevaNotaHistorial;
     @FXML private Label    lblHistorialDe;
 
-    // ── Pastillas ─────────────────────────────────────────────────────────────
     @FXML private Label lblContPendiente;
     @FXML private Label lblContRevision;
     @FXML private Label lblContAprobada;
     @FXML private Label lblContRechazada;
 
-    // ── Listas ────────────────────────────────────────────────────────────────
     private ObservableList<ReclamacionCompra>          listaReclamaciones = FXCollections.observableArrayList();
     private ObservableList<HistoricoReclamacionCompra> listaHistorico     = FXCollections.observableArrayList();
 
@@ -76,7 +72,6 @@ public class ReclamacionCompraController implements Initializable {
     private static final String APROBADA    = "APROBADA";
     private static final String RECHAZADA   = "RECHAZADA";
 
-    // ── Inicializar ───────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         colId.setCellValueFactory(new PropertyValueFactory<>("idReclamacioncompra"));
@@ -86,7 +81,6 @@ public class ReclamacionCompraController implements Initializable {
         colEstado.setCellValueFactory(new PropertyValueFactory<>("estadoActualNombre"));
         colCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidadAdevolver"));
         colDescripcion.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
-
         tablaReclamaciones.setItems(listaReclamaciones);
 
         colHistId.setCellValueFactory(new PropertyValueFactory<>("idHistorico"));
@@ -94,7 +88,6 @@ public class ReclamacionCompraController implements Initializable {
         colHistDescripcion.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
         tablaHistorico.setItems(listaHistorico);
 
-        // Al seleccionar historial → mostrar detalle
         tablaHistorico.getSelectionModel().selectedItemProperty().addListener((obs, old, h) -> {
             if (h != null && txtDetalleHistorial != null)
                 txtDetalleHistorial.setText(h.obtenerDetalleCambio());
@@ -102,39 +95,33 @@ public class ReclamacionCompraController implements Initializable {
 
         cmbEstadoActual.getItems().addAll(PENDIENTE, EN_REVISION, APROBADA, RECHAZADA);
         cmbEstadoActual.setValue(PENDIENTE);
-
         cmbFiltroEstado.getItems().addAll("Todos", PENDIENTE, EN_REVISION, APROBADA, RECHAZADA);
         cmbFiltroEstado.setValue("Todos");
-
         dpFechaReclamacion.setValue(LocalDate.now());
 
-        // Clic en fila → cargar formulario e historial
         tablaReclamaciones.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) { cargarEnFormulario(sel); cargarHistorial(sel); }
         });
 
         actualizarTabla();
 
-        // ── Permisos ──────────────────────────────────────────────────────
+        // ── FIX 2: Permisos — incluye btnAgregarNota con acción REGISTRAR ──
         Permisos.aplicarBtn(btnRegistrarReclamacion, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnAprobar,              Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnRechazar,             Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnEliminar,             Permisos.Accion.ELIMINAR);
-
+        Permisos.aplicarBtn(btnAgregarNota,          Permisos.Accion.REGISTRAR); // ← NUEVO
     }
 
-    // ── Buscar compra por ID ──────────────────────────────────────────────────
     @FXML
     private void onBuscarCompra() {
         String idC = txtIdCompra.getText().trim();
         if (idC.isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa un ID de compra."); return; }
-
         String sql = "SELECT pr.nombre AS nombre_proveedor " +
                 "FROM TBL_COMPRA c " +
                 "JOIN TBL_PEDIDO_C pc ON pc.id_pedido_c = c.id_pedido_c " +
                 "JOIN TBL_PROVEEDOR pr ON pr.id_proveedor = pc.id_proveedor " +
                 "WHERE c.id_compra = ?";
-
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(idC));
@@ -146,12 +133,10 @@ public class ReclamacionCompraController implements Initializable {
         }
     }
 
-    // ── Buscar en tabla ───────────────────────────────────────────────────────
     @FXML
     private void fnBuscar() {
         String busqueda = txtBusqueda.getText().trim().toLowerCase();
         String estado   = cmbFiltroEstado.getValue();
-
         ObservableList<ReclamacionCompra> listaFiltrada = FXCollections.observableArrayList();
         for (ReclamacionCompra r : listaReclamaciones) {
             boolean okEstado = "Todos".equals(estado) || estado == null || r.getEstadoActualNombre().equals(estado);
@@ -164,7 +149,6 @@ public class ReclamacionCompraController implements Initializable {
         tablaReclamaciones.setItems(listaFiltrada);
     }
 
-    // ── Buscar producto por ID ────────────────────────────────────────────────
     @FXML
     private void onBuscarProducto() {
         if (txtIdProducto.getText().isBlank()) return;
@@ -180,27 +164,15 @@ public class ReclamacionCompraController implements Initializable {
         }
     }
 
-    // ── Registrar reclamación ─────────────────────────────────────────────────
     @FXML
     private void onRegistrarReclamacion() {
-        if (txtIdCompra.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "El ID de Compra es obligatorio."); return;
-        }
-        if (txtIdProducto.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "El ID del producto reclamado es obligatorio."); return;
-        }
-        if (txtCantidadDevolver.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "La cantidad a devolver es obligatoria."); return;
-        }
-        if (dpFechaReclamacion.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Selecciona la fecha."); return;
-        }
-        if (txtDescripcion.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "La descripción es obligatoria."); return;
-        }
+        if (txtIdCompra.getText().isBlank()) { JOptionPane.showMessageDialog(null, "El ID de Compra es obligatorio."); return; }
+        if (txtIdProducto.getText().isBlank()) { JOptionPane.showMessageDialog(null, "El ID del producto reclamado es obligatorio."); return; }
+        if (txtCantidadDevolver.getText().isBlank()) { JOptionPane.showMessageDialog(null, "La cantidad a devolver es obligatoria."); return; }
+        if (dpFechaReclamacion.getValue() == null) { JOptionPane.showMessageDialog(null, "Selecciona la fecha."); return; }
+        if (txtDescripcion.getText().isBlank()) { JOptionPane.showMessageDialog(null, "La descripción es obligatoria."); return; }
 
         String sql = "INSERT INTO TBL_RECLAMACION_COMPRA (fecha_reclamacion, estado, id_compra) VALUES (?, 0, ?)";
-
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -211,25 +183,18 @@ public class ReclamacionCompraController implements Initializable {
             int idReclam = -1;
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) idReclam = keys.getInt(1);
+            if (idReclam == -1) { JOptionPane.showMessageDialog(null, "Error al obtener el ID generado."); return; }
 
-            if (idReclam == -1) {
-                JOptionPane.showMessageDialog(null, "Error al obtener el ID generado."); return;
-            }
-
-            // Insertar producto reclamado — PK es (id_producto, id_reclamacioncompra)
-            String sqlProd = "INSERT INTO TBL_PRODUCTO_RECLAMACION_COMPRA " +
-                    "(id_producto, id_reclamacioncompra, cantidad, descripcion) VALUES (?, ?, ?, ?)";
-            PreparedStatement psProd = con.prepareStatement(sqlProd);
-            psProd.setInt(1,    Integer.parseInt(txtIdProducto.getText().trim()));
-            psProd.setInt(2,    idReclam);
-            psProd.setInt(3,    Integer.parseInt(txtCantidadDevolver.getText().trim()));
+            PreparedStatement psProd = con.prepareStatement(
+                    "INSERT INTO TBL_PRODUCTO_RECLAMACION_COMPRA (id_producto, id_reclamacioncompra, cantidad, descripcion) VALUES (?, ?, ?, ?)");
+            psProd.setInt(1, Integer.parseInt(txtIdProducto.getText().trim()));
+            psProd.setInt(2, idReclam);
+            psProd.setInt(3, Integer.parseInt(txtCantidadDevolver.getText().trim()));
             psProd.setString(4, txtDescripcion.getText().trim());
             psProd.executeUpdate();
 
-            // Guardar descripción en historial
             PreparedStatement psH = con.prepareStatement(
-                    "INSERT INTO TBL_HISTORICO_RECLAMACION_COMPRA " +
-                            "(descripcion, creado_por, fecha_creacion, id_reclamacioncompra) VALUES (?, ?, ?, ?)");
+                    "INSERT INTO TBL_HISTORICO_RECLAMACION_COMPRA (descripcion, creado_por, fecha_creacion, id_reclamacioncompra) VALUES (?, ?, ?, ?)");
             psH.setString(1, txtDescripcion.getText().trim());
             psH.setString(2, "Usuario");
             psH.setDate(3,   Date.valueOf(LocalDate.now()));
@@ -245,25 +210,19 @@ public class ReclamacionCompraController implements Initializable {
         }
     }
 
-    // ── Aprobar ───────────────────────────────────────────────────────────────
-    @FXML
-    private void onAprobar() {
+    @FXML private void onAprobar() {
         ReclamacionCompra sel = tablaReclamaciones.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona una reclamación."); return; }
         cambiarEstado(sel.getIdReclamacioncompra(), APROBADA);
     }
 
-    // ── Rechazar ──────────────────────────────────────────────────────────────
-    @FXML
-    private void onRechazar() {
+    @FXML private void onRechazar() {
         ReclamacionCompra sel = tablaReclamaciones.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona una reclamación."); return; }
         cambiarEstado(sel.getIdReclamacioncompra(), RECHAZADA);
     }
 
-    // ── Eliminar ──────────────────────────────────────────────────────────────
-    @FXML
-    private void onEliminar() {
+    @FXML private void onEliminar() {
         ReclamacionCompra sel = tablaReclamaciones.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona una reclamación."); return; }
 
@@ -273,54 +232,35 @@ public class ReclamacionCompraController implements Initializable {
         if (confirm != JOptionPane.YES_OPTION) return;
 
         int idReclam = sel.getIdReclamacioncompra();
-
         try (Connection con = conexion.establecerConexion()) {
-            PreparedStatement ps1 = con.prepareStatement(
-                    "DELETE FROM TBL_HISTORICO_RECLAMACION_COMPRA WHERE id_reclamacioncompra = ?");
-            ps1.setInt(1, idReclam);
-            ps1.executeUpdate();
-
-            PreparedStatement ps2 = con.prepareStatement(
-                    "DELETE FROM TBL_PRODUCTO_RECLAMACION_COMPRA WHERE id_reclamacioncompra = ?");
-            ps2.setInt(1, idReclam);
-            ps2.executeUpdate();
-
-            PreparedStatement ps3 = con.prepareStatement(
-                    "DELETE FROM TBL_RECLAMACION_COMPRA WHERE id_reclamacioncompra = ?");
-            ps3.setInt(1, idReclam);
-            ps3.executeUpdate();
-
+            con.prepareStatement("DELETE FROM TBL_HISTORICO_RECLAMACION_COMPRA WHERE id_reclamacioncompra = " + idReclam).executeUpdate();
+            con.prepareStatement("DELETE FROM TBL_PRODUCTO_RECLAMACION_COMPRA WHERE id_reclamacioncompra = " + idReclam).executeUpdate();
+            con.prepareStatement("DELETE FROM TBL_RECLAMACION_COMPRA WHERE id_reclamacioncompra = " + idReclam).executeUpdate();
             listaHistorico.clear();
             if (lblHistorialDe != null) lblHistorialDe.setText("—");
             actualizarTabla();
             limpiar();
             JOptionPane.showMessageDialog(null, "Reclamación eliminada.");
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al eliminar: " + e.getMessage());
         }
     }
 
-    // ── Ver historial ─────────────────────────────────────────────────────────
-    @FXML
-    private void onVerHistorial() {
+    @FXML private void onVerHistorial() {
         ReclamacionCompra sel = tablaReclamaciones.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona una reclamación."); return; }
         cargarHistorial(sel);
     }
 
-    // ── Agregar nota ──────────────────────────────────────────────────────────
-    @FXML
-    private void onAgregarNota() {
+    // FIX 2: onAgregarNota controlado por permisos vía btnAgregarNota
+    @FXML private void onAgregarNota() {
         ReclamacionCompra sel = tablaReclamaciones.getSelectionModel().getSelectedItem();
         if (sel == null) { JOptionPane.showMessageDialog(null, "Selecciona una reclamación."); return; }
 
         String nota = txtNuevaNotaHistorial.getText().trim();
         if (nota.isBlank()) { JOptionPane.showMessageDialog(null, "Escribe una nota primero."); return; }
 
-        String sql = "INSERT INTO TBL_HISTORICO_RECLAMACION_COMPRA " +
-                "(descripcion, creado_por, fecha_creacion, id_reclamacioncompra) VALUES (?, ?, ?, ?)";
-
+        String sql = "INSERT INTO TBL_HISTORICO_RECLAMACION_COMPRA (descripcion, creado_por, fecha_creacion, id_reclamacioncompra) VALUES (?, ?, ?, ?)";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, nota);
@@ -336,26 +276,19 @@ public class ReclamacionCompraController implements Initializable {
         }
     }
 
-    // ── Limpiar ───────────────────────────────────────────────────────────────
-    @FXML
-    private void onLimpiarFormulario() { limpiar(); }
+    @FXML private void onLimpiarFormulario() { limpiar(); }
 
-    @FXML
-    public void limpiar() {
-        txtIdReclamacion.clear();
-        txtIdCompra.clear();
-        txtProveedor.clear();
+    @FXML public void limpiar() {
+        txtIdReclamacion.clear(); txtIdCompra.clear(); txtProveedor.clear();
         if (txtIdProducto     != null) txtIdProducto.clear();
         if (txtNombreProducto != null) txtNombreProducto.clear();
         dpFechaReclamacion.setValue(LocalDate.now());
         cmbEstadoActual.setValue(PENDIENTE);
-        txtCantidadDevolver.clear();
-        txtDescripcion.clear();
+        txtCantidadDevolver.clear(); txtDescripcion.clear();
         tablaReclamaciones.getSelectionModel().clearSelection();
         tablaReclamaciones.setItems(listaReclamaciones);
     }
 
-    // ── Cargar tabla desde BD ─────────────────────────────────────────────────
     private void actualizarTabla() {
         String sql = "SELECT r.id_reclamacioncompra, r.id_compra, " +
                 "pr.nombre AS nombre_proveedor, " +
@@ -373,38 +306,29 @@ public class ReclamacionCompraController implements Initializable {
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             listaReclamaciones.clear();
             while (rs.next()) {
                 String estadoTexto = rs.getInt("estado") == 1 ? APROBADA : PENDIENTE;
                 listaReclamaciones.add(new ReclamacionCompra(
-                        rs.getInt("id_reclamacioncompra"),
-                        rs.getInt("id_compra"),
+                        rs.getInt("id_reclamacioncompra"), rs.getInt("id_compra"),
                         rs.getString("nombre_proveedor"),
                         rs.getDate("fecha_reclamacion").toLocalDate(),
-                        estadoTexto,
-                        rs.getInt("cantidad"),
-                        rs.getString("descripcion")
-                ));
+                        estadoTexto, rs.getInt("cantidad"), rs.getString("descripcion")));
             }
             tablaReclamaciones.setItems(listaReclamaciones);
             actualizarContadores();
-
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Error al cargar reclamaciones: " + e.getMessage());
         }
     }
 
-    // ── Cargar historial ──────────────────────────────────────────────────────
     private void cargarHistorial(ReclamacionCompra r) {
         listaHistorico.clear();
         if (lblHistorialDe != null) lblHistorialDe.setText("Rec. #" + r.getIdReclamacioncompra());
-
         String sql = "SELECT id_historico_reclam_compra, descripcion, creado_por, " +
                 "fecha_creacion, id_reclamacioncompra " +
                 "FROM TBL_HISTORICO_RECLAMACION_COMPRA " +
                 "WHERE id_reclamacioncompra = ? ORDER BY id_historico_reclam_compra";
-
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, r.getIdReclamacioncompra());
@@ -412,11 +336,9 @@ public class ReclamacionCompraController implements Initializable {
             while (rs.next()) {
                 listaHistorico.add(new HistoricoReclamacionCompra(
                         rs.getInt("id_historico_reclam_compra"),
-                        rs.getString("descripcion"),
-                        rs.getString("creado_por"),
+                        rs.getString("descripcion"), rs.getString("creado_por"),
                         rs.getDate("fecha_creacion").toLocalDate(),
-                        rs.getInt("id_reclamacioncompra")
-                ));
+                        rs.getInt("id_reclamacioncompra")));
             }
             tablaHistorico.setItems(listaHistorico);
         } catch (SQLException e) {
@@ -424,14 +346,12 @@ public class ReclamacionCompraController implements Initializable {
         }
     }
 
-    // ── Cambiar estado ────────────────────────────────────────────────────────
     private void cambiarEstado(int idReclam, String estadoUI) {
         int bit = APROBADA.equals(estadoUI) ? 1 : 0;
         String sql = "UPDATE TBL_RECLAMACION_COMPRA SET estado = ? WHERE id_reclamacioncompra = ?";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, bit);
-            ps.setInt(2, idReclam);
+            ps.setInt(1, bit); ps.setInt(2, idReclam);
             ps.executeUpdate();
             actualizarTabla();
             JOptionPane.showMessageDialog(null, "Estado actualizado a: " + estadoUI.replace("_", " "));
@@ -440,7 +360,6 @@ public class ReclamacionCompraController implements Initializable {
         }
     }
 
-    // ── Cargar fila en formulario ─────────────────────────────────────────────
     private void cargarEnFormulario(ReclamacionCompra r) {
         txtIdReclamacion.setText(String.valueOf(r.getIdReclamacioncompra()));
         txtIdCompra.setText(String.valueOf(r.getIdCompra()));
@@ -454,13 +373,20 @@ public class ReclamacionCompraController implements Initializable {
             try (Connection conP = conexion.establecerConexion(); PreparedStatement psP = conP.prepareStatement(sqlP)) {
                 psP.setInt(1, r.getIdReclamacioncompra());
                 ResultSet rsP = psP.executeQuery();
-                if (rsP.next()) { txtIdProducto.setText(String.valueOf(rsP.getInt("id_producto"))); if (txtNombreProducto != null) txtNombreProducto.setText(rsP.getString("nombre")); }
-                else { txtIdProducto.clear(); if (txtNombreProducto != null) txtNombreProducto.clear(); }
-            } catch (SQLException ex) { txtIdProducto.clear(); if (txtNombreProducto != null) txtNombreProducto.clear(); }
+                if (rsP.next()) {
+                    txtIdProducto.setText(String.valueOf(rsP.getInt("id_producto")));
+                    if (txtNombreProducto != null) txtNombreProducto.setText(rsP.getString("nombre"));
+                } else {
+                    txtIdProducto.clear();
+                    if (txtNombreProducto != null) txtNombreProducto.clear();
+                }
+            } catch (SQLException ex) {
+                txtIdProducto.clear();
+                if (txtNombreProducto != null) txtNombreProducto.clear();
+            }
         }
     }
 
-    // ── Pastillas de conteo ───────────────────────────────────────────────────
     private void actualizarContadores() {
         int pend = 0, rev = 0, aprob = 0, rech = 0;
         for (ReclamacionCompra r : listaReclamaciones) {

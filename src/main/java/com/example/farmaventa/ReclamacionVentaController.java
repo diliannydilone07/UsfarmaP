@@ -26,6 +26,8 @@ public class ReclamacionVentaController implements Initializable {
     @FXML private Button btnAprobar;
     @FXML private Button btnRechazar;
     @FXML private Button btnEliminar;
+    // FIX 2: botón de agregar nota ahora tiene fx:id para aplicar permisos
+    @FXML private Button btnAgregarNota;
 
     @FXML private TextField        txtIdReclamacion;
     @FXML private TextField        txtIdVenta;
@@ -104,12 +106,12 @@ public class ReclamacionVentaController implements Initializable {
 
         actualizarTabla();
 
-        // ── Permisos ──────────────────────────────────────────────────────
+        // ── FIX 2: Permisos — incluye btnAgregarNota con acción REGISTRAR ──
         Permisos.aplicarBtn(btnRegistrarReclamacion, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnAprobar,              Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnRechazar,             Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnEliminar,             Permisos.Accion.ELIMINAR);
-
+        Permisos.aplicarBtn(btnAgregarNota,          Permisos.Accion.REGISTRAR); // ← NUEVO
     }
 
     @FXML public void onBuscarVenta() {
@@ -223,17 +225,15 @@ public class ReclamacionVentaController implements Initializable {
         if (confirm != JOptionPane.YES_OPTION) return;
         int idReclam = Integer.parseInt(txtIdReclamacion.getText().trim());
         try (Connection con = conexion.establecerConexion()) {
-            PreparedStatement ps1 = con.prepareStatement("DELETE FROM TBL_HISTORICO_RECLAMACION_VENTA WHERE id_reclamacionventa=?");
-            ps1.setInt(1, idReclam); ps1.executeUpdate();
-            PreparedStatement ps2 = con.prepareStatement("DELETE FROM TBL_PRODUCTO_RECLAMACION_VENTA WHERE id_reclamacionventa=?");
-            ps2.setInt(1, idReclam); ps2.executeUpdate();
-            PreparedStatement ps3 = con.prepareStatement("DELETE FROM TBL_RECLAMACION_VENTA WHERE id_reclamacionventa=?");
-            ps3.setInt(1, idReclam); ps3.executeUpdate();
+            con.prepareStatement("DELETE FROM TBL_HISTORICO_RECLAMACION_VENTA WHERE id_reclamacionventa=" + idReclam).executeUpdate();
+            con.prepareStatement("DELETE FROM TBL_PRODUCTO_RECLAMACION_VENTA WHERE id_reclamacionventa=" + idReclam).executeUpdate();
+            con.prepareStatement("DELETE FROM TBL_RECLAMACION_VENTA WHERE id_reclamacionventa=" + idReclam).executeUpdate();
             JOptionPane.showMessageDialog(null, "Reclamacion eliminada.");
             Limpiar(); actualizarTabla();
         } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()); }
     }
 
+    // FIX 2: onAgregarNota controlado por permisos vía btnAgregarNota
     @FXML public void onAgregarNota() {
         if (txtIdReclamacion.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Selecciona una reclamacion primero."); return; }
         if (txtNuevaNotaHistorial == null || txtNuevaNotaHistorial.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Escribe una nota primero."); return; }
