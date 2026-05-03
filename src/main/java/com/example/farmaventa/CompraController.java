@@ -21,7 +21,7 @@ public class CompraController {
 
     Conexion conexion = new Conexion();
 
-    // ── Botones con restricción de permisos ───────────────────────────────
+    // ── Botones con restricción de permisos ─/──────────────────────────────
     @FXML private Button btnRegistrarCompra;
     @FXML private Button btnEditarCompra;
     @FXML private Button btnAgregarProducto;
