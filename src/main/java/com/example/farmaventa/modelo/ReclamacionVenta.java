@@ -32,7 +32,6 @@ public class ReclamacionVenta {
         this.nombreProducto.set("");
     }
 
-    // Properties
     public SimpleIntegerProperty           idReclamacionventaProperty() { return idReclamacionventa; }
     public SimpleIntegerProperty           idVentaProperty()            { return idVenta; }
     public SimpleStringProperty            nombreClienteProperty()      { return nombreCliente; }
@@ -42,7 +41,6 @@ public class ReclamacionVenta {
     public SimpleStringProperty            descripcionProperty()        { return descripcion; }
     public SimpleStringProperty            nombreProductoProperty()     { return nombreProducto; }
 
-    // Getters / Setters
     public int       getIdReclamacionventa()           { return idReclamacionventa.get(); }
     public void      setIdReclamacionventa(int v)      { idReclamacionventa.set(v); }
     public int       getIdVenta()                      { return idVenta.get(); }

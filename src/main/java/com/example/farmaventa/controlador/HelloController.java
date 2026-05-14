@@ -1,9 +1,9 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import Usuarios.SesionUsuario;
-import Usuarios.Usuario;
 import com.example.farmaventa.database.Conexion;
+import com.example.farmaventa.modelo.EmailService;
 import com.example.farmaventa.modelo.Venta;
 import com.example.farmaventa.modelo.VentaSeguroItem;
 import javafx.collections.FXCollections;
@@ -15,9 +15,14 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.view.JasperViewer;
 
 import javax.swing.JOptionPane;
+import java.io.InputStream;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HelloController {
 
@@ -31,15 +36,15 @@ public class HelloController {
     @FXML private Button btnQuitarProdSeguro;
     @FXML private Button btnEditarVenta;
     @FXML private Button btnQuitarProducto;
-    @FXML private Button btnRegistrarPagoSeguro;   // NUEVO
+    @FXML private Button btnRegistrarPagoSeguro;
+    @FXML private Button btnImprimirFactura;
+    @FXML private Button btnImprimirFacturaSeguro;
 
-    // ══ HEADER ═══════════════════════════════════════════════════════
     @FXML private TabPane tabPane;
     @FXML private Label   lblTipoActivo;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // VENTA NORMAL
-    // ══════════════════════════════════════════════════════════════════════
+
+
     @FXML private TextField        txtIdVenta;
     @FXML private Label            lblInfoVenta;
     @FXML private TextField        txtIdCliente;
@@ -59,13 +64,17 @@ public class HelloController {
     @FXML private TextField        txtPrecioProducto;
     @FXML private TextField        txtBuscarProducto;
 
-    // ── Comprobante Fiscal (Venta Normal) ──────────────────────────────
     @FXML private CheckBox         chkComprobante;
     @FXML private ComboBox<String> cmbTipoComprobante;
     @FXML private Label            lblNcfGenerado;
     @FXML private VBox             panelComprobante;
 
     private int idComprobanteSeleccionado = -1;
+
+    @FXML private ComboBox<String> cmbMetodoPagoVenta;
+    @FXML private Button           btnRegistrarPagoVenta;
+
+    private double pendienteActualVenta = 0;
 
     @FXML private TableView<Venta>           tablaVentaProducto;
     @FXML private TableColumn<Venta, Number> colVentaId;
@@ -78,9 +87,8 @@ public class HelloController {
     private ObservableList<Venta> listaTemporal = FXCollections.observableArrayList();
     private int idVentaSeleccionada = -1;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // VENTA CON SEGURO
-    // ══════════════════════════════════════════════════════════════════════
+
+
     @FXML private TextField  txtIdVentaSeguro;
     @FXML private Label      lblInfoVentaSeguro;
     @FXML private TextField  txtIdClienteSeguro;
@@ -103,19 +111,16 @@ public class HelloController {
     @FXML private TextField  txtPrecioProdSeg;
     @FXML private TextField  txtPctCobertura;
 
-    // ── Pago integrado (Venta con Seguro) — NUEVO ─────────────────────
-    @FXML private TextField        txtMontoAsegPagado;   // lo que paga la aseguradora ahora
-    @FXML private ComboBox<String> cmbMetodoPagoAseg;    // método aseguradora
-    @FXML private TextField        txtMontoCliPagado;    // lo que paga el cliente ahora
-    @FXML private ComboBox<String> cmbMetodoPagoCli;     // método cliente
-    @FXML private Label            lblPendienteAseg;     // pendiente aseguradora
-    @FXML private Label            lblPendienteCli;      // pendiente cliente
+    @FXML private TextField        txtMontoAsegPagado;
+    @FXML private ComboBox<String> cmbMetodoPagoAseg;
+    @FXML private TextField        txtMontoCliPagado;
+    @FXML private ComboBox<String> cmbMetodoPagoCli;
+    @FXML private Label            lblPendienteAseg;
+    @FXML private Label            lblPendienteCli;
 
-    // pendientes en memoria para validación en tiempo real
-    private double pendienteAsegActual  = 0;
-    private double pendienteCliActual   = 0;
+    private double pendienteAsegActual = 0;
+    private double pendienteCliActual  = 0;
 
-    // ── Comprobante Fiscal (Venta con Seguro) ─────────────────────────
     @FXML private CheckBox         chkComprobanteSeguro;
     @FXML private ComboBox<String> cmbTipoComprobanteSeguro;
     @FXML private Label            lblNcfGeneradoSeguro;
@@ -136,11 +141,9 @@ public class HelloController {
     private int    idSeguroCliente           = -1;
     private double coberturaBaseCliente      = 0;
 
-    // ══ INITIALIZE ═══════════════════════════════════════════════════════
     @FXML
     public void initialize() {
 
-        // ── Venta Normal ──────────────────────────────────────────────
         cmbTipoVenta.getItems().addAll("Contado", "Credito");
         dpFechaVenta.setValue(java.time.LocalDate.now());
         lblMontoTotal.setText("RD$ 0.00");
@@ -159,7 +162,6 @@ public class HelloController {
             if (!n && !txtIdCliente.getText().isBlank()) buscarInfoCliente();
         });
 
-        // ── Venta con Seguro ──────────────────────────────────────────
         dpFechaVentaSeguro.setValue(java.time.LocalDate.now());
 
         colSegProd.setCellValueFactory(c -> c.getValue().productoProperty());
@@ -171,9 +173,12 @@ public class HelloController {
         colSegMtoAseg.setCellValueFactory(c -> c.getValue().montoAseguradoraProperty());
         colSegMtoCli.setCellValueFactory(c -> c.getValue().montoClienteProperty());
 
-        formatMoneda(colSegPrecio); formatMoneda(colSegSub);
-        formatMoneda(colSegMtoAseg); formatMoneda(colSegMtoCli);
-        formatPct(colSegPctCob); formatPct(colSegPctCli);
+        formatMoneda(colSegPrecio);
+        formatMoneda(colSegSub);
+        formatMoneda(colSegMtoAseg);
+        formatMoneda(colSegMtoCli);
+        formatPct(colSegPctCob);
+        formatPct(colSegPctCli);
 
         tablaSeguro.setItems(listaSeguro);
 
@@ -181,17 +186,16 @@ public class HelloController {
             if (!n && !txtIdClienteSeguro.getText().isBlank()) buscarInfoClienteSeguro();
         });
 
-        // ── Métodos de pago para el seguro ────────────────────────────
         if (cmbMetodoPagoAseg != null)
             cmbMetodoPagoAseg.getItems().addAll("Transferencia", "Cheque");
         if (cmbMetodoPagoCli != null)
             cmbMetodoPagoCli.getItems().addAll("Efectivo", "Tarjeta", "Transferencia");
+        if (cmbMetodoPagoVenta != null)
+            cmbMetodoPagoVenta.getItems().addAll("Efectivo", "Tarjeta", "Transferencia", "Cheque");
 
-        // Labels de pendiente en 0 al inicio
         if (lblPendienteAseg != null) lblPendienteAseg.setText("RD$ 0.00");
         if (lblPendienteCli  != null) lblPendienteCli.setText("RD$ 0.00");
 
-        // ── Tab indicator ─────────────────────────────────────────────
         if (tabPane != null) {
             tabPane.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
                 if (n == null || lblTipoActivo == null) return;
@@ -200,7 +204,6 @@ public class HelloController {
             });
         }
 
-        // ── Comprobante fiscal (Venta Normal) ─────────────────────────
         if (chkComprobante != null) {
             chkComprobante.selectedProperty().addListener((obs, oldVal, selected) -> {
                 if (panelComprobante != null) {
@@ -216,7 +219,6 @@ public class HelloController {
             cargarTiposComprobanteEn(cmbTipoComprobante);
         }
 
-        // ── Comprobante fiscal (Venta con Seguro) ─────────────────────
         if (chkComprobanteSeguro != null) {
             chkComprobanteSeguro.selectedProperty().addListener((obs, oldVal, selected) -> {
                 if (panelComprobanteSeguro != null) {
@@ -231,16 +233,16 @@ public class HelloController {
             cargarTiposComprobanteEn(cmbTipoComprobanteSeguro);
         }
 
-        // ── Permisos ──────────────────────────────────────────────────
-        Permisos.aplicarBtn(btnEditar,                Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnEliminar,              Permisos.Accion.ELIMINAR);
-        Permisos.aplicarBtn(btnRegistrarVenta,        Permisos.Accion.REGISTRAR);
-        Permisos.aplicarBtn(btnRegistrarVentaSeguro,  Permisos.Accion.REGISTRAR);
-        Permisos.aplicarBtn(btnEditarSeguro,          Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnQuitarProdSeguro,      Permisos.Accion.ELIMINAR);
-        Permisos.aplicarBtn(btnEditarVenta,           Permisos.Accion.EDITAR);
-        Permisos.aplicarBtn(btnQuitarProducto,        Permisos.Accion.ELIMINAR);
-        Permisos.aplicarBtn(btnRegistrarPagoSeguro,   Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEditar,               Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnEliminar,             Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnRegistrarVenta,       Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnRegistrarVentaSeguro, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnEditarSeguro,         Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnQuitarProdSeguro,     Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnEditarVenta,          Permisos.Accion.EDITAR);
+        Permisos.aplicarBtn(btnQuitarProducto,       Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnRegistrarPagoSeguro,  Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnRegistrarPagoVenta,  Permisos.Accion.REGISTRAR);
 
         if (!Permisos.puedeHacer(Permisos.Accion.EDITAR)) {
             if (txtIdVenta       != null) { txtIdVenta.setDisable(true);       txtIdVenta.setPromptText("Sin permiso"); }
@@ -248,17 +250,14 @@ public class HelloController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // COMPROBANTE FISCAL — helpers compartidos
-    // ══════════════════════════════════════════════════════════════════════
+
+
 
     private void cargarTiposComprobanteEn(ComboBox<String> cmb) {
         if (cmb == null) return;
         String sql = "SELECT MIN(id_comprobante) AS id_comprobante, tipo, serie " +
-                "FROM TBL_COMPROBANTE_FISCAL " +
-                "WHERE estado = 1 " +
-                "GROUP BY tipo, serie " +
-                "ORDER BY tipo";
+                "FROM TBL_COMPROBANTE_FISCAL WHERE estado = 1 " +
+                "GROUP BY tipo, serie ORDER BY tipo";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
@@ -279,12 +278,8 @@ public class HelloController {
                 cmb.getItems().add(label);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error cargando tipos de comprobante: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error cargando comprobantes: " + e.getMessage());
         }
-    }
-
-    private void cargarTiposComprobante() {
-        cargarTiposComprobanteEn(cmbTipoComprobante);
     }
 
     private int asignarComprobante(Connection con,
@@ -312,8 +307,7 @@ public class HelloController {
             ResultSet rs = ps.executeQuery();
             if (!rs.next()) {
                 JOptionPane.showMessageDialog(null,
-                        "No hay comprobante activo para el tipo seleccionado.\n" +
-                                "Contacte al administrador para habilitarlo.");
+                        "No hay comprobante activo para el tipo seleccionado.");
                 return -1;
             }
             idComprobante = rs.getInt("id_comprobante");
@@ -362,9 +356,8 @@ public class HelloController {
         return asignarComprobante(con, chkComprobanteSeguro, cmbTipoComprobanteSeguro, lblNcfGeneradoSeguro);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // VENTA NORMAL
-    // ══════════════════════════════════════════════════════════════════════
+
+
 
     private void buscarInfoCliente() {
         String sql = "SELECT p.nombre + ' ' + p.apellido AS nombre_completo, " +
@@ -414,7 +407,8 @@ public class HelloController {
                 ResultSet rs = ps.executeQuery();
                 if (!rs.next()) {
                     lblInfoVenta.setText("Venta no encontrada.");
-                    lblInfoVenta.setStyle("-fx-text-fill: #C62828; -fx-font-size: 11px;"); return;
+                    lblInfoVenta.setStyle("-fx-text-fill: #C62828; -fx-font-size: 11px;");
+                    return;
                 }
                 idVentaSeleccionada = rs.getInt("id_venta");
                 txtIdCliente.setText(String.valueOf(rs.getInt("id_cliente")));
@@ -423,6 +417,7 @@ public class HelloController {
                 txtCondicion.setText(rs.getString("condicion") != null ? rs.getString("condicion") : "");
                 try { dpFechaVenta.setValue(java.time.LocalDate.parse(rs.getString("fecha"))); } catch (Exception ignored) {}
                 double mt = rs.getDouble("monto_total"), mp = rs.getDouble("monto_pendiente");
+                pendienteActualVenta = mp;
                 lblInfoVenta.setText("Venta #" + idV + " - " + rs.getString("cliente") +
                         " | Total: RD$ " + String.format("%.2f", mt) +
                         " | Pendiente: RD$ " + String.format("%.2f", mp));
@@ -434,7 +429,9 @@ public class HelloController {
         } catch (NumberFormatException e) {
             lblInfoVenta.setText("ID invalido.");
             lblInfoVenta.setStyle("-fx-text-fill: #C62828; -fx-font-size: 11px;");
-        } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()); }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        }
     }
 
     private void cargarProductosDeVenta(Connection con, int idVenta) throws SQLException {
@@ -442,7 +439,8 @@ public class HelloController {
         PreparedStatement ps = con.prepareStatement(
                 "SELECT vp.id_producto, pr.nombre, vp.cantidad, vp.precio_unitario " +
                         "FROM TBL_VENTA_PRODUCTO vp " +
-                        "JOIN TBL_PRODUCTO pr ON pr.id_producto = vp.id_producto WHERE vp.id_venta = ?");
+                        "JOIN TBL_PRODUCTO pr ON pr.id_producto = vp.id_producto " +
+                        "WHERE vp.id_venta = ?");
         ps.setInt(1, idVenta);
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
@@ -458,7 +456,8 @@ public class HelloController {
     @FXML
     public void onBuscarProductoId(ActionEvent event) {
         if (txtIdProducto.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto."); return;
+            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.");
+            return;
         }
         buscarProducto(txtIdProducto, txtNombreProducto, txtPrecioProducto);
     }
@@ -466,40 +465,41 @@ public class HelloController {
     @FXML
     public void onAgregarProducto(ActionEvent event) {
         if (txtIdProducto.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.", "Campo requerido", JOptionPane.WARNING_MESSAGE); return;
+            JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
+            return;
         }
         if (txtNombreProducto.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Busca el producto primero (boton Buscar).", "Producto no buscado", JOptionPane.WARNING_MESSAGE);
-            txtIdProducto.requestFocus(); return;
+            txtIdProducto.requestFocus();
+            return;
         }
         if (txtPrecioProducto.getUserData() == null) {
             JOptionPane.showMessageDialog(null,
-                    "Debes buscar el producto antes de agregarlo.\n\nEso garantiza que el precio sea el del sistema.",
+                    "Debes buscar el producto antes de agregarlo.\nEso garantiza que el precio sea el del sistema.",
                     "Producto no validado", JOptionPane.WARNING_MESSAGE);
-            txtIdProducto.requestFocus(); return;
+            txtIdProducto.requestFocus();
+            return;
         }
         if (txtCantidadProducto.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "La cantidad es obligatoria.", "Campo requerido", JOptionPane.WARNING_MESSAGE); return;
-        }
-        if (txtPrecioProducto.getText().isBlank()) {
-            JOptionPane.showMessageDialog(null, "El precio es obligatorio.", "Campo requerido", JOptionPane.WARNING_MESSAGE); return;
+            JOptionPane.showMessageDialog(null, "La cantidad es obligatoria.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
+            return;
         }
 
         try {
-            int    idProd = Integer.parseInt(txtIdProducto.getText().trim());
-            int    cant   = Integer.parseInt(txtCantidadProducto.getText().trim());
-            double precio = Double.parseDouble(txtPrecioProducto.getText().trim());
+            int    idProd    = Integer.parseInt(txtIdProducto.getText().trim());
+            int    cant      = Integer.parseInt(txtCantidadProducto.getText().trim());
+            double precio    = Double.parseDouble(txtPrecioProducto.getText().trim());
             double precioMax = (double) txtPrecioProducto.getUserData();
 
             if (precio > precioMax + 0.001) {
                 JOptionPane.showMessageDialog(null,
-                        "⚠ El precio ingresado supera el precio registrado en el sistema.\n\n" +
-                                "Precio ingresado:   RD$ " + String.format("%.2f", precio) + "\n" +
-                                "Precio maximo:      RD$ " + String.format("%.2f", precioMax) + "\n\n" +
-                                "Maximo permitido:   RD$ " + String.format("%.2f", precioMax),
+                        "El precio ingresado supera el precio registrado en el sistema.\n" +
+                                "Precio maximo: RD$ " + String.format("%.2f", precioMax),
                         "Precio excedido", JOptionPane.WARNING_MESSAGE);
                 txtPrecioProducto.setText(String.format("%.2f", precioMax));
-                txtPrecioProducto.requestFocus(); txtPrecioProducto.selectAll(); return;
+                txtPrecioProducto.requestFocus();
+                txtPrecioProducto.selectAll();
+                return;
             }
 
             listaTemporal.add(new Venta(idProd, "", precio, cant, precio * cant,
@@ -507,9 +507,12 @@ public class HelloController {
             tablaVentaProducto.setItems(listaTemporal);
             actualizarTotalesNormal();
 
-            txtIdProducto.clear(); txtNombreProducto.clear(); txtCantidadProducto.clear();
+            txtIdProducto.clear();
+            txtNombreProducto.clear();
+            txtCantidadProducto.clear();
             if (txtPrecioProducto != null) {
-                txtPrecioProducto.clear(); txtPrecioProducto.setUserData(null);
+                txtPrecioProducto.clear();
+                txtPrecioProducto.setUserData(null);
                 txtPrecioProducto.setEditable(true);
                 txtPrecioProducto.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
             }
@@ -523,7 +526,8 @@ public class HelloController {
         String b = txtBuscarProducto.getText().trim().toLowerCase();
         if (b.isEmpty()) { tablaVentaProducto.setItems(listaTemporal); return; }
         ObservableList<Venta> f = FXCollections.observableArrayList();
-        for (Venta v : listaTemporal) if (v.getProducto().toLowerCase().contains(b)) f.add(v);
+        for (Venta v : listaTemporal)
+            if (v.getProducto().toLowerCase().contains(b)) f.add(v);
         tablaVentaProducto.setItems(f);
     }
 
@@ -546,7 +550,9 @@ public class HelloController {
             SelectorProductoController ctrl = loader.getController();
             ctrl.init(this, contentArea, "Venta | " + listaTemporal.size() + " productos");
             contentArea.getChildren().setAll(selectorVista);
-        } catch (Exception e) { JOptionPane.showMessageDialog(null, "Error al abrir catalogo: " + e.getMessage()); }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al abrir catalogo: " + e.getMessage());
+        }
     }
 
     public void recibirProductoDelCatalogo(int idProducto, String nombre, int cantidad, double precio) {
@@ -568,7 +574,15 @@ public class HelloController {
         }
 
         double montoTotal = calcTotalNormal();
-        double pendiente  = Math.max(0, montoTotal - parsePagado(txtMontoPagado));
+        double montoPagado = parsePagado(txtMontoPagado);
+        if (montoPagado > montoTotal + 0.001) {
+            JOptionPane.showMessageDialog(null,
+                    "El monto pagado (RD$ " + String.format("%.2f", montoPagado) +
+                            ") supera el total de la venta (RD$ " + String.format("%.2f", montoTotal) + ").",
+                    "Monto excedido", JOptionPane.WARNING_MESSAGE);
+            txtMontoPagado.requestFocus(); return;
+        }
+        double pendiente  = Math.max(0, montoTotal - montoPagado);
 
         try (Connection con = conexion.establecerConexion()) {
             con.setAutoCommit(false);
@@ -600,18 +614,46 @@ public class HelloController {
                             "INSERT INTO TBL_VENTA_PRODUCTO " +
                                     "(id_venta, id_producto, cantidad, precio_unitario, fecha_venta, id_presentacion) " +
                                     "VALUES (?,?,?,?,?,1)");
-                    psD.setInt(1, idVenta); psD.setInt(2, v.getIdVenta()); psD.setInt(3, v.getCantidad());
-                    psD.setDouble(4, v.getTotal()); psD.setDate(5, Date.valueOf(dpFechaVenta.getValue()));
+                    psD.setInt(1, idVenta);
+                    psD.setInt(2, v.getIdVenta());
+                    psD.setInt(3, v.getCantidad());
+                    psD.setDouble(4, v.getTotal());
+                    psD.setDate(5, Date.valueOf(dpFechaVenta.getValue()));
                     psD.executeUpdate();
+                }
+
+                if (montoPagado > 0) {
+                    String metodo = (cmbMetodoPagoVenta != null && cmbMetodoPagoVenta.getValue() != null)
+                            ? cmbMetodoPagoVenta.getValue() : "Efectivo";
+                    int idPago = insertarPago(con, "Venta",
+                            Date.valueOf(dpFechaVenta.getValue()), montoPagado, metodo);
+                    try (PreparedStatement psPuente = con.prepareStatement(
+                            "INSERT INTO TBL_PAGO_VENTA (id_venta, id_pago) VALUES (?,?)")) {
+                        psPuente.setInt(1, idVenta);
+                        psPuente.setInt(2, idPago);
+                        psPuente.executeUpdate();
+                    }
                 }
 
                 con.commit();
 
+                final int idVentaCreada = idVenta;
                 String msgNcf = (lblNcfGenerado != null && !lblNcfGenerado.getText().isBlank())
                         ? "\n" + lblNcfGenerado.getText()
                         : "\nSin comprobante fiscal";
-                JOptionPane.showMessageDialog(null, "✅ Venta #" + idVenta + " registrada correctamente." + msgNcf);
+
+                int respuesta = JOptionPane.showConfirmDialog(null,
+                        "✅ Venta #" + idVentaCreada + " registrada correctamente." + msgNcf +
+                                "\n\n¿Deseas imprimir la factura ahora?",
+                        "Venta registrada",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE);
+
                 onLimpiarVenta(null);
+
+                if (respuesta == JOptionPane.YES_OPTION) {
+                    generarReporteVentaNormal(idVentaCreada);
+                }
 
             } catch (Exception ex) {
                 con.rollback();
@@ -623,10 +665,73 @@ public class HelloController {
     }
 
     @FXML
+    public void onRegistrarPagoVenta(ActionEvent event) {
+        if (idVentaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(null, "Primero busca una venta por ID.");
+            return;
+        }
+        double montoPago = parsePagado(txtMontoPagado);
+        if (montoPago <= 0) {
+            JOptionPane.showMessageDialog(null, "Ingresa un monto de pago valido.");
+            txtMontoPagado.requestFocus(); return;
+        }
+        if (montoPago > pendienteActualVenta + 0.001) {
+            JOptionPane.showMessageDialog(null,
+                    "El pago supera el pendiente.\nPendiente actual: RD$ " +
+                            String.format("%.2f", pendienteActualVenta),
+                    "Monto excedido", JOptionPane.WARNING_MESSAGE);
+            txtMontoPagado.requestFocus(); return;
+        }
+        if (pendienteActualVenta <= 0) {
+            JOptionPane.showMessageDialog(null, "La venta ya esta completamente pagada.");
+            return;
+        }
+        String metodo = (cmbMetodoPagoVenta != null && cmbMetodoPagoVenta.getValue() != null)
+                ? cmbMetodoPagoVenta.getValue() : "Efectivo";
+
+        try (Connection con = conexion.establecerConexion()) {
+            con.setAutoCommit(false);
+            try {
+                int idPago = insertarPago(con, "Venta",
+                        Date.valueOf(java.time.LocalDate.now()), montoPago, metodo);
+                try (PreparedStatement ps = con.prepareStatement(
+                        "INSERT INTO TBL_PAGO_VENTA (id_venta, id_pago) VALUES (?,?)")) {
+                    ps.setInt(1, idVentaSeleccionada);
+                    ps.setInt(2, idPago);
+                    ps.executeUpdate();
+                }
+                try (PreparedStatement ps = con.prepareStatement(
+                        "UPDATE TBL_VENTA SET monto_pendiente = monto_pendiente - ? WHERE id_venta = ?")) {
+                    ps.setDouble(1, montoPago);
+                    ps.setInt(2, idVentaSeleccionada);
+                    ps.executeUpdate();
+                }
+                con.commit();
+
+                pendienteActualVenta = Math.max(0, pendienteActualVenta - montoPago);
+                lblMontoPendiente.setText("RD$ " + String.format("%.2f", pendienteActualVenta));
+                txtMontoPagado.clear();
+                if (cmbMetodoPagoVenta != null) cmbMetodoPagoVenta.setValue(null);
+
+                JOptionPane.showMessageDialog(null,
+                        "✅ Pago registrado.\n\nPendiente actual: RD$ " +
+                                String.format("%.2f", pendienteActualVenta));
+
+            } catch (Exception ex) {
+                con.rollback();
+                JOptionPane.showMessageDialog(null, "Error al registrar pago: " + ex.getMessage());
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error de conexion: " + e.getMessage());
+        }
+    }
+
+    @FXML
     public void onEditarVenta(ActionEvent event) {
         if (idVentaSeleccionada == -1) { JOptionPane.showMessageDialog(null, "Primero busca una venta por ID."); return; }
         if (txtIdCliente.getText().isBlank() || cmbTipoVenta.getValue() == null) {
-            JOptionPane.showMessageDialog(null, "Cliente y tipo de venta son obligatorios."); return;
+            JOptionPane.showMessageDialog(null, "Cliente y tipo de venta son obligatorios.");
+            return;
         }
         double montoTotal = calcTotalNormal();
         double pendiente  = Math.max(0, montoTotal - parsePagado(txtMontoPagado));
@@ -635,35 +740,48 @@ public class HelloController {
                      "UPDATE TBL_VENTA SET id_empleado=?,tipo_venta=?,fecha_transaccion=?," +
                              "monto_total=?,monto_pendiente=?,condicion=?,id_cliente=? WHERE id_venta=?")) {
             ps.setInt(1, txtIdEmpleado.getText().isBlank() ? 1 : Integer.parseInt(txtIdEmpleado.getText().trim()));
-            ps.setString(2, cmbTipoVenta.getValue()); ps.setDate(3, Date.valueOf(dpFechaVenta.getValue()));
-            ps.setDouble(4, montoTotal); ps.setDouble(5, pendiente);
+            ps.setString(2, cmbTipoVenta.getValue());
+            ps.setDate(3, Date.valueOf(dpFechaVenta.getValue()));
+            ps.setDouble(4, montoTotal);
+            ps.setDouble(5, pendiente);
             ps.setString(6, txtCondicion.getText().trim());
             ps.setInt(7, Integer.parseInt(txtIdCliente.getText().trim()));
-            ps.setInt(8, idVentaSeleccionada); ps.executeUpdate();
+            ps.setInt(8, idVentaSeleccionada);
+            ps.executeUpdate();
+
             con.prepareStatement("DELETE FROM TBL_VENTA_PRODUCTO WHERE id_venta=" + idVentaSeleccionada).executeUpdate();
             for (Venta v : listaTemporal) {
                 PreparedStatement psD = con.prepareStatement(
                         "INSERT INTO TBL_VENTA_PRODUCTO " +
                                 "(id_venta, id_producto, cantidad, precio_unitario, fecha_venta, id_presentacion) " +
                                 "VALUES (?,?,?,?,?,1)");
-                psD.setInt(1, idVentaSeleccionada); psD.setInt(2, v.getIdVenta()); psD.setInt(3, v.getCantidad());
-                psD.setDouble(4, v.getTotal()); psD.setDate(5, Date.valueOf(dpFechaVenta.getValue()));
+                psD.setInt(1, idVentaSeleccionada);
+                psD.setInt(2, v.getIdVenta());
+                psD.setInt(3, v.getCantidad());
+                psD.setDouble(4, v.getTotal());
+                psD.setDate(5, Date.valueOf(dpFechaVenta.getValue()));
                 psD.executeUpdate();
             }
             JOptionPane.showMessageDialog(null, "Venta #" + idVentaSeleccionada + " actualizada.");
             onLimpiarVenta(null);
-        } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error al editar venta: " + e.getMessage()); }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error al editar venta: " + e.getMessage());
+        }
     }
 
     @FXML
     public void onLimpiarVenta(ActionEvent event) {
-        txtIdVenta.clear(); txtIdCliente.clear(); txtIdEmpleado.clear();
-        txtCondicion.clear(); txtMontoPagado.clear();
+        txtIdVenta.clear();
+        txtIdCliente.clear();
+        txtIdEmpleado.clear();
+        txtCondicion.clear();
+        txtMontoPagado.clear();
         if (txtIdProducto       != null) txtIdProducto.clear();
         if (txtNombreProducto   != null) txtNombreProducto.clear();
         if (txtCantidadProducto != null) txtCantidadProducto.clear();
         if (txtPrecioProducto   != null) {
-            txtPrecioProducto.clear(); txtPrecioProducto.setUserData(null);
+            txtPrecioProducto.clear();
+            txtPrecioProducto.setUserData(null);
             txtPrecioProducto.setEditable(true);
             txtPrecioProducto.setStyle("-fx-background-radius: 6; -fx-border-color: #E0E0E0; -fx-border-radius: 6;");
         }
@@ -671,6 +789,8 @@ public class HelloController {
         if (lblInfoVenta      != null) lblInfoVenta.setText("");
         if (lblNombreCliente  != null) lblNombreCliente.setText("");
         if (lblSeguroCliente  != null) lblSeguroCliente.setText("");
+        if (cmbMetodoPagoVenta != null) cmbMetodoPagoVenta.setValue(null);
+        pendienteActualVenta = 0;
         cmbTipoVenta.setValue(null);
         dpFechaVenta.setValue(java.time.LocalDate.now());
         listaTemporal.clear();
@@ -698,12 +818,109 @@ public class HelloController {
     }
 
     private double calcTotalNormal() {
-        double t = 0; for (Venta v : listaTemporal) t += v.getSubtotal(); return t;
+        double t = 0;
+        for (Venta v : listaTemporal) t += v.getSubtotal();
+        return t;
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // VENTA CON SEGURO
-    // ══════════════════════════════════════════════════════════════════════
+
+
+
+
+    private JasperPrint generarReporteVentaNormal(int idVenta) throws Exception {
+        Connection connection = null;
+        try {
+            InputStream reportStream = getClass()
+                    .getResourceAsStream("/reports/Factura.jrxml");
+
+            if (reportStream == null) {
+                throw new Exception("No se encontró el archivo del reporte Factura.jrxml");
+            }
+
+            JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put("ID_VENTA", idVenta);
+            parameters.put("LOGO_STREAM", getClass().getResourceAsStream("/reports/logusfarmablanco.png"));
+
+            connection = conexion.establecerConexion();
+
+            return JasperFillManager.fillReport(jasperReport, parameters, connection);
+        } finally {
+            if (connection != null) {
+                try { connection.close(); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+
+    @FXML
+    public void onImprimirVenta(ActionEvent event) {
+        if (idVentaSeleccionada == -1) {
+            if (listaTemporal.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "No hay una venta seleccionada.\n" +
+                                "Primero registra o busca una venta.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "Hay productos en la tabla pero la venta no está guardada.\n\n" +
+                                "Para imprimir:\n" +
+                                "1. Registra la venta con 'Registrar Venta'\n" +
+                                "2. O busca una venta existente por ID\n" +
+                                "3. Luego presiona 'Imprimir Factura'",
+                        "Venta no registrada", JOptionPane.WARNING_MESSAGE);
+            }
+            return;
+        }
+        try {
+            JasperPrint jasperPrint = generarReporteVentaNormal(idVentaSeleccionada);
+            JasperViewer viewer = new JasperViewer(jasperPrint, false);
+            viewer.setTitle("Factura #" + String.format("%06d", idVentaSeleccionada) + " — UsFarma");
+            viewer.setVisible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Error al generar el reporte:\n" + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    @FXML
+    public void onEnviarFactura(ActionEvent event) {
+        if (idVentaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(null,
+                    "No hay una venta seleccionada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            JasperPrint jasperPrint = generarReporteVentaNormal(idVentaSeleccionada);
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Enviar Factura por Correo");
+            dialog.setHeaderText("Ingrese el correo del destinatario:");
+            dialog.setContentText("Correo:");
+            String destinatario = dialog.showAndWait().orElse(null);
+            if (destinatario == null || destinatario.isBlank()) return;
+
+            byte[] pdf = JasperExportManager.exportReportToPdf(jasperPrint);
+            EmailService emailService = new EmailService(
+                    "smtp.gmail.com", "587",
+                    "2230006@ipisa.edu.do", "dfjy zlqx nsve idyf");
+            emailService.enviarConReporte(destinatario,
+                    "Factura #" + String.format("%06d", idVentaSeleccionada),
+                    "Adjunto la factura de venta.",
+                    "Factura_" + idVentaSeleccionada + ".pdf",
+                    new java.io.ByteArrayInputStream(pdf));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Error al enviar la factura:\n" + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
 
     private void buscarInfoClienteSeguro() {
         String sql = "SELECT p.nombre + ' ' + p.apellido AS nombre_completo, " +
@@ -772,7 +989,6 @@ public class HelloController {
                         " | " + rs.getString("nombre_seguro"));
                 lblInfoVentaSeguro.setStyle("-fx-text-fill: #1B5E20; -fx-font-size: 11px;");
 
-                // Cargar pendientes en memoria y en pantalla
                 pendienteAsegActual = rs.getDouble("monto_pendiente_a");
                 pendienteCliActual  = rs.getDouble("monto_pendiente_cliente");
                 actualizarLabelsPendiente();
@@ -782,10 +998,11 @@ public class HelloController {
             }
         } catch (NumberFormatException e) {
             lblInfoVentaSeguro.setText("ID invalido.");
-        } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()); }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        }
     }
 
-    /** Refresca los labels de pendiente aseguradora y cliente. */
     private void actualizarLabelsPendiente() {
         if (lblPendienteAseg != null) {
             lblPendienteAseg.setText("Pendiente aseguradora: RD$ " + String.format("%.2f", pendienteAsegActual));
@@ -831,23 +1048,24 @@ public class HelloController {
     public void onAgregarProdSeguro(ActionEvent event) {
         if (idSeguroCliente == -1) { JOptionPane.showMessageDialog(null, "El cliente no tiene seguro medico registrado."); return; }
         if (txtIdProdSeg.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa el ID del producto.", "Campo requerido", JOptionPane.WARNING_MESSAGE); return; }
-        if (txtNombreProdSeg.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Busca el producto primero (boton Buscar).", "Producto no buscado", JOptionPane.WARNING_MESSAGE); txtIdProdSeg.requestFocus(); return; }
+        if (txtNombreProdSeg.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Busca el producto primero.", "Producto no buscado", JOptionPane.WARNING_MESSAGE); txtIdProdSeg.requestFocus(); return; }
         if (txtPrecioProdSeg.getUserData() == null) { JOptionPane.showMessageDialog(null, "Debes buscar el producto antes de agregarlo.", "Producto no validado", JOptionPane.WARNING_MESSAGE); txtIdProdSeg.requestFocus(); return; }
         if (txtCantProdSeg.getText().isBlank() || txtPrecioProdSeg.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Completa todos los campos del producto."); return; }
         if (txtPctCobertura.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Ingresa el porcentaje de cobertura."); return; }
 
         try {
-            int    idProd = Integer.parseInt(txtIdProdSeg.getText().trim());
-            int    cant   = Integer.parseInt(txtCantProdSeg.getText().trim());
-            double precio = Double.parseDouble(txtPrecioProdSeg.getText().trim());
+            int    idProd    = Integer.parseInt(txtIdProdSeg.getText().trim());
+            int    cant      = Integer.parseInt(txtCantProdSeg.getText().trim());
+            double precio    = Double.parseDouble(txtPrecioProdSeg.getText().trim());
             double precioMax = (double) txtPrecioProdSeg.getUserData();
 
             if (precio > precioMax + 0.001) {
                 JOptionPane.showMessageDialog(null,
-                        "⚠ El precio ingresado supera el precio del sistema.\nMaximo: RD$ " + String.format("%.2f", precioMax),
+                        "El precio supera el precio del sistema.\nMaximo: RD$ " + String.format("%.2f", precioMax),
                         "Precio excedido", JOptionPane.WARNING_MESSAGE);
                 txtPrecioProdSeg.setText(String.format("%.2f", precioMax));
-                txtPrecioProdSeg.requestFocus(); txtPrecioProdSeg.selectAll(); return;
+                txtPrecioProdSeg.requestFocus(); txtPrecioProdSeg.selectAll();
+                return;
             }
 
             double pct = Math.min(100, Math.max(0, Double.parseDouble(txtPctCobertura.getText().replace("%", "").trim())));
@@ -882,8 +1100,7 @@ public class HelloController {
         if (listaSeguro.isEmpty())                   { JOptionPane.showMessageDialog(null, "Agrega al menos un producto asegurado."); return; }
         if (chkComprobanteSeguro != null && chkComprobanteSeguro.isSelected()
                 && (cmbTipoComprobanteSeguro == null || cmbTipoComprobanteSeguro.getValue() == null)) {
-            JOptionPane.showMessageDialog(null,
-                    "Selecciona el tipo de comprobante fiscal o desmarca la opcion.",
+            JOptionPane.showMessageDialog(null, "Selecciona el tipo de comprobante fiscal o desmarca la opcion.",
                     "Comprobante requerido", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -895,22 +1112,18 @@ public class HelloController {
             totalCli   += i.getMontoCliente();
         }
 
-        // Leer lo que ya se paga al momento de registrar (puede ser 0)
         double pagoAsegAhora = parsePagado(txtMontoAsegPagado);
         double pagoCliAhora  = parsePagado(txtMontoCliPagado);
 
-        // Validar que no paguen más de lo que corresponde
         if (pagoAsegAhora > totalAseg + 0.001) {
             JOptionPane.showMessageDialog(null,
-                    "El pago de la aseguradora (RD$ " + String.format("%.2f", pagoAsegAhora) +
-                            ") supera su parte (RD$ " + String.format("%.2f", totalAseg) + ").",
+                    "El pago de la aseguradora supera su parte (RD$ " + String.format("%.2f", totalAseg) + ").",
                     "Monto excedido", JOptionPane.WARNING_MESSAGE);
             txtMontoAsegPagado.requestFocus(); return;
         }
         if (pagoCliAhora > totalCli + 0.001) {
             JOptionPane.showMessageDialog(null,
-                    "El pago del cliente (RD$ " + String.format("%.2f", pagoCliAhora) +
-                            ") supera su parte (RD$ " + String.format("%.2f", totalCli) + ").",
+                    "El pago del cliente supera su parte (RD$ " + String.format("%.2f", totalCli) + ").",
                     "Monto excedido", JOptionPane.WARNING_MESSAGE);
             txtMontoCliPagado.requestFocus(); return;
         }
@@ -921,10 +1134,8 @@ public class HelloController {
         try (Connection con = conexion.establecerConexion()) {
             con.setAutoCommit(false);
             try {
-                // 1. Generar NCF si aplica
                 int idComp = asignarComprobanteFiscalSeguro(con);
 
-                // 2. Insertar la venta con seguro
                 PreparedStatement ps = con.prepareStatement(
                         "INSERT INTO TBL_VENTA_SEGURO " +
                                 "(numero_autorizacion, monto_aprobado, monto_total, " +
@@ -949,7 +1160,6 @@ public class HelloController {
                 ResultSet keys = ps.getGeneratedKeys();
                 if (keys.next()) idVS = keys.getInt(1);
 
-                // 3. Insertar productos asegurados
                 for (VentaSeguroItem item : listaSeguro) {
                     PreparedStatement psD = con.prepareStatement(
                             "INSERT INTO TBL_VENTA_PRODUCTO_SEGURO " +
@@ -967,7 +1177,6 @@ public class HelloController {
                     psD.executeUpdate();
                 }
 
-                // 4. Registrar pago de aseguradora si ingresó monto > 0
                 if (pagoAsegAhora > 0) {
                     String metodoAseg = (cmbMetodoPagoAseg != null && cmbMetodoPagoAseg.getValue() != null)
                             ? cmbMetodoPagoAseg.getValue() : "Efectivo";
@@ -976,7 +1185,6 @@ public class HelloController {
                     insertarPuenteAseguradora(con, idVS, idPagoAseg);
                 }
 
-                // 5. Registrar pago del cliente si ingresó monto > 0
                 if (pagoCliAhora > 0) {
                     String metodoCli = (cmbMetodoPagoCli != null && cmbMetodoPagoCli.getValue() != null)
                             ? cmbMetodoPagoCli.getValue() : "Efectivo";
@@ -1011,7 +1219,6 @@ public class HelloController {
         }
     }
 
-    // ── NUEVO: registrar un pago adicional sobre una venta ya existente ──
     @FXML
     public void onRegistrarPagoSeguro(ActionEvent event) {
         if (idVentaSeguroSeleccionada == -1) {
@@ -1023,25 +1230,21 @@ public class HelloController {
         double pagoCli  = parsePagado(txtMontoCliPagado);
 
         if (pagoAseg == 0 && pagoCli == 0) {
-            JOptionPane.showMessageDialog(null,
-                    "Ingresa al menos un monto de pago (aseguradora o cliente).");
+            JOptionPane.showMessageDialog(null, "Ingresa al menos un monto de pago.");
             return;
         }
 
-        // Validar contra los pendientes actuales cargados en memoria
         if (pagoAseg > pendienteAsegActual + 0.001) {
             JOptionPane.showMessageDialog(null,
-                    "⚠ El pago de la aseguradora supera el pendiente.\n\n" +
-                            "Ingresado:  RD$ " + String.format("%.2f", pagoAseg) + "\n" +
-                            "Pendiente:  RD$ " + String.format("%.2f", pendienteAsegActual),
+                    "El pago de la aseguradora supera el pendiente.\n" +
+                            "Pendiente: RD$ " + String.format("%.2f", pendienteAsegActual),
                     "Monto excedido", JOptionPane.WARNING_MESSAGE);
             txtMontoAsegPagado.requestFocus(); return;
         }
         if (pagoCli > pendienteCliActual + 0.001) {
             JOptionPane.showMessageDialog(null,
-                    "⚠ El pago del cliente supera el pendiente.\n\n" +
-                            "Ingresado:  RD$ " + String.format("%.2f", pagoCli) + "\n" +
-                            "Pendiente:  RD$ " + String.format("%.2f", pendienteCliActual),
+                    "El pago del cliente supera el pendiente.\n" +
+                            "Pendiente: RD$ " + String.format("%.2f", pendienteCliActual),
                     "Monto excedido", JOptionPane.WARNING_MESSAGE);
             txtMontoCliPagado.requestFocus(); return;
         }
@@ -1089,13 +1292,11 @@ public class HelloController {
         }
     }
 
-    // ── Helpers de BD para pagos ──────────────────────────────────────
 
     private int insertarPago(Connection con, String tipoPago,
                              java.sql.Date fechaPago, double monto,
                              String metodoPago) throws SQLException {
-        String sql = "INSERT INTO TBL_PAGO " +
-                "(tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) " +
+        String sql = "INSERT INTO TBL_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) " +
                 "VALUES (?, ?, ?, ?, 1)";
         try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, tipoPago);
@@ -1130,8 +1331,6 @@ public class HelloController {
             ps.setDouble(1, monto); ps.setInt(2, idVentaSeguroSeleccionada); ps.executeUpdate();
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────
 
     @FXML
     public void onEditarVentaSeguro(ActionEvent event) {
@@ -1175,7 +1374,9 @@ public class HelloController {
             }
             JOptionPane.showMessageDialog(null, "Venta con Seguro #" + idVentaSeguroSeleccionada + " actualizada.");
             onLimpiarSeguro(null);
-        } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()); }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -1223,7 +1424,6 @@ public class HelloController {
         if (lblMontoClienteSeguro != null) lblMontoClienteSeguro.setText("RD$ " + String.format("%.2f", cli));
     }
 
-    // ══ HELPERS COMPARTIDOS ═══════════════════════════════════════════════
 
     private void buscarProducto(TextField fldId, TextField fldNombre, TextField fldPrecio) {
         String sql = "SELECT p.nombre, ISNULL((SELECT TOP 1 precio_venta " +
@@ -1245,7 +1445,9 @@ public class HelloController {
                 JOptionPane.showMessageDialog(null, "Producto no encontrado.");
                 fldNombre.clear(); fldPrecio.clear(); fldPrecio.setUserData(null);
             }
-        } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()); }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        }
     }
 
     private double parsePagado(TextField field) {
@@ -1266,7 +1468,7 @@ public class HelloController {
         col.setCellFactory(c -> new TableCell<>() {
             @Override protected void updateItem(Number item, boolean empty) {
                 super.updateItem(item, empty);
-                setText((empty || item == null) ? null : String.format("%.0f", item.doubleValue()) + " pct");
+                setText((empty || item == null) ? null : String.format("%.0f", item.doubleValue()) + " %");
             }
         });
     }
@@ -1287,5 +1489,98 @@ public class HelloController {
             destino.lblInfoVenta.setStyle(this.lblInfoVenta.getStyle());
         }
         destino.actualizarTotalesNormal();
+    }
+
+
+    private JasperPrint generarReporteVentaSeguro(int idVentaSeguro) throws Exception {
+        Connection connection = null;
+        try {
+            InputStream reportStream = getClass()
+                    .getResourceAsStream("/reports/FacturaSeguro.jrxml");
+
+            if (reportStream == null) {
+                throw new Exception("No se encontró el archivo del reporte FacturaSeguro.jrxml");
+            }
+
+            JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put("ID_VENTA_SEGURO", idVentaSeguro);
+            parameters.put("LOGO_STREAM", getClass().getResourceAsStream("/reports/logusfarmablanco.png"));
+
+            connection = conexion.establecerConexion();
+
+            return JasperFillManager.fillReport(jasperReport, parameters, connection);
+        } finally {
+            if (connection != null) {
+                try { connection.close(); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+
+    @FXML
+    public void onImprimirVentaSeguro(ActionEvent event) {
+        if (idVentaSeguroSeleccionada == -1) {
+            if (listaSeguro.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "No hay una venta con seguro seleccionada.\n" +
+                                "Primero registra o busca una venta con seguro.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "Hay productos en la tabla pero la venta no está guardada.\n\n" +
+                                "Para imprimir:\n" +
+                                "1. Registra la venta con 'Registrar Venta'\n" +
+                                "2. O busca una venta existente por ID\n" +
+                                "3. Luego presiona 'Imprimir Factura'",
+                        "Venta no registrada", JOptionPane.WARNING_MESSAGE);
+            }
+            return;
+        }
+        try {
+            JasperPrint jasperPrint = generarReporteVentaSeguro(idVentaSeguroSeleccionada);
+            JasperViewer viewer = new JasperViewer(jasperPrint, false);
+            viewer.setTitle("Factura Seguro #" + String.format("%06d", idVentaSeguroSeleccionada) + " — UsFarma");
+            viewer.setVisible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Error al generar el reporte:\n" + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    @FXML
+    public void onEnviarFacturaSeguro(ActionEvent event) {
+        if (idVentaSeguroSeleccionada == -1) {
+            JOptionPane.showMessageDialog(null,
+                    "No hay una venta con seguro seleccionada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            JasperPrint jasperPrint = generarReporteVentaSeguro(idVentaSeguroSeleccionada);
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Enviar Factura por Correo");
+            dialog.setHeaderText("Ingrese el correo del destinatario:");
+            dialog.setContentText("Correo:");
+            String destinatario = dialog.showAndWait().orElse(null);
+            if (destinatario == null || destinatario.isBlank()) return;
+
+            byte[] pdf = JasperExportManager.exportReportToPdf(jasperPrint);
+            EmailService emailService = new EmailService(
+                    "smtp.gmail.com", "587",
+                    "2230006@ipisa.edu.do", "dfjy zlqx nsve idyf");
+            emailService.enviarConReporte(destinatario,
+                    "Factura Seguro #" + String.format("%06d", idVentaSeguroSeleccionada),
+                    "Adjunto la factura de venta con seguro.",
+                    "FacturaSeguro_" + idVentaSeguroSeleccionada + ".pdf",
+                    new java.io.ByteArrayInputStream(pdf));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Error al enviar la factura:\n" + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

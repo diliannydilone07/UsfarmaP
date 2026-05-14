@@ -6,10 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 import java.time.LocalDate;
 
-/**
- * Mapea TBL_HISTORICO_RECLAMACION_COMPRA
- * Columnas: id_historico_reclam_compra, descripcion, creado_por, fecha_creacion, id_reclamacioncompra
- */
+
 public class HistoricoReclamacionCompra {
 
     private final SimpleIntegerProperty           idHistorico          = new SimpleIntegerProperty();
@@ -37,14 +34,12 @@ public class HistoricoReclamacionCompra {
                 + "ID Reclamación: " + idReclamacioncompra.get();
     }
 
-    // ── Properties ────────────────────────────────────────────────────────────
     public SimpleIntegerProperty           idHistoricoProperty()         { return idHistorico; }
     public SimpleStringProperty            descripcionProperty()         { return descripcion; }
     public SimpleStringProperty            creadoPorProperty()           { return creadoPor; }
     public SimpleObjectProperty<LocalDate> fechaCreacionProperty()       { return fechaCreacion; }
     public SimpleIntegerProperty           idReclamacioncompraProperty() { return idReclamacioncompra; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────────
     public int       getIdHistorico()                    { return idHistorico.get(); }
     public void      setIdHistorico(int v)               { idHistorico.set(v); }
     public String    getDescripcion()                    { return descripcion.get(); }

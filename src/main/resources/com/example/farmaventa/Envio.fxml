@@ -4,9 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.EnvioController">
+<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.controlador.EnvioController">
 
-    <!-- ══ ENCABEZADO ══ -->
+
     <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #DCE8DC; -fx-border-width: 0 0 1 0;                  -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.07), 8, 0, 0, 2);">
         <padding><Insets bottom="18" left="24" right="24" top="18" /></padding>
         <VBox spacing="2">
@@ -15,18 +15,18 @@
         </VBox>
     </HBox>
 
-    <!-- ══ CUERPO ══ -->
+
     <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-        <!-- ── FORMULARIO (ancho cómodo, igual que Convenio) ── -->
+
         <VBox prefHeight="554.0" prefWidth="453.0" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
             <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Registro de Envío" />
             <Separator style="-fx-background-color: #E8F5E9;" />
 
-            <!-- ID Venta + botón buscar al mismo alto que el campo -->
+
             <VBox spacing="4">
                 <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="ID Venta" />
                 <HBox alignment="CENTER_LEFT" spacing="8">
@@ -71,7 +71,7 @@
             </HBox>
         </VBox>
 
-        <!-- ── TABLA ── -->
+
         <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
@@ -80,7 +80,7 @@
                     <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Envíos Registrados" />
                     <Label style="-fx-font-size: 11px; -fx-text-fill: #90A4AE;" text="Selecciona uno para editarlo" />
                 </VBox>
-                <TextField fx:id="txtBuscar" prefWidth="230" promptText="🔍  Buscar envío..." style="-fx-background-radius: 20; -fx-border-color: #C8D8C8;                                   -fx-border-radius: 20; -fx-border-width: 1; -fx-padding: 7 14 7 14;" />
+                <TextField fx:id="txtBuscar" onKeyReleased="#fnBuscar" prefWidth="230" promptText="🔍  Buscar envío..." style="-fx-background-radius: 20; -fx-border-color: #C8D8C8;                                   -fx-border-radius: 20; -fx-border-width: 1; -fx-padding: 7 14 7 14;" />
             </HBox>
             <Separator style="-fx-background-color: #E8F5E9;" />
 

@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import javafx.fxml.FXML;
@@ -9,6 +9,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -27,6 +29,7 @@ public class MainController implements Initializable {
     @FXML private Label     lblFecha;
     @FXML private Label     lblModuloActual;
     @FXML private Label     lblSubtituloActual;
+    @FXML private ImageView imgLogo;
 
     @FXML private Button btnInicio;
     @FXML private Button btnVentas;
@@ -86,7 +89,9 @@ public class MainController implements Initializable {
             lblFecha.setText(LocalDate.now()
                     .format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
-        // FIX BUG: asegurar que los submenús empiecen cerrados
+        if (imgLogo != null)
+            imgLogo.setImage(new Image(getClass().getResourceAsStream("/reports/logusfarmablanco.png")));
+
         if (vboxReclamaciones != null) {
             vboxReclamaciones.setVisible(false);
             vboxReclamaciones.setManaged(false);
@@ -127,7 +132,6 @@ public class MainController implements Initializable {
             lblUsuario.setText(nombreCompleto);
     }
 
-    // ── Navegación principal ──────────────────────────────────────────────
     @FXML private void onMenuInicio() {
         cargarVista("Dashboard.fxml", btnInicio, "Inicio", "Panel principal del sistema"); }
     @FXML private void onMenuVentas() {
@@ -168,7 +172,6 @@ public class MainController implements Initializable {
         }
     }
 
-    // ── Toggle Reclamaciones ──────────────────────────────────────────────
     @FXML
     private void onToggleReclamaciones() {
         reclamacionesExpandido = !reclamacionesExpandido;
@@ -178,7 +181,6 @@ public class MainController implements Initializable {
                 ? "📋  Reclamaciones  ∨" : "📋  Reclamaciones  ›");
         btnReclamacionesToggle.setStyle(reclamacionesExpandido ? S_TOGGLE_ABIERTO : S_NORMAL);
 
-        // FIX BUG: no pueden estar ambos abiertos al mismo tiempo
         if (reclamacionesExpandido && devolucionesExpandido) {
             cerrarDevoluciones();
         }
@@ -196,7 +198,6 @@ public class MainController implements Initializable {
                 btnReclamacionesCompra);
     }
 
-    // ── Toggle Devoluciones ───────────────────────────────────────────────
     @FXML
     private void onToggleDevoluciones() {
         devolucionesExpandido = !devolucionesExpandido;
@@ -206,7 +207,6 @@ public class MainController implements Initializable {
                 ? "↩  Devoluciones  ∨" : "↩  Devoluciones  ›");
         btnDevolucionesToggle.setStyle(devolucionesExpandido ? S_TOGGLE_ABIERTO : S_NORMAL);
 
-        // FIX BUG: no pueden estar ambos abiertos al mismo tiempo
         if (devolucionesExpandido && reclamacionesExpandido) {
             cerrarReclamaciones();
         }
@@ -224,7 +224,6 @@ public class MainController implements Initializable {
                 btnDevolucionesCompra);
     }
 
-    // ── Helpers de cierre de submenús ─────────────────────────────────────
     private void cerrarReclamaciones() {
         reclamacionesExpandido = false;
         vboxReclamaciones.setVisible(false);
@@ -241,7 +240,6 @@ public class MainController implements Initializable {
         btnDevolucionesToggle.setStyle(S_NORMAL);
     }
 
-    // ── Cerrar sesión ─────────────────────────────────────────────────────
     @FXML
     private void onCerrarSesion() {
         try {
@@ -262,9 +260,8 @@ public class MainController implements Initializable {
         }
     }
 
-    // ── Helpers de carga ──────────────────────────────────────────────────
 
-    /** Carga una vista principal (Inicio, Ventas, etc.) */
+
     private void cargarVista(String fxml, Button boton, String titulo, String subtitulo) {
         try {
             URL ruta = getClass().getResource("/com/example/farmaventa/" + fxml);
@@ -286,10 +283,7 @@ public class MainController implements Initializable {
         }
     }
 
-    /**
-     * Carga una vista de sub-item (Reclamaciones·Ventas, Devoluciones·Compras, etc.)
-     * El toggle padre mantiene su estilo S_TOGGLE_ABIERTO; solo se marca el sub activo.
-     */
+
     private void cargarVistaConSub(String fxml, String titulo, String subtitulo, Button subBtn) {
         try {
             URL ruta = getClass().getResource("/com/example/farmaventa/" + fxml);
@@ -299,11 +293,9 @@ public class MainController implements Initializable {
             if (lblModuloActual    != null) lblModuloActual.setText(titulo);
             if (lblSubtituloActual != null) lblSubtituloActual.setText(subtitulo);
 
-            // Desactivar btn principal activo (si hubiera uno)
             desactivarBtnActivo();
             btnActivo = null;
 
-            // Marcar sub activo
             limpiarSubs();
             subBtn.setStyle(S_SUB_ACTIVO);
             btnSubActivo = subBtn;
@@ -336,7 +328,6 @@ public class MainController implements Initializable {
         limpiarSubs();
     }
 
-    // ── Getters ───────────────────────────────────────────────────────────
     public void navegarA(String fxml, Button boton) {
         cargarVista(fxml, boton != null ? boton : btnInicio, "", ""); }
     public Button getBtnInicio()              { return btnInicio; }

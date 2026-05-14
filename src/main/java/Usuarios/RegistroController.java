@@ -16,7 +16,6 @@ public class RegistroController {
 
     Conexion conexion = new Conexion();
 
-    // Formulario
     @FXML private ComboBox<String>  cmbEmpleado;
     @FXML private TextField         txtUsuario;
     @FXML private PasswordField     txtContrasena;
@@ -25,7 +24,6 @@ public class RegistroController {
     @FXML private Label             lblError;
     @FXML private Label             lblExito;
 
-    // Tabla
     @FXML private TableView<UsuarioRow>          tablaUsuarios;
     @FXML private TableColumn<UsuarioRow,String> colId;
     @FXML private TableColumn<UsuarioRow,String> colNombre;
@@ -35,15 +33,13 @@ public class RegistroController {
     @FXML private TableColumn<UsuarioRow,String> colAcceso;
     @FXML private TextField                      txtBuscarUsuario;
 
-    // Botón principal — su texto cambia entre "Registrar" y "Actualizar"
     @FXML private Button btnAccion;
 
     private ObservableList<UsuarioRow> listaUsuarios = FXCollections.observableArrayList();
     private Integer idEditando = null; // null = modo registro, >0 = modo edición
 
-    // ─────────────────────────────────────────────
-    // Modelo de fila
-    // ─────────────────────────────────────────────
+
+
     public static class UsuarioRow {
         public int    id;
         public String nombre, usuario, rol, estado, acceso;
@@ -59,15 +55,13 @@ public class RegistroController {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // initialize
-    // ─────────────────────────────────────────────
+
+
     @FXML
     public void initialize() {
         ocultarMensajes();
         cmbRol.getItems().addAll("ADMIN", "CAJERO", "FARMACEUTICO", "SUPERVISOR");
 
-        // Columnas
         colId.setCellValueFactory(c      -> new SimpleStringProperty(String.valueOf(c.getValue().id)));
         colNombre.setCellValueFactory(c  -> new SimpleStringProperty(c.getValue().nombre));
         colUsuario.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().usuario));
@@ -75,7 +69,6 @@ public class RegistroController {
         colEstado.setCellValueFactory(c  -> new SimpleStringProperty(c.getValue().estado));
         colAcceso.setCellValueFactory(c  -> new SimpleStringProperty(c.getValue().acceso));
 
-        // Colorear estado
         colEstado.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -88,7 +81,6 @@ public class RegistroController {
             }
         });
 
-        // Búsqueda en vivo
         FilteredList<UsuarioRow> filtrada = new FilteredList<>(listaUsuarios, p -> true);
         txtBuscarUsuario.textProperty().addListener((obs, old, val) ->
                 filtrada.setPredicate(row -> val == null || val.isEmpty()
@@ -98,7 +90,6 @@ public class RegistroController {
         );
         tablaUsuarios.setItems(filtrada);
 
-        // ── CLAVE: al seleccionar una fila → llenar formulario automáticamente ──
         tablaUsuarios.getSelectionModel().selectedItemProperty().addListener(
                 (obs, anterior, seleccionada) -> {
                     if (seleccionada != null) {
@@ -111,9 +102,8 @@ public class RegistroController {
         cargarUsuarios();
     }
 
-    // ─────────────────────────────────────────────
-    // Llena el formulario con los datos de la fila
-    // ─────────────────────────────────────────────
+
+
     private void cargarEnFormulario(UsuarioRow row) {
         idEditando = row.id;
         txtUsuario.setText(row.usuario);
@@ -122,16 +112,14 @@ public class RegistroController {
         txtConfirmar.clear();
         cmbEmpleado.setDisable(true); // No se puede cambiar el empleado al editar
 
-        // Cambiar el botón a modo edición
         btnAccion.setText("Actualizar");
 
         ocultarMensajes();
         mostrarExito("Editando: " + row.nombre + "  —  deja la contraseña en blanco para no cambiarla.");
     }
 
-    // ─────────────────────────────────────────────
-    // Cargar datos
-    // ─────────────────────────────────────────────
+
+
     private void cargarEmpleadosSinCredencial() {
         cmbEmpleado.getItems().clear();
         String sql =
@@ -183,14 +171,12 @@ public class RegistroController {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // Registrar / Actualizar  (mismo botón)
-    // ─────────────────────────────────────────────
+
+
     @FXML
     public void onRegistrar(ActionEvent event) {
         ocultarMensajes();
 
-        // Validaciones
         if (cmbEmpleado.getValue() == null && idEditando == null) {
             mostrarError("Selecciona un empleado."); return;
         }
@@ -214,7 +200,6 @@ public class RegistroController {
 
         try (Connection con = conexion.establecerConexion()) {
 
-            // Verificar usuario duplicado
             PreparedStatement psCheck = con.prepareStatement(
                     "SELECT COUNT(*) FROM TBL_CREDENCIAL WHERE usuario = ?" +
                             (idEditando != null ? " AND id_credencial <> ?" : ""));
@@ -227,7 +212,7 @@ public class RegistroController {
             }
 
             if (idEditando == null) {
-                // ── INSERT ──
+
                 int idEmpleado = Integer.parseInt(cmbEmpleado.getValue().split(" - ")[0]);
                 PreparedStatement ps = con.prepareStatement(
                         "INSERT INTO TBL_CREDENCIAL (usuario, contrasena, rol, estado, id_empleado) " +
@@ -240,7 +225,7 @@ public class RegistroController {
                 mostrarExito("✔  Usuario registrado correctamente.");
 
             } else {
-                // ── UPDATE ──
+
                 boolean cambiaClave = !txtContrasena.getText().isEmpty();
                 String sql = cambiaClave
                         ? "UPDATE TBL_CREDENCIAL SET usuario=?, contrasena=?, rol=? WHERE id_credencial=?"
@@ -268,10 +253,9 @@ public class RegistroController {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // onEditar: ya no es necesario pulsarlo,
-    // se mantiene por compatibilidad con el FXML
-    // ─────────────────────────────────────────────
+
+
+
     @FXML
     public void onEditar(ActionEvent event) {
         UsuarioRow row = tablaUsuarios.getSelectionModel().getSelectedItem();
@@ -279,9 +263,8 @@ public class RegistroController {
         cargarEnFormulario(row);
     }
 
-    // ─────────────────────────────────────────────
-    // Toggle estado Activo / Inactivo
-    // ─────────────────────────────────────────────
+
+
     @FXML
     public void onToggleEstado(ActionEvent event) {
         UsuarioRow row = tablaUsuarios.getSelectionModel().getSelectedItem();
@@ -301,9 +284,8 @@ public class RegistroController {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // Eliminar
-    // ─────────────────────────────────────────────
+
+
     @FXML
     public void onEliminar(ActionEvent event) {
         UsuarioRow row = tablaUsuarios.getSelectionModel().getSelectedItem();
@@ -331,9 +313,8 @@ public class RegistroController {
         });
     }
 
-    // ─────────────────────────────────────────────
-    // Limpiar / cancelar edición
-    // ─────────────────────────────────────────────
+
+
     @FXML
     public void onLimpiar(ActionEvent event) {
         txtUsuario.clear();
@@ -344,18 +325,15 @@ public class RegistroController {
         cmbEmpleado.setDisable(false);
         idEditando = null;
 
-        // Deseleccionar tabla sin disparar el listener de nuevo
         tablaUsuarios.getSelectionModel().clearSelection();
 
-        // Volver el botón a modo registro
         btnAccion.setText("Registrar");
 
         ocultarMensajes();
     }
 
-    // ─────────────────────────────────────────────
-    // Mensajes
-    // ─────────────────────────────────────────────
+
+
     private void mostrarError(String msg) {
         lblError.setText("⚠  " + msg);
         lblError.setVisible(true);  lblError.setManaged(true);

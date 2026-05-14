@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Producto;
@@ -19,15 +19,12 @@ public class SelectorProductoCompraController {
 
     Conexion conexion = new Conexion();
 
-    // ── Encabezado ────────────────────────────────────────────────────────
     @FXML private Label lblCompraActual;
 
-    // ── Filtros ───────────────────────────────────────────────────────────
     @FXML private TextField        txtBuscar;
     @FXML private ComboBox<String> cmbCategoria;
     @FXML private Label            lblTotal;
 
-    // ── Tabla ─────────────────────────────────────────────────────────────
     @FXML private TableView<Producto>           tablaProductos;
     @FXML private TableColumn<Producto, Number> colId;
     @FXML private TableColumn<Producto, String> colNombre;
@@ -37,7 +34,6 @@ public class SelectorProductoCompraController {
     @FXML private TableColumn<Producto, Number> colDescuento;
     @FXML private TableColumn<Producto, String> colUbicacion;
 
-    // ── Panel detalle ─────────────────────────────────────────────────────
     @FXML private VBox  panelDetalle;
     @FXML private Label lblDetNombre;
     @FXML private Label lblDetId;
@@ -49,14 +45,12 @@ public class SelectorProductoCompraController {
     @FXML private Label lblDetUbicacion;
     @FXML private Label lblDetPrecioFinal;
 
-    // ── Sección agregar ───────────────────────────────────────────────────
     @FXML private TextField txtCantidad;
     @FXML private Label     lblPrecioFijo;
     @FXML private Label     lblSubtotal;
     @FXML private Label     lblAdvertencia;
     @FXML private Button    btnAgregarCompra;
 
-    // ── Datos internos ────────────────────────────────────────────────────
     private ObservableList<Producto> listaProductos = FXCollections.observableArrayList();
     private Producto productoSeleccionado = null;
     private double   precioOficialActivo  = 0.0;
@@ -64,7 +58,6 @@ public class SelectorProductoCompraController {
     private CompraController compraController;
     private StackPane        contentArea;
 
-    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         colId.setCellValueFactory(c -> c.getValue().idProductoProperty());
@@ -86,14 +79,12 @@ public class SelectorProductoCompraController {
         cargarProductos();
     }
 
-    // ── Inyección desde CompraController ─────────────────────────────────
     public void init(CompraController compraCtrl, StackPane contentArea, String infoCompra) {
         this.compraController = compraCtrl;
         this.contentArea      = contentArea;
         if (infoCompra != null && !infoCompra.isBlank()) lblCompraActual.setText(infoCompra);
     }
 
-    // ── Cargar categorías ─────────────────────────────────────────────────
     private void cargarCategorias() {
         cmbCategoria.getItems().add("Todas");
         String sql = "SELECT nombre_categoria FROM TBL_CATEGORIA_DE_PRODUCTO ORDER BY nombre_categoria";
@@ -107,7 +98,6 @@ public class SelectorProductoCompraController {
         cmbCategoria.setValue("Todas");
     }
 
-    // ── Cargar productos con precio desde TBL_PRESENTACION_PRODUCTO ───────
     private void cargarProductos() {
         listaProductos.clear();
         String sql =
@@ -144,7 +134,6 @@ public class SelectorProductoCompraController {
         lblTotal.setText(listaProductos.size() + " productos");
     }
 
-    // ── Filtrar ───────────────────────────────────────────────────────────
     @FXML
     public void onFiltrar(ActionEvent event) {
         String texto     = txtBuscar.getText().trim().toLowerCase();
@@ -171,7 +160,6 @@ public class SelectorProductoCompraController {
         lblTotal.setText(listaProductos.size() + " productos");
     }
 
-    // ── Mostrar detalle ───────────────────────────────────────────────────
     private void mostrarDetalle(Producto p) {
         productoSeleccionado = p;
         precioOficialActivo  = p.getPrecio();
@@ -215,7 +203,6 @@ public class SelectorProductoCompraController {
         calcularSubtotal();
     }
 
-    // ── Calcular subtotal ─────────────────────────────────────────────────
     private void calcularSubtotal() {
         if (precioOficialActivo <= 0) { lblSubtotal.setText("Subtotal: RD$ 0.00"); return; }
         try {
@@ -234,7 +221,6 @@ public class SelectorProductoCompraController {
         }
     }
 
-    // ── Agregar producto a la compra ──────────────────────────────────────
     @FXML
     public void onSeleccionarProducto(ActionEvent event) {
         if (productoSeleccionado == null) {
@@ -267,7 +253,6 @@ public class SelectorProductoCompraController {
         }
     }
 
-    // ── Ir a Inventario ───────────────────────────────────────────────────
     @FXML
     public void onIrAInventario(ActionEvent event) {
         if (contentArea == null) return;
@@ -281,7 +266,6 @@ public class SelectorProductoCompraController {
         }
     }
 
-    // ── Volver a Compra ───────────────────────────────────────────────────
     @FXML
     public void onVolver(ActionEvent event) { volverACompra(); }
 

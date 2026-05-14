@@ -2,14 +2,7 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Representa una fila en el detalle de presentaciones del formulario de producto.
- * Cada fila corresponde a un registro en TBL_PRESENTACION_PRODUCTO:
- *   (id_producto, id_presentacion, precio_venta, fecha_caducidad)
- *
- * idPresentacion y nombrePresentacion se llenan al seleccionar del ComboBox.
- * precio y fechaCaducidad los escribe el usuario.
- */
+
 public class PresentacionDetalle {
 
     private final SimpleIntegerProperty idPresentacion     = new SimpleIntegerProperty();
@@ -27,13 +20,11 @@ public class PresentacionDetalle {
         this.fechaCaducidad.set(fechaCaducidad != null ? fechaCaducidad : "");
     }
 
-    // ── Properties ────────────────────────────────────────────────────────
     public SimpleIntegerProperty idPresentacionProperty()     { return idPresentacion; }
     public SimpleStringProperty  nombrePresentacionProperty() { return nombrePresentacion; }
     public SimpleDoubleProperty  precioProperty()             { return precio; }
     public SimpleStringProperty  fechaCaducidadProperty()     { return fechaCaducidad; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int    getIdPresentacion()                { return idPresentacion.get(); }
     public void   setIdPresentacion(int v)           { idPresentacion.set(v); }
 

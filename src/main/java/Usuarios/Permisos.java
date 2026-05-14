@@ -10,7 +10,6 @@ import java.util.Set;
 
 public class Permisos {
 
-    // ── Módulos del sistema ───────────────────────────────────────────────
     public enum Modulo {
         INICIO, VENTAS, COMPRAS, PAGOS, NOMINA,
         PERSONAS, INVENTARIO,
@@ -18,12 +17,10 @@ public class Permisos {
         USUARIOS
     }
 
-    // ── Acciones posibles ─────────────────────────────────────────────────
     public enum Accion {
         REGISTRAR, EDITAR, ELIMINAR, VER
     }
 
-    // ── Roles ─────────────────────────────────────────────────────────────
     public enum Rol {
         ADMIN, SUPERVISOR, FARMACEUTICO, CAJERO;
 
@@ -33,7 +30,6 @@ public class Permisos {
         }
     }
 
-    // ── Tabla de módulos por rol ──────────────────────────────────────────
     private static final Map<Rol, Set<Modulo>> TABLA = new EnumMap<>(Rol.class);
 
     static {
@@ -58,7 +54,6 @@ public class Permisos {
         ));
     }
 
-    // ── Tabla de acciones por rol ─────────────────────────────────────────
     private static final Map<Rol, Set<Accion>> ACCIONES = new EnumMap<>(Rol.class);
 
     static {
@@ -68,7 +63,6 @@ public class Permisos {
         ACCIONES.put(Rol.CAJERO,       EnumSet.of(Accion.REGISTRAR, Accion.VER));
     }
 
-    // ── Consultas de módulo ───────────────────────────────────────────────
     public static boolean tieneAcceso(Modulo modulo) {
         Usuario u = SesionUsuario.getInstance().getUsuarioActual();
         if (u == null) return false;
@@ -81,7 +75,6 @@ public class Permisos {
         return modulos != null && modulos.contains(modulo);
     }
 
-    // ── Consultas de acción ───────────────────────────────────────────────
     public static boolean puedeHacer(Accion accion) {
         Usuario u = SesionUsuario.getInstance().getUsuarioActual();
         if (u == null) return false;
@@ -90,11 +83,7 @@ public class Permisos {
         return acciones != null && acciones.contains(accion);
     }
 
-    // ── Aplicar permisos en botones ───────────────────────────────────────
-    /**
-     * Oculta o muestra un Button según si el rol activo puede hacer la acción.
-     * Uso: Permisos.aplicarBtn(btnEditar, Permisos.Accion.EDITAR);
-     */
+
     public static void aplicarBtn(Button btn, Accion accion) {
         if (btn == null) return;
         boolean puede = puedeHacer(accion);
@@ -103,10 +92,7 @@ public class Permisos {
         btn.setDisable(!puede);
     }
 
-    /**
-     * Oculta o muestra cualquier Node (TextField, ComboBox, Label…)
-     * según si el rol activo puede hacer la acción.
-     */
+
     public static void aplicarControl(Node nodo, Accion accion) {
         if (nodo == null) return;
         boolean puede = puedeHacer(accion);

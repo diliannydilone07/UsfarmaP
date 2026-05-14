@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -18,8 +18,7 @@ public class PersonaController {
 
     Conexion conexion = new Conexion();
 
-    // ── Rol ───────────────────────────────────────────────────────────────
-    // ── Botones con restricción de permisos ───────────────────────────────
+
     @FXML private Button btnGuardarPersona;
     @FXML private Button btnEditarPersona;
     @FXML private Button btnEliminarPersona;
@@ -35,21 +34,18 @@ public class PersonaController {
     @FXML private ComboBox<String> cmbAseguradora;
     @FXML private ComboBox<String> cmbSeguro;
 
-    // ── Proveedor ─────────────────────────────────────────────────────────
     @FXML private ComboBox<String> cmbCategoriaProveedor;
     @FXML private TextField        txtNombreEmpresa;
     @FXML private TextField        txtCorreoEmpresa;
     @FXML private TextField        txtTelefonoEmpresa;
     @FXML private TextField        txtDniProveedor;
 
-    // ── Datos personales ──────────────────────────────────────────────────
     @FXML private TextField        txtNombre;
     @FXML private TextField        txtApellido;
     @FXML private ComboBox<String> cmbGenero;
     @FXML private TextField        txtTelefono;
     @FXML private TextField        txtCorreo;
 
-    // ── Dirección ─────────────────────────────────────────────────────────
     @FXML private ComboBox<String> cmbRegion;
     @FXML private ComboBox<String> cmbProvincia;
     @FXML private ComboBox<String> cmbMunicipio;
@@ -57,7 +53,6 @@ public class PersonaController {
     @FXML private TextField        txtCalle;
     @FXML private TextField        txtDescripcionDireccion;
 
-    // ── Tabla ─────────────────────────────────────────────────────────────
     @FXML private TextField                    txtBuscar;
     @FXML private TableView<Persona>           tablaPersonas;
     @FXML private TableColumn<Persona, Number> colId;
@@ -68,27 +63,22 @@ public class PersonaController {
     @FXML private TableColumn<Persona, String> colCorreo;
     @FXML private TableColumn<Persona, String> colDireccion;
 
-    // ── Datos internos ────────────────────────────────────────────────────
     private ObservableList<Persona> listaPersonas = FXCollections.observableArrayList();
     private int idPersonaSeleccionada   = -1;
     private int idMunicipio             = 0;
     private int idProveedorSeleccionado = -1;
 
-    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         cmbGenero.getItems().addAll("Masculino", "Femenino", "Otro");
 
-        // Toggle Cliente / Empleado / Proveedor
         ChangeListener<Boolean> rolListener = (obs, o, n) -> actualizarVisibilidadRol();
         rbCliente.selectedProperty().addListener(rolListener);
         rbEmpleado.selectedProperty().addListener(rolListener);
         rbProveedor.selectedProperty().addListener(rolListener);
 
-        // Estado inicial
         actualizarVisibilidadRol();
 
-        // Columnas tabla
         colId.setCellValueFactory(c -> c.getValue().idProperty());
         colNombre.setCellValueFactory(c -> c.getValue().nombreProperty());
         colApellido.setCellValueFactory(c -> c.getValue().apellidoProperty());
@@ -99,12 +89,10 @@ public class PersonaController {
 
         tablaPersonas.setItems(listaPersonas);
 
-        // Clic en fila → carga formulario
         tablaPersonas.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
             if (n != null) cargarEnFormulario(n);
         });
 
-        // Combos encadenados: región → provincia → municipio
         cmbRegion.setOnAction(e -> cargarProvinciasPorRegion());
         cmbProvincia.setOnAction(e -> cargarMunicipiosPorProvincia());
         cmbMunicipio.setOnAction(e -> {
@@ -112,10 +100,8 @@ public class PersonaController {
                 idMunicipio = Integer.parseInt(cmbMunicipio.getValue().split(" - ")[0]);
         });
 
-        // Aseguradora → seguro
         cmbAseguradora.setOnAction(e -> cargarSegurosPorAseguradora());
 
-        // Cargar combos iniciales
         cargarCombo("SELECT id_region, nombre FROM TBL_REGION ORDER BY nombre", cmbRegion);
         cargarCombo("SELECT id_cargo, nombre FROM TBL_CARGO ORDER BY nombre", cmbCargo);
         cargarCombo("SELECT id_aseguradora, nombre FROM TBL_ASEGURADORA WHERE estado=1 ORDER BY nombre", cmbAseguradora);
@@ -123,14 +109,12 @@ public class PersonaController {
 
         cargarPersonas();
 
-        // ── Permisos ──────────────────────────────────────────────────────
         Permisos.aplicarBtn(btnGuardarPersona,  Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnEditarPersona,   Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnEliminarPersona, Permisos.Accion.ELIMINAR);
 
     }
 
-    // ── Visibilidad de paneles según rol ──────────────────────────────────
     private void actualizarVisibilidadRol() {
         boolean esEmpleado  = rbEmpleado.isSelected();
         boolean esProveedor = rbProveedor.isSelected();
@@ -144,7 +128,6 @@ public class PersonaController {
         vboxProveedor.setManaged(esProveedor);
     }
 
-    // ── Cargar cualquier combo desde BD ───────────────────────────────────
     private void cargarCombo(String sql, ComboBox<String> combo) {
         combo.getItems().clear();
         try (Connection con = conexion.establecerConexion();
@@ -157,7 +140,6 @@ public class PersonaController {
         }
     }
 
-    // ── Combos encadenados ────────────────────────────────────────────────
     private void cargarProvinciasPorRegion() {
         cmbProvincia.getItems().clear();
         cmbMunicipio.getItems().clear();
@@ -199,7 +181,6 @@ public class PersonaController {
         }
     }
 
-    // ── Cargar tabla ──────────────────────────────────────────────────────
     @FXML
     public void cargarPersonas() {
         listaPersonas.clear();
@@ -244,9 +225,8 @@ public class PersonaController {
         }
     }
 
-    // ── Buscar en tabla ───────────────────────────────────────────────────
     @FXML
-    public void fnBuscar(ActionEvent event) {
+    public void fnBuscar() {
         String busqueda = txtBuscar.getText().trim().toLowerCase();
         if (busqueda.isEmpty()) {
             tablaPersonas.setItems(listaPersonas);
@@ -264,14 +244,12 @@ public class PersonaController {
         tablaPersonas.setItems(listaFiltrada);
     }
 
-    // ── Guardar nueva persona ─────────────────────────────────────────────
     @FXML
     public void onGuardarPersona(ActionEvent event) {
         if (!validarFormulario()) return;
 
         try (Connection con = conexion.establecerConexion()) {
 
-            // 1. Insertar en TBL_PERSONA
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO TBL_PERSONA (nombre, apellido, genero, numero_telefono, correo_electronico) VALUES(?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
@@ -287,7 +265,6 @@ public class PersonaController {
             if (keys.next()) idPersona = keys.getInt(1);
             if (idPersona == -1) return;
 
-            // 2. Insertar según rol
             if (rbCliente.isSelected()) {
                 if (cmbSeguro.getValue() != null) {
                     int idSeguro = Integer.parseInt(cmbSeguro.getValue().split(" - ")[0]);
@@ -352,7 +329,6 @@ public class PersonaController {
                 }
             }
 
-            // 3. Dirección opcional
             if (idMunicipio > 0 && !txtSector.getText().isBlank() && !txtCalle.getText().isBlank()) {
                 int idCalle = obtenerOCrearCalle(con,
                         txtSector.getText().trim(), txtCalle.getText().trim(), idMunicipio);
@@ -371,7 +347,6 @@ public class PersonaController {
         }
     }
 
-    // ── Editar persona seleccionada ───────────────────────────────────────
     @FXML
     public void onEditarPersona(ActionEvent event) {
         if (idPersonaSeleccionada == -1) {
@@ -381,7 +356,6 @@ public class PersonaController {
 
         try (Connection con = conexion.establecerConexion()) {
 
-            // 1. Actualizar TBL_PERSONA
             PreparedStatement ps = con.prepareStatement(
                     "UPDATE TBL_PERSONA SET nombre=?, apellido=?, genero=?, numero_telefono=?, correo_electronico=? WHERE id_persona=?");
             ps.setString(1, txtNombre.getText().trim());
@@ -392,7 +366,6 @@ public class PersonaController {
             ps.setInt(6, idPersonaSeleccionada);
             ps.executeUpdate();
 
-            // 2. Actualizar según rol
             if (rbCliente.isSelected()) {
                 if (cmbSeguro.getValue() != null) {
                     int idSeguro = Integer.parseInt(cmbSeguro.getValue().split(" - ")[0]);
@@ -429,7 +402,6 @@ public class PersonaController {
                 }
             }
 
-            // 3. Actualizar dirección si hay datos
             if (idMunicipio > 0 && !txtSector.getText().isBlank() && !txtCalle.getText().isBlank()) {
                 int idCalle = obtenerOCrearCalle(con,
                         txtSector.getText().trim(), txtCalle.getText().trim(), idMunicipio);
@@ -461,7 +433,6 @@ public class PersonaController {
         }
     }
 
-    // ── Eliminar persona seleccionada ─────────────────────────────────────
     @FXML
     public void onEliminarPersona(ActionEvent event) {
         if (idPersonaSeleccionada == -1) {
@@ -474,7 +445,7 @@ public class PersonaController {
         if (ok != JOptionPane.YES_OPTION) return;
 
         try (Connection con = conexion.establecerConexion()) {
-            // Eliminar representante si existe
+
             con.prepareStatement(
                             "DELETE FROM TBL_REPRESENTANTE WHERE id_persona=" + idPersonaSeleccionada)
                     .executeUpdate();
@@ -494,7 +465,6 @@ public class PersonaController {
         }
     }
 
-    // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void limpiar() {
         txtNombre.clear();
@@ -505,7 +475,7 @@ public class PersonaController {
         txtCalle.clear();
         txtDescripcionDireccion.clear();
         txtBuscar.clear();
-        // Proveedor
+
         txtNombreEmpresa.clear();
         txtCorreoEmpresa.clear();
         txtTelefonoEmpresa.clear();
@@ -529,7 +499,6 @@ public class PersonaController {
         tablaPersonas.setItems(listaPersonas);
     }
 
-    // ── Helpers de dirección ──────────────────────────────────────────────
     private int obtenerOCrearCalle(Connection con, String sector, String calle, int idMun) throws SQLException {
         int idDm = obtenerOCrear(con,
                 "SELECT id_dm FROM TBL_DISTRITO_MUNICIPAL WHERE id_municipio=? AND nombre=?",
@@ -565,7 +534,6 @@ public class PersonaController {
         ps.executeUpdate();
     }
 
-    // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Persona p) {
         idPersonaSeleccionada   = p.getId();
         idProveedorSeleccionado = -1;
@@ -578,7 +546,6 @@ public class PersonaController {
 
         try (Connection con = conexion.establecerConexion()) {
 
-            // ¿Cliente?
             PreparedStatement psCli = con.prepareStatement(
                     "SELECT id_seguro FROM TBL_CLIENTE WHERE id_persona=?");
             psCli.setInt(1, p.getId());
@@ -613,7 +580,7 @@ public class PersonaController {
                     }
                 }
             } else {
-                // ¿Proveedor (representante)?
+
                 PreparedStatement psProv = con.prepareStatement(
                         "SELECT pv.id_proveedor, pv.nombre, pv.telefono, pv.correo_electronico, " +
                                 "pv.dni, pv.id_categoriaproveedor " +
@@ -638,7 +605,7 @@ public class PersonaController {
                         }
                     }
                 } else {
-                    // Es empleado
+
                     rbEmpleado.setSelected(true);
                     PreparedStatement psEmp = con.prepareStatement(
                             "SELECT e.id_cargo FROM TBL_EMPLEADO e WHERE e.id_persona=?");
@@ -656,7 +623,6 @@ public class PersonaController {
                 }
             }
 
-            // Cargar dirección
             PreparedStatement psDir = con.prepareStatement(
                     "SELECT d.descripcion, ca.nombre AS calle, se.nombre AS sector, " +
                             "mu.id_municipio, mu.nombre AS municipio, " +
@@ -698,7 +664,6 @@ public class PersonaController {
         }
     }
 
-    // ── Validaciones ──────────────────────────────────────────────────────
     private boolean validarFormulario() {
         if (txtNombre.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El nombre es obligatorio."); return false;

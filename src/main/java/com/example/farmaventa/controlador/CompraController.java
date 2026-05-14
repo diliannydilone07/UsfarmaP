@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -13,23 +13,28 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.view.JasperViewer;
+
 import javax.swing.JOptionPane;
+import java.io.InputStream;
 import java.sql.*;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class CompraController {
 
     Conexion conexion = new Conexion();
 
-    // ── Botones con restricción de permisooooos─────────────────────────────
     @FXML private Button btnRegistrarCompra;
     @FXML private Button btnEditarCompra;
     @FXML private Button btnAgregarProducto;
     @FXML private Button btnQuitarProducto;
     @FXML private Button btnRegistrarPago;
     @FXML private Button btnEliminarPago;
+    @FXML private Button btnImprimirOrdenCompra;
 
-    // ── Formulario Compra ─────────────────────────────────────────────────
     @FXML private TextField        txtIdCompra;
     @FXML private Label            lblInfoCompra;
     @FXML private TextField        txtIdProveedor;
@@ -43,13 +48,11 @@ public class CompraController {
     @FXML private Label            lblCantProductos;
     @FXML private TextField        txtBuscarProducto;
 
-    // ── Campos para agregar producto manualmente ───────────────────────────
     @FXML private TextField txtIdProducto;
     @FXML private TextField txtNombreProducto;
     @FXML private TextField txtCantidadProducto;
     @FXML private TextField txtPrecioProducto;
 
-    // ── Tabla Productos ───────────────────────────────────────────────────
     @FXML private TableView<Compra>           tablaCompraProducto;
     @FXML private TableColumn<Compra, Number> colCompraId;
     @FXML private TableColumn<Compra, String> colProveedor;
@@ -58,7 +61,6 @@ public class CompraController {
     @FXML private TableColumn<Compra, Number> colProductoPrecio;
     @FXML private TableColumn<Compra, Number> colProductoSubtotal;
 
-    // ── Formulario Pago ───────────────────────────────────────────────────
     @FXML private TextField        txtIdCompraPago;
     @FXML private ComboBox<String> cmbMetodoPago;
     @FXML private ComboBox<String> cmbCuenta;
@@ -66,7 +68,6 @@ public class CompraController {
     @FXML private TextField        txtMontoPago;
     @FXML private Label            lblResumenPago;
 
-    // ── Tabla Pagos ───────────────────────────────────────────────────────
     @FXML private TableView<Pago>           tablaPagos;
     @FXML private TableColumn<Pago, Number> colPagoId;
     @FXML private TableColumn<Pago, String> colPagoFecha;
@@ -75,7 +76,6 @@ public class CompraController {
     @FXML private TableColumn<Pago, String> colPagoCuenta;
     @FXML private TableColumn<Pago, String> colPagoEstado;
 
-    // ── Datos internos ────────────────────────────────────────────────────
     private final ObservableList<Compra>         listaTemporal = FXCollections.observableArrayList();
     private final ObservableList<Pago>           listaPagos    = FXCollections.observableArrayList();
     private int idCompraSeleccionada  = -1;
@@ -85,7 +85,6 @@ public class CompraController {
     private static final System.Logger LOGGER =
             System.getLogger(CompraController.class.getName());
 
-    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         cmbTipoCompra.getItems().addAll("Contado", "Credito", "Consignacion");
@@ -114,16 +113,15 @@ public class CompraController {
         colPagoEstado.setCellValueFactory(p -> p.getValue().estadoProperty());
         tablaPagos.setItems(listaPagos);
 
-        // ── Permisos ──────────────────────────────────────────────────────
         Permisos.aplicarBtn(btnRegistrarCompra, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnEditarCompra,    Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnAgregarProducto, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnQuitarProducto,  Permisos.Accion.ELIMINAR);
         Permisos.aplicarBtn(btnRegistrarPago,   Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnEliminarPago,    Permisos.Accion.ELIMINAR);
+        Permisos.aplicarBtn(btnImprimirOrdenCompra, Permisos.Accion.REGISTRAR);
     }
 
-    // ── Abrir catálogo de productos ───────────────────────────────────────
     @FXML
     public void onAbrirCatalogo(ActionEvent ignored) {
         try {
@@ -180,7 +178,6 @@ public class CompraController {
         return proveedor + " | " + listaTemporal.size() + " producto(s) en lista";
     }
 
-    // ── Cargar cuentas bancarias ──────────────────────────────────────────
     private void cargarCuentas() {
         mapaCuentas.clear();
         cmbCuenta.getItems().clear();
@@ -198,7 +195,6 @@ public class CompraController {
         }
     }
 
-    // ── Buscar compra existente por ID ────────────────────────────────────
     @FXML
     public void onBuscarCompra(ActionEvent ignored) {
         if (txtIdCompra.getText().isBlank()) return;
@@ -297,7 +293,6 @@ public class CompraController {
         tablaPagos.setItems(listaPagos);
     }
 
-    // ── Buscar producto por ID ────────────────────────────────────────────
     @FXML
     public void onBuscarProductoId(ActionEvent ignored) {
         if (txtIdProducto.getText().isBlank()) {
@@ -329,7 +324,6 @@ public class CompraController {
         }
     }
 
-    // ── Buscar en tabla ───────────────────────────────────────────────────
     @FXML
     public void fnBuscarProducto(ActionEvent ignored) {
         String busqueda = txtBuscarProducto.getText().trim().toLowerCase();
@@ -341,7 +335,6 @@ public class CompraController {
         tablaCompraProducto.setItems(listaFiltrada);
     }
 
-    // ── Agregar producto manualmente ──────────────────────────────────────
     @FXML
     public void onAgregarProducto(ActionEvent ignored) {
         if (txtIdProducto.getText().isBlank()) {
@@ -382,7 +375,6 @@ public class CompraController {
         }
     }
 
-    // ── Quitar producto ───────────────────────────────────────────────────
     @FXML
     public void onQuitarProducto(ActionEvent ignored) {
         Compra sel = tablaCompraProducto.getSelectionModel().getSelectedItem();
@@ -392,7 +384,6 @@ public class CompraController {
         actualizarTotales();
     }
 
-    // ── Registrar nueva compra ────────────────────────────────────────────
     @FXML
     public void onRegistrarCompra(ActionEvent ignored) {
         if (txtIdProveedor.getText().isBlank()) {
@@ -410,7 +401,6 @@ public class CompraController {
         double montoTotal  = calcularTotal();
         double pagado      = parseMontoPagado();
 
-        // ── Validar que el pago inicial no exceda el total ────────────────
         if (pagado > montoTotal + 0.001) {
             JOptionPane.showMessageDialog(null,
                     "⚠ El monto pagado inicial supera el total de la compra.\n\n" +
@@ -484,7 +474,6 @@ public class CompraController {
         }
     }
 
-    // ── Editar compra existente ───────────────────────────────────────────
     @FXML
     public void onEditarCompra(ActionEvent ignored) {
         if (idCompraSeleccionada == -1) {
@@ -541,11 +530,9 @@ public class CompraController {
         }
     }
 
-    // ── Registrar pago ────────────────────────────────────────────────────
     @FXML
     public void onRegistrarPago(ActionEvent ignored) {
 
-        // ── Resolver ID de compra destino ─────────────────────────────────
         int idCompraTarget = -1;
 
         if (txtIdCompraPago != null && !txtIdCompraPago.getText().isBlank()) {
@@ -569,7 +556,6 @@ public class CompraController {
             return;
         }
 
-        // ── Validar campos del formulario ─────────────────────────────────
         if (txtMontoPago.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "Ingresa el monto del pago.",
                     "Campo requerido", JOptionPane.WARNING_MESSAGE);
@@ -605,7 +591,6 @@ public class CompraController {
 
         try (Connection con = conexion.establecerConexion()) {
 
-            // ── 1. Leer saldo real desde la BD (nunca confiar en la UI) ───
             PreparedStatement psCheck = con.prepareStatement(
                     "SELECT monto_total, monto_pendiente FROM tbl_COMPRA WHERE id_compra = ?");
             psCheck.setInt(1, idCompraTarget);
@@ -621,7 +606,6 @@ public class CompraController {
             double montoTotal     = rsCheck.getDouble("monto_total");
             double montoPendiente = rsCheck.getDouble("monto_pendiente");
 
-            // ── 2. Validar: deuda ya saldada ──────────────────────────────
             if (montoPendiente <= 0) {
                 JOptionPane.showMessageDialog(null,
                         "Esta compra ya esta completamente pagada.\n" +
@@ -630,7 +614,6 @@ public class CompraController {
                 return;
             }
 
-            // ── 3. Validar: monto no excede el pendiente ──────────────────
             if (montoPago > montoPendiente + 0.001) {
                 JOptionPane.showMessageDialog(null,
                         "⚠ El monto ingresado supera la deuda pendiente.\n\n" +
@@ -645,10 +628,8 @@ public class CompraController {
                 return;
             }
 
-            // ── 4. Calcular nuevo pendiente ───────────────────────────────
             double nuevoPendiente = Math.round((montoPendiente - montoPago) * 100.0) / 100.0;
 
-            // ── 5. Insertar pago ──────────────────────────────────────────
             PreparedStatement psPago = con.prepareStatement(
                     "INSERT INTO tbl_PAGO (tipo_pago, fecha_pago, monto_pago, metodo_pago, estado_pago) VALUES (?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
@@ -663,7 +644,6 @@ public class CompraController {
             ResultSet keys = psPago.getGeneratedKeys();
             if (keys.next()) idPago = keys.getInt(1);
 
-            // ── 6. Relacionar pago con compra y cuenta ────────────────────
             PreparedStatement psPagoC = con.prepareStatement(
                     "INSERT INTO tbl_PAGO_COMPRA (id_compra, id_cuenta, id_pago) VALUES (?,?,?)");
             psPagoC.setInt(1, idCompraTarget);
@@ -671,14 +651,12 @@ public class CompraController {
             psPagoC.setInt(3, idPago);
             psPagoC.executeUpdate();
 
-            // ── 7. Actualizar pendiente en tbl_COMPRA ─────────────────────
             PreparedStatement psUpd = con.prepareStatement(
                     "UPDATE tbl_COMPRA SET monto_pendiente = ? WHERE id_compra = ?");
             psUpd.setDouble(1, nuevoPendiente);
             psUpd.setInt(2, idCompraTarget);
             psUpd.executeUpdate();
 
-            // ── 8. Feedback y refresco de UI ──────────────────────────────
             JOptionPane.showMessageDialog(null,
                     "Pago #" + idPago + " registrado exitosamente.\n" +
                             "Monto pagado:     RD$ " + String.format("%.2f", montoPago) + "\n" +
@@ -695,7 +673,6 @@ public class CompraController {
         }
     }
 
-    // ── Eliminar pago ─────────────────────────────────────────────────────
     @FXML
     public void onEliminarPago(ActionEvent ignored) {
         Pago sel = tablaPagos.getSelectionModel().getSelectedItem();
@@ -732,7 +709,6 @@ public class CompraController {
         }
     }
 
-    // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void Limpiar() {
         txtIdCompra.clear(); txtIdProveedor.clear(); txtIdEmpleado.clear();
@@ -759,7 +735,34 @@ public class CompraController {
         limpiarFormularioPago();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    @FXML
+    public void onImprimirOrdenCompra(ActionEvent ignored) {
+        if (idPedidoCSeleccionado == -1) {
+            JOptionPane.showMessageDialog(null,
+                    "Primero busca una compra para obtener el ID del pedido.",
+                    "Sin datos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        generarReporteOrdenCompra();
+    }
+
+    private void generarReporteOrdenCompra() {
+        try {
+            InputStream reporte = getClass().getResourceAsStream("/reports/OrdenCompra.jrxml");
+            JasperReport jasperReport = JasperCompileManager.compileReport(reporte);
+            Map<String, Object> params = new HashMap<>();
+            params.put("ID_PEDIDO_C", idPedidoCSeleccionado);
+            params.put("LOGO_STREAM", getClass().getResourceAsStream("/reports/logusfarmablanco.png"));
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport, params, conexion.establecerConexion());
+            JasperViewer.viewReport(jasperPrint, false);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error al generar el reporte: " + e.getMessage());
+            LOGGER.log(System.Logger.Level.ERROR, e.getMessage(), e);
+        }
+    }
+
     private void registrarPagoInterno(Connection con, int idCompra, double montoPagado) throws SQLException {
         String metodo = cmbMetodoPago.getValue() != null ? cmbMetodoPago.getValue() : "Efectivo";
         int    cuenta = (cmbCuenta.getValue() != null && mapaCuentas.containsKey(cmbCuenta.getValue()))

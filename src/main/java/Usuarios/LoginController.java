@@ -1,6 +1,6 @@
 package Usuarios;
 
-import com.example.farmaventa.MainController;
+import com.example.farmaventa.controlador.MainController;
 import com.example.farmaventa.database.Conexion;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

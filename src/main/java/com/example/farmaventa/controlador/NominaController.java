@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -9,37 +9,28 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import javax.swing.JOptionPane;
-import java.sql.*;
-import java.util.LinkedHashMap;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.view.JasperViewer;
 
-/**
- * Módulo de Nómina — pago INDIVIDUAL por empleado.
- *
- * REQUISITO BD — ejecutar UNA SOLA VEZ en SQL Server:
- *
- *   -- Columna de estado en TBL_NOMINA (para la nómina general)
- *   ALTER TABLE TBL_NOMINA
- *       ADD estado VARCHAR(10) NOT NULL DEFAULT 'Pendiente';
- *
- *   -- Columna de estado en TBL_DETALLE_NOMINA (para pago individual)
- *   ALTER TABLE TBL_DETALLE_NOMINA
- *       ADD estado VARCHAR(10) NOT NULL DEFAULT 'Pendiente';
- *
- * El estado individual vive en TBL_DETALLE_NOMINA (por id_nomina + id_empleado).
- * Así cada empleado dentro de una misma nómina puede pagarse por separado.
- */
+import javax.swing.JOptionPane;
+import java.io.InputStream;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+
 public class NominaController {
 
     Conexion conexion = new Conexion();
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 0 — CREAR NÓMINA
-    // ══════════════════════════════════════════════════════════════════════
-    // ── Botones con restricción de permisos ───────────────────────────────
+
+
+
     @FXML private Button btnGuardarNomina;
     @FXML private Button btnQuitarEmpleadoNomina;
     @FXML private Button btnRegistrarPagoNomina;
+    @FXML private Button btnImprimirReciboNomina;
 
     @FXML private TextField        txtIdEmpleadoBuscar;
     @FXML private Label            lblInfoEmpleado;
@@ -69,9 +60,8 @@ public class NominaController {
     @FXML private TableColumn<NominaItem, Number> colNomNeto;
     @FXML private TableColumn<NominaItem, String> colNomEstado;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 1 — REGISTRAR PAGO
-    // ══════════════════════════════════════════════════════════════════════
+
+
     @FXML private TextField        txtBuscarNominaPago;
     @FXML private ComboBox<String> cmbFiltroPago;
     @FXML private TableView<NominaItem>           tablaPendientes;
@@ -90,9 +80,8 @@ public class NominaController {
     @FXML private ComboBox<String> cmbCuentaPago;
     @FXML private DatePicker       dpFechaPago;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 2 — HISTORIAL
-    // ══════════════════════════════════════════════════════════════════════
+
+
     @FXML private TextField        txtBuscarHistorial;
     @FXML private DatePicker       dpDesde;
     @FXML private DatePicker       dpHasta;
@@ -111,14 +100,12 @@ public class NominaController {
     @FXML private TableColumn<NominaItem, String> colHistTipo;
     @FXML private Label                           lblResumenHistorial;
 
-    // ── Datos internos ────────────────────────────────────────────────────
     private final ObservableList<NominaItem> listaActual     = FXCollections.observableArrayList();
     private final ObservableList<NominaItem> listaPendientes = FXCollections.observableArrayList();
     private final ObservableList<NominaItem> listaHistorial  = FXCollections.observableArrayList();
     private final LinkedHashMap<String, Integer> mapaCuentas = new LinkedHashMap<>();
     private int idCuentaDefault = 1;
 
-    // Item seleccionado actualmente en la tabla de pendientes
     private NominaItem itemSeleccionado = null;
 
     private final javafx.beans.value.ChangeListener<NominaItem> seleccionPendientesListener =
@@ -132,7 +119,6 @@ public class NominaController {
     private String cargoEmpTemp    = "";
     private double salarioBaseTemp = 0;
 
-    // ── Initialize ────────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         cargarCuentas();
@@ -149,13 +135,12 @@ public class NominaController {
         if (dpHasta           != null) dpHasta.setValue(java.time.LocalDate.now());
         actualizarTotalesCrear();
 
-        // ── Permisos ──────────────────────────────────────────────────────
         Permisos.aplicarBtn(btnGuardarNomina,        Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnQuitarEmpleadoNomina, Permisos.Accion.ELIMINAR);
         Permisos.aplicarBtn(btnRegistrarPagoNomina,  Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnImprimirReciboNomina, Permisos.Accion.REGISTRAR);
     }
 
-    // ── Cuentas ───────────────────────────────────────────────────────────
     private void cargarCuentas() {
         mapaCuentas.clear();
         String sql = "SELECT id_cuenta, nombre, banco FROM TBL_CUENTA ORDER BY banco, nombre";
@@ -176,7 +161,6 @@ public class NominaController {
         }
     }
 
-    // ── Combos ────────────────────────────────────────────────────────────
     private void configurarCombos() {
         String[] metodos = {"Efectivo", "Transferencia", "Tarjeta", "Cheque"};
         if (cmbTipoPagoNomina != null) cmbTipoPagoNomina.getItems().addAll(metodos);
@@ -188,9 +172,8 @@ public class NominaController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 0 — TABLA CREAR
-    // ══════════════════════════════════════════════════════════════════════
+
+
     private void configurarTablaCrear() {
         if (tablaNomina == null) return;
         colNomEmp.setCellValueFactory(c -> c.getValue().idEmpleadoProperty());
@@ -224,9 +207,8 @@ public class NominaController {
         recalcularNetoTemp();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // BUSCAR EMPLEADO
-    // ══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onBuscarEmpleado(ActionEvent ignored) {
         if (txtIdEmpleadoBuscar == null || txtIdEmpleadoBuscar.getText().isBlank()) {
@@ -270,9 +252,8 @@ public class NominaController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // AGREGAR / AJUSTAR / QUITAR EMPLEADO
-    // ══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onAgregarEmpleadoNomina(ActionEvent ignored) {
         if (idEmpleadoTemp == -1) {
@@ -327,9 +308,8 @@ public class NominaController {
         actualizarTotalesCrear();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // GUARDAR NÓMINA
-    // ══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onGuardarNomina(ActionEvent ignored) {
         if (listaActual.isEmpty()) {
@@ -379,7 +359,6 @@ public class NominaController {
                     if (keys.next()) idNomina = keys.getInt(1);
                 }
 
-                // TBL_DETALLE_NOMINA: estado individual = 'Pendiente'
                 PreparedStatement psD = con.prepareStatement(
                         "INSERT INTO TBL_DETALLE_NOMINA " +
                                 "(id_nomina, id_empleado, bonificacion, comision_venta, " +
@@ -416,10 +395,9 @@ public class NominaController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 1 — TABLA PENDIENTES
-    // Lee estado desde TBL_DETALLE_NOMINA (individual por empleado)
-    // ══════════════════════════════════════════════════════════════════════
+
+
+
     private void configurarTablaPendientes() {
         if (tablaPendientes == null) return;
         colPagEmp.setCellValueFactory(c -> c.getValue().idNominaProperty());
@@ -436,7 +414,7 @@ public class NominaController {
 
     private void cargarNominasPendientes() {
         listaPendientes.clear();
-        // Lee estado desde TBL_DETALLE_NOMINA para que sea individual por empleado
+
         String sql =
                 "SELECT n.id_nomina, n.fecha_pago, n.periodo, n.monto_total_nomina, n.tipo_pago, " +
                         "       d.id_empleado, d.bonificacion, d.comision_venta, d.monto_horas_extras, " +
@@ -454,7 +432,7 @@ public class NominaController {
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                // Estado individual del empleado dentro de la nómina
+
                 String estadoDetalle = rs.getString("estado_detalle");
                 if (estadoDetalle == null || estadoDetalle.isBlank()) estadoDetalle = "Pendiente";
 
@@ -546,14 +524,13 @@ public class NominaController {
             cmbMetodoPagoNom.setValue(n.getTipoPago());
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // REGISTRAR PAGO — INDIVIDUAL por empleado
-    // Actualiza TBL_DETALLE_NOMINA.estado solo para el empleado seleccionado
-    // usando la PK compuesta (id_nomina + id_empleado).
-    // ══════════════════════════════════════════════════════════════════════
+
+
+
+
     @FXML
     public void onRegistrarPagoNomina(ActionEvent ignored) {
-        // Validar que haya un item seleccionado en la tabla
+
         if (itemSeleccionado == null) {
             JOptionPane.showMessageDialog(null,
                     "Selecciona un empleado de la tabla para pagar.",
@@ -583,7 +560,6 @@ public class NominaController {
         }
         if (idCuenta <= 0) idCuenta = idCuentaDefault;
 
-        // Advertir si ya está pagado este empleado
         if ("Pagado".equals(estadoActual)) {
             int resp = JOptionPane.showConfirmDialog(null,
                     nombre + " ya tiene su nómina #" + idNomina + " marcada como Pagada.\n" +
@@ -594,7 +570,6 @@ public class NominaController {
 
         try (Connection con = conexion.establecerConexion()) {
 
-            // Actualiza SOLO el detalle del empleado seleccionado (PK: id_nomina + id_empleado)
             PreparedStatement psUpd = con.prepareStatement(
                     "UPDATE TBL_DETALLE_NOMINA " +
                             "SET estado = 'Pagado' " +
@@ -609,8 +584,7 @@ public class NominaController {
                         "Error", JOptionPane.ERROR_MESSAGE); return;
             }
 
-            // Si TODOS los empleados de esa nómina ya están pagados,
-            // actualizar también el estado general de TBL_NOMINA a 'Pagado'
+
             PreparedStatement psCheck = con.prepareStatement(
                     "SELECT COUNT(*) AS total, " +
                             "       SUM(CASE WHEN estado = 'Pagado' THEN 1 ELSE 0 END) AS pagados " +
@@ -621,7 +595,7 @@ public class NominaController {
                 int total   = rsCheck.getInt("total");
                 int pagados = rsCheck.getInt("pagados");
                 if (total > 0 && total == pagados) {
-                    // Toda la nómina pagada → actualizar encabezado
+
                     PreparedStatement psNom = con.prepareStatement(
                             "UPDATE TBL_NOMINA SET estado = 'Pagado', " +
                                     "fecha_pago = ?, tipo_pago = ?, id_cuenta = ? " +
@@ -642,9 +616,8 @@ public class NominaController {
                             "Método: " + metodo + "\nFecha: " + dpFechaPago.getValue(),
                     "Pago registrado", JOptionPane.INFORMATION_MESSAGE);
 
-            // Actualizar en memoria SOLO el item seleccionado
             itemSeleccionado.setEstado("Pagado");
-            // También actualizar en listaPendientes por si la tabla muestra filtrada
+
             for (NominaItem item : listaPendientes) {
                 if (item.getIdNomina() == idNomina && item.getIdEmpleado() == idEmpleado) {
                     item.setEstado("Pagado");
@@ -662,9 +635,8 @@ public class NominaController {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PESTAÑA 2 — HISTORIAL
-    // ══════════════════════════════════════════════════════════════════════
+
+
     private void configurarTablaHistorial() {
         if (tablaHistorial == null) return;
         colHistId.setCellValueFactory(c -> c.getValue().idNominaProperty());
@@ -766,9 +738,40 @@ public class NominaController {
                 listaHistorial.size() + " registros | Total pagado: RD$ " + String.format("%.2f", total));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // LIMPIAR
-    // ══════════════════════════════════════════════════════════════════════
+
+
+    @FXML
+    public void onImprimirReciboNomina(ActionEvent ignored) {
+        if (itemSeleccionado == null) {
+            JOptionPane.showMessageDialog(null,
+                    "Selecciona un empleado de la tabla de nóminas pendientes.",
+                    "Sin selección", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        generarReporteReciboNomina();
+    }
+
+    private void generarReporteReciboNomina() {
+        try {
+            InputStream reporte = getClass().getResourceAsStream("/reports/ReciboNomina.jrxml");
+            JasperReport jasperReport = JasperCompileManager.compileReport(reporte);
+            Map<String, Object> params = new HashMap<>();
+            params.put("ID_NOMINA", itemSeleccionado.getIdNomina());
+            params.put("ID_EMPLEADO", itemSeleccionado.getIdEmpleado());
+            params.put("LOGO_STREAM", getClass().getResourceAsStream("/reports/logusfarmablanco.png"));
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport, params, conexion.establecerConexion());
+            JasperViewer.viewReport(jasperPrint, false);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error al generar el reporte: " + e.getMessage());
+            System.getLogger(getClass().getName())
+                    .log(System.Logger.Level.ERROR, e.getMessage(), e);
+        }
+    }
+
+
+
     @FXML
     public void onLimpiarNomina(ActionEvent ignored) {
         listaActual.clear();
@@ -801,9 +804,8 @@ public class NominaController {
         if (txtDescuento        != null) txtDescuento.clear();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // HELPERS
-    // ══════════════════════════════════════════════════════════════════════
+
+
     private void mostrarLabelContenido(Label lbl, String texto) {
         if (lbl == null) return;
         lbl.setText(texto);

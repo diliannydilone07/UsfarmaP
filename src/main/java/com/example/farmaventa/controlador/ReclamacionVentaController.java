@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -21,12 +21,11 @@ public class ReclamacionVentaController implements Initializable {
 
     Conexion conexion = new Conexion();
 
-    // ── Botones con restricción de permisos ───────────────────────────────
     @FXML private Button btnRegistrarReclamacion;
     @FXML private Button btnAprobar;
     @FXML private Button btnRechazar;
     @FXML private Button btnEliminar;
-    // FIX 2: botón de agregar nota ahora tiene fx:id para aplicar permisos
+
     @FXML private Button btnAgregarNota;
 
     @FXML private TextField        txtIdReclamacion;
@@ -106,7 +105,6 @@ public class ReclamacionVentaController implements Initializable {
 
         actualizarTabla();
 
-        // ── FIX 2: Permisos — incluye btnAgregarNota con acción REGISTRAR ──
         Permisos.aplicarBtn(btnRegistrarReclamacion, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnAprobar,              Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnRechazar,             Permisos.Accion.EDITAR);
@@ -233,7 +231,6 @@ public class ReclamacionVentaController implements Initializable {
         } catch (SQLException e) { JOptionPane.showMessageDialog(null, "Error: " + e.getMessage()); }
     }
 
-    // FIX 2: onAgregarNota controlado por permisos vía btnAgregarNota
     @FXML public void onAgregarNota() {
         if (txtIdReclamacion.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Selecciona una reclamacion primero."); return; }
         if (txtNuevaNotaHistorial == null || txtNuevaNotaHistorial.getText().isBlank()) { JOptionPane.showMessageDialog(null, "Escribe una nota primero."); return; }

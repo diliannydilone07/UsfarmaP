@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Venta;
@@ -19,7 +19,6 @@ import java.util.List;
 
 public class SeguroMedicoController {
 
-    // ── FXML ─────────────────────────────────────────────────────────────
     @FXML private Label     lblNombreSeguro;
     @FXML private Label     lblAseguradora;
     @FXML private Label     lblCoberturaBase;
@@ -42,7 +41,6 @@ public class SeguroMedicoController {
 
     @FXML private Button btnConfirmar;
 
-    // ── Estado interno ────────────────────────────────────────────────────
     private final Conexion conexion = new Conexion();
     private int    idCliente    = -1;
     private int    idSeguro     = -1;
@@ -51,7 +49,6 @@ public class SeguroMedicoController {
 
     private final ObservableList<FilaSeguro> filas = FXCollections.observableArrayList();
 
-    // ── Callback — 4 parámetros, sin filasDetalle ─────────────────────────
     public interface SeguroCallback {
         void onSeguroConfirmado(
                 double montoAseguradora,
@@ -61,7 +58,6 @@ public class SeguroMedicoController {
         );
     }
 
-    // ── Init ──────────────────────────────────────────────────────────────
     public void init(int idCliente, List<Venta> productos, SeguroCallback callback) {
         this.idCliente = idCliente;
         this.callback  = callback;
@@ -112,7 +108,6 @@ public class SeguroMedicoController {
         tablaSeguro.setItems(filas);
     }
 
-    // ── Cargar seguro del cliente ─────────────────────────────────────────
     private void cargarSeguroCliente() {
         String sql = "SELECT sm.id_seguro, sm.nombre_seguro, sm.telefono_seguro, sm.cobertura, " +
                 "       a.nombre AS nombre_aseguradora " +
@@ -151,7 +146,6 @@ public class SeguroMedicoController {
         btnConfirmar.setDisable(true);
     }
 
-    // ── Cargar productos en tabla ─────────────────────────────────────────
     private void cargarProductosEnTabla(List<Venta> productos) {
         filas.clear();
         for (Venta v : productos) {
@@ -166,7 +160,6 @@ public class SeguroMedicoController {
         }
     }
 
-    // ── Recalcular totales ────────────────────────────────────────────────
     private void recalcularTotales() {
         double totalVenta = 0, totalAseg = 0, totalCli = 0;
         for (FilaSeguro f : filas) {
@@ -179,7 +172,6 @@ public class SeguroMedicoController {
         lblMontoCliente.setText("RD$ "     + String.format("%.2f", totalCli));
     }
 
-    // ── Confirmar ─────────────────────────────────────────────────────────
     @FXML
     public void onConfirmarSeguro(ActionEvent event) {
         if (txtNumAutorizacion.getText().isBlank()) {
@@ -214,7 +206,6 @@ public class SeguroMedicoController {
         });
     }
 
-    // ── Modelo de fila ────────────────────────────────────────────────────
     public static class FilaSeguro {
         private final int idProducto;
         private final SimpleStringProperty  producto         = new SimpleStringProperty();

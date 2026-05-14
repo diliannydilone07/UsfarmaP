@@ -25,7 +25,6 @@ public class Persona {
         this.direccion.set(direccion != null ? direccion : "");
     }
 
-    // Properties
     public SimpleIntegerProperty idProperty()       { return id; }
     public SimpleStringProperty  nombreProperty()   { return nombre; }
     public SimpleStringProperty  apellidoProperty() { return apellido; }
@@ -34,7 +33,6 @@ public class Persona {
     public SimpleStringProperty  correoProperty()   { return correo; }
     public SimpleStringProperty  direccionProperty(){ return direccion; }
 
-    // Getters / Setters
     public int    getId()              { return id.get(); }
     public void   setId(int v)         { id.set(v); }
     public String getNombre()          { return nombre.get(); }

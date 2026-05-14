@@ -6,12 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 import java.time.LocalDate;
 
-/**
- * Mapea TBL_HISTORICO_RECLAMACION_VENTA
- * Columnas reales:
- *   id_historico_reclam_venta, descripcion, creado_por,
- *   fecha_creacion, id_reclamacionventa
- */
+
 public class HistoricoReclamacion {
 
     private final SimpleIntegerProperty             idHistorico        = new SimpleIntegerProperty();
@@ -31,7 +26,6 @@ public class HistoricoReclamacion {
         this.idReclamacionventa.set(idReclamacionventa);
     }
 
-    // Método del diagrama — se muestra en el TextArea de detalle
     public String obtenerDetalleCambio() {
         return "ID Histórico  : " + idHistorico.get()              + "\n" +
                 "Fecha         : " + (fechaCreacion.get() != null

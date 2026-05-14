@@ -23,7 +23,6 @@ public class Usuario {
         this.nombreCompleto.set(nombreCompleto != null ? nombreCompleto : "");
     }
 
-    // ── Properties ────────────────────────────────────────────────────────
     public SimpleIntegerProperty idCredencialProperty()   { return idCredencial; }
     public SimpleStringProperty  usuarioProperty()        { return usuario; }
     public SimpleStringProperty  rolProperty()            { return rol; }
@@ -31,7 +30,6 @@ public class Usuario {
     public SimpleIntegerProperty idEmpleadoProperty()     { return idEmpleado; }
     public SimpleStringProperty  nombreCompletoProperty() { return nombreCompleto; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int     getIdCredencial()              { return idCredencial.get(); }
     public void    setIdCredencial(int v)         { idCredencial.set(v); }
     public String  getUsuario()                   { return usuario.get(); }

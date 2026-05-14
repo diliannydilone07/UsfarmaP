@@ -2,16 +2,7 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Mapea TBL_PRODUCTO + JOIN TBL_CATEGORIA_DE_PRODUCTO
- * + LEFT JOIN TBL_PRESENTACION_PRODUCTO (primera presentación para mostrar en tabla).
- *
- * Columnas reales de TBL_PRODUCTO:
- *   id_producto, nombre, descuento, cantidad_minima,
- *   cantidad_disponible, ubicacion, id_categoria
- *
- * precio y presentacion vienen de TBL_PRESENTACION_PRODUCTO (primera fila, LEFT JOIN).
- */
+
 public class Producto {
 
     private final SimpleIntegerProperty idProducto     = new SimpleIntegerProperty();
@@ -27,11 +18,7 @@ public class Producto {
 
     public Producto() {}
 
-    /**
-     * Constructor de compatibilidad (8 parámetros).
-     * Usado por controladores que no manejan presentación (ej. SelectorProductoCompraController).
-     * presentacion queda como "" e idPresentacion como 0.
-     */
+
     public Producto(int idProducto, String nombre, String categoria,
                     int stockActual, int stockMinimo,
                     double precio, double descuento, String ubicacion) {
@@ -39,7 +26,7 @@ public class Producto {
                 precio, descuento, ubicacion, "", 0);
     }
 
-    /** Constructor completo (10 parámetros). Usado por ProductoController. */
+
     public Producto(int idProducto, String nombre, String categoria,
                     int stockActual, int stockMinimo,
                     double precio, double descuento, String ubicacion,
@@ -56,7 +43,6 @@ public class Producto {
         this.idPresentacion.set(idPresentacion);
     }
 
-    // ── Properties para TableView ─────────────────────────────────────────
     public SimpleIntegerProperty idProductoProperty()     { return idProducto; }
     public SimpleStringProperty  nombreProperty()         { return nombre; }
     public SimpleStringProperty  categoriaProperty()      { return categoria; }
@@ -68,7 +54,6 @@ public class Producto {
     public SimpleStringProperty  presentacionProperty()   { return presentacion; }
     public SimpleIntegerProperty idPresentacionProperty() { return idPresentacion; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int    getIdProducto()           { return idProducto.get(); }
     public void   setIdProducto(int v)      { idProducto.set(v); }
 

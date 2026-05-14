@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -16,8 +16,7 @@ public class EnvioController {
 
     Conexion conexion = new Conexion();
 
-    // ── Formulario ────────────────────────────────────────────────────────
-    // ── Botones con restricción de permisos ───────────────────────────────
+
     @FXML private Button btnGuardarEnvio;
     @FXML private Button btnEditarEnvio;
     @FXML private Button btnEliminarEnvio;
@@ -30,7 +29,6 @@ public class EnvioController {
     @FXML private DatePicker       dpFechaEnvio;
     @FXML private Label            lblInfoVenta;
 
-    // ── Tabla ─────────────────────────────────────────────────────────────
     @FXML private TextField                  txtBuscar;
     @FXML private TableView<Envio>           tablaEnvios;
     @FXML private TableColumn<Envio, Number> colId;
@@ -41,11 +39,9 @@ public class EnvioController {
     @FXML private TableColumn<Envio, String> colFecha;
     @FXML private TableColumn<Envio, String> colEstado;
 
-    // ── Lista de datos ────────────────────────────────────────────────────
     private ObservableList<Envio> listaEnvios = FXCollections.observableArrayList();
     private int idEnvioSeleccionado = -1;
 
-    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         dpFechaEnvio.setValue(java.time.LocalDate.now());
@@ -63,20 +59,17 @@ public class EnvioController {
 
         tablaEnvios.setItems(listaEnvios);
 
-        // Clic en fila → carga datos en formulario
         tablaEnvios.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldSel, newSel) -> {
                     if (newSel != null) cargarEnFormulario(newSel);
                 });
 
-        // ── Permisos ──────────────────────────────────────────────────────
         Permisos.aplicarBtn(btnGuardarEnvio,  Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnEditarEnvio,   Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnEliminarEnvio, Permisos.Accion.ELIMINAR);
         cargarEnvios();
     }
 
-    // ── Buscar venta por ID ───────────────────────────────────────────────
     @FXML
     public void onBuscarVenta(ActionEvent event) {
         if (txtIdVenta.getText().isBlank()) return;
@@ -114,9 +107,8 @@ public class EnvioController {
         }
     }
 
-    // ── Buscar en tabla ───────────────────────────────────────────────────
     @FXML
-    public void fnBuscar(ActionEvent event) {
+    public void fnBuscar() {
         String busqueda = txtBuscar.getText().trim().toLowerCase();
         if (busqueda.isEmpty()) {
             tablaEnvios.setItems(listaEnvios);
@@ -135,7 +127,6 @@ public class EnvioController {
         tablaEnvios.setItems(listaFiltrada);
     }
 
-    // ── Cargar tabla ──────────────────────────────────────────────────────
     @FXML
     public void cargarEnvios() {
         listaEnvios.clear();
@@ -174,7 +165,6 @@ public class EnvioController {
         }
     }
 
-    // ── Guardar nuevo ─────────────────────────────────────────────────────
     @FXML
     public void onGuardarEnvio(ActionEvent event) {
         if (!validarFormulario()) return;
@@ -202,7 +192,6 @@ public class EnvioController {
         }
     }
 
-    // ── Editar envío seleccionado ─────────────────────────────────────────
     @FXML
     public void onEditarEnvio(ActionEvent event) {
         if (idEnvioSeleccionado == -1) {
@@ -235,7 +224,6 @@ public class EnvioController {
         }
     }
 
-    // ── Eliminar ──────────────────────────────────────────────────────────
     @FXML
     public void onEliminarEnvio(ActionEvent event) {
         if (idEnvioSeleccionado == -1) {
@@ -264,7 +252,6 @@ public class EnvioController {
         }
     }
 
-    // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void limpiar() {
         txtIdVenta.clear();
@@ -280,7 +267,6 @@ public class EnvioController {
         tablaEnvios.setItems(listaEnvios);
     }
 
-    // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Envio e) {
         idEnvioSeleccionado = e.getIdEnvio();
         txtIdVenta.setText(String.valueOf(e.getIdVenta()));
@@ -297,7 +283,6 @@ public class EnvioController {
         } catch (Exception ignored) {}
     }
 
-    // ── Validaciones ──────────────────────────────────────────────────────
     private boolean validarFormulario() {
         if (txtIdVenta.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El ID de Venta es obligatorio."); return false;

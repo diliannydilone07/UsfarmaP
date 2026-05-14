@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.Producto;
@@ -19,15 +19,12 @@ public class SelectorProductoController {
 
     Conexion conexion = new Conexion();
 
-    // ── Encabezado ────────────────────────────────────────────────────────
     @FXML private Label lblVentaActual;
 
-    // ── Filtros ───────────────────────────────────────────────────────────
     @FXML private TextField        txtBuscar;
     @FXML private ComboBox<String> cmbCategoria;
     @FXML private Label            lblTotal;
 
-    // ── Tabla ─────────────────────────────────────────────────────────────
     @FXML private TableView<Producto>           tablaProductos;
     @FXML private TableColumn<Producto, Number> colId;
     @FXML private TableColumn<Producto, String> colNombre;
@@ -37,7 +34,6 @@ public class SelectorProductoController {
     @FXML private TableColumn<Producto, Number> colDescuento;
     @FXML private TableColumn<Producto, String> colUbicacion;
 
-    // ── Panel detalle ─────────────────────────────────────────────────────
     @FXML private VBox  panelDetalle;
     @FXML private Label lblDetNombre;
     @FXML private Label lblDetId;
@@ -49,14 +45,12 @@ public class SelectorProductoController {
     @FXML private Label lblDetUbicacion;
     @FXML private Label lblDetPrecioFinal;
 
-    // ── Sección agregar ───────────────────────────────────────────────────
     @FXML private TextField txtCantidad;
     @FXML private Label     lblPrecioFijo;         // muestra el precio — NO editable
     @FXML private Label     lblSubtotal;
     @FXML private Label     lblAdvertenciaPrecio;
     @FXML private Button    btnAgregarVenta;
 
-    // ── Datos internos ────────────────────────────────────────────────────
     private ObservableList<Producto> listaProductos = FXCollections.observableArrayList();
     private Producto productoSeleccionado = null;
     private double   precioOficialActivo  = 0.0;
@@ -64,7 +58,6 @@ public class SelectorProductoController {
     private HelloController ventaController;
     private StackPane       contentArea;
 
-    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         colId.setCellValueFactory(c -> c.getValue().idProductoProperty());
@@ -79,24 +72,20 @@ public class SelectorProductoController {
         tablaProductos.getSelectionModel().selectedItemProperty().addListener(
                 (obs, old, sel) -> { if (sel != null) mostrarDetalle(sel); });
 
-        // Actualizar subtotal al cambiar cantidad
         txtCantidad.textProperty().addListener((obs, o, n) -> calcularSubtotal());
 
-        // Ocultar advertencia al inicio
         ocultarAdvertencia();
 
         cargarCategorias();
         cargarProductos();
     }
 
-    // ── Inyección desde HelloController ──────────────────────────────────
     public void init(HelloController ventaCtrl, StackPane contentArea, String infoVenta) {
         this.ventaController = ventaCtrl;
         this.contentArea     = contentArea;
         if (infoVenta != null && !infoVenta.isBlank()) lblVentaActual.setText(infoVenta);
     }
 
-    // ── Cargar categorías ─────────────────────────────────────────────────
     private void cargarCategorias() {
         cmbCategoria.getItems().add("Todas");
         String sql = "SELECT nombre_categoria FROM TBL_CATEGORIA_DE_PRODUCTO ORDER BY nombre_categoria";
@@ -110,13 +99,11 @@ public class SelectorProductoController {
         cmbCategoria.setValue("Todas");
     }
 
-    // ── Cargar productos con precio desde TBL_PRESENTACION_PRODUCTO ───────
     private void cargarProductos() {
         listaProductos.clear();
 
-        // LEFT JOIN a TBL_PRESENTACION_PRODUCTO para obtener el precio_venta.
-        // Si un producto tiene varias presentaciones se toma el precio más bajo (MIN).
-        // Si no tiene presentación registrada, precio = 0.
+
+
         String sql =
                 "SELECT p.id_producto, p.nombre, c.nombre_categoria, " +
                         "       p.cantidad_disponible, p.cantidad_minima, p.descuento, p.ubicacion, " +
@@ -152,7 +139,6 @@ public class SelectorProductoController {
         lblTotal.setText(listaProductos.size() + " productos");
     }
 
-    // ── Filtrar ───────────────────────────────────────────────────────────
     @FXML
     public void onFiltrar(ActionEvent event) {
         String texto     = txtBuscar.getText().trim().toLowerCase();
@@ -179,7 +165,6 @@ public class SelectorProductoController {
         lblTotal.setText(listaProductos.size() + " productos");
     }
 
-    // ── Mostrar detalle ───────────────────────────────────────────────────
     private void mostrarDetalle(Producto p) {
         productoSeleccionado = p;
         precioOficialActivo  = p.getPrecio();
@@ -193,7 +178,6 @@ public class SelectorProductoController {
         lblDetUbicacion.setText(p.getUbicacion() != null && !p.getUbicacion().isBlank()
                 ? p.getUbicacion() : "—");
 
-        // Precio oficial (verde, solo lectura)
         if (precioOficialActivo > 0) {
             lblDetPrecio.setText("RD$ " + String.format("%.2f", precioOficialActivo));
             lblDetPrecio.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;");
@@ -202,16 +186,13 @@ public class SelectorProductoController {
             lblDetPrecio.setStyle("-fx-font-size: 13px; -fx-text-fill: #9E9E9E; -fx-font-style: italic;");
         }
 
-        // Precio con descuento
         double precioFinal = precioOficialActivo * (1.0 - p.getDescuento() / 100.0);
         lblDetPrecioFinal.setText("RD$ " + String.format("%.2f", precioFinal));
 
-        // Stock: rojo si en o bajo el mínimo
         lblDetStock.setStyle(p.getStockActual() <= p.getStockMinimo()
                 ? "-fx-font-size: 13px; -fx-text-fill: #C62828; -fx-font-weight: bold;"
                 : "-fx-font-size: 13px; -fx-text-fill: #2E7D32;");
 
-        // Mostrar precio fijo en la sección "Agregar" — NO editable
         if (lblPrecioFijo != null) {
             if (precioOficialActivo > 0) {
                 lblPrecioFijo.setText("RD$ " + String.format("%.2f", precioOficialActivo));
@@ -230,7 +211,6 @@ public class SelectorProductoController {
         calcularSubtotal();
     }
 
-    // ── Calcular subtotal ─────────────────────────────────────────────────
     private void calcularSubtotal() {
         if (precioOficialActivo <= 0) {
             lblSubtotal.setText("Subtotal: RD$ 0.00");
@@ -244,7 +224,6 @@ public class SelectorProductoController {
         }
     }
 
-    // ── Advertencia ───────────────────────────────────────────────────────
     private void mostrarAdvertencia(String mensaje) {
         if (lblAdvertenciaPrecio != null) {
             lblAdvertenciaPrecio.setText(mensaje);
@@ -274,7 +253,6 @@ public class SelectorProductoController {
         }
     }
 
-    // ── Agregar producto a la venta ───────────────────────────────────────
     @FXML
     public void onSeleccionarProducto(ActionEvent event) {
         if (productoSeleccionado == null) {
@@ -309,7 +287,6 @@ public class SelectorProductoController {
         }
     }
 
-    // ── Ir a Inventario ───────────────────────────────────────────────────
     @FXML
     public void onIrAInventario(ActionEvent event) {
         if (contentArea == null) return;
@@ -323,7 +300,6 @@ public class SelectorProductoController {
         }
     }
 
-    // ── Volver a Ventas ───────────────────────────────────────────────────
     @FXML
     public void onVolver(ActionEvent event) { volverAVentas(); }
 

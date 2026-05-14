@@ -4,9 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0" style="-fx-background-color: #F0F4F1;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.SelectorProductoCompraController">
+<VBox spacing="0" style="-fx-background-color: #F0F4F1;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.controlador.SelectorProductoCompraController">
 
-    <!-- Encabezado -->
+
     <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: #FFFFFF; -fx-border-color: #DCE8DC; -fx-border-width: 0 0 1 0; -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.07), 8, 0, 0, 2);">
         <padding><Insets bottom="16" left="24" right="24" top="16" /></padding>
 
@@ -24,7 +24,7 @@
         <Label fx:id="lblCompraActual" style="-fx-text-fill: #2E7D32; -fx-font-size: 12px; -fx-background-color: #E8F5E9; -fx-background-radius: 20; -fx-padding: 4 12 4 12;" text="Compra en curso" />
     </HBox>
 
-    <!-- Barra de búsqueda -->
+
     <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: #FFFFFF; -fx-border-color: #DCE8DC; -fx-border-width: 0 0 1 0; -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.07), 8, 0, 0, 2);">
         <padding><Insets bottom="12" left="24" right="24" top="12" /></padding>
 
@@ -41,11 +41,11 @@
         <Label fx:id="lblTotal" style="-fx-font-size: 12px; -fx-text-fill: #78909C;" text="0 productos" />
     </HBox>
 
-    <!-- Contenido principal -->
+
     <HBox spacing="16" VBox.vgrow="ALWAYS">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-        <!-- Tabla de productos -->
+
         <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="16" left="16" right="16" top="16" /></padding>
 
@@ -68,14 +68,14 @@
             </TableView>
         </VBox>
 
-        <!-- Panel lateral -->
+
         <VBox prefWidth="300" spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
             <padding><Insets bottom="20" left="16" right="16" top="16" /></padding>
 
             <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Detalle del Producto" />
             <Separator style="-fx-background-color: #E8F5E9;" />
 
-            <!-- Ficha de detalle -->
+
             <VBox fx:id="panelDetalle" spacing="8" style="-fx-background-color: #F4F8F4; -fx-background-radius: 9; -fx-border-color: #DCE8DC; -fx-border-radius: 9; -fx-border-width: 1;">
                 <padding><Insets bottom="12" left="14" right="14" top="12" /></padding>
 
@@ -93,7 +93,7 @@
                     </VBox>
                 </HBox>
 
-                <!-- Precio oficial resaltado en azul (compra) -->
+
                 <VBox spacing="2" style="-fx-background-color: #E8F5E9; -fx-background-radius: 6; -fx-padding: 6 8 6 8;">
                     <Label style="-fx-font-size: 10px; -fx-text-fill: #2E7D32; -fx-font-weight: bold;" text="PRECIO OFICIAL (BD)" />
                     <Label fx:id="lblDetPrecio" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;" text="RD$ —" />

@@ -2,10 +2,7 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Modelo Pago — representa TBL_PAGO + JOIN TBL_PAGO_COMPRA + TBL_CUENTA
- * Cada fila en la tabla de pagos = un pago realizado contra una compra.
- */
+
 public class Pago {
 
     private final SimpleIntegerProperty idPago       = new SimpleIntegerProperty();
@@ -17,7 +14,6 @@ public class Pago {
     private final SimpleStringProperty  cuenta       = new SimpleStringProperty(); // nombre cuenta
     private final SimpleStringProperty  banco        = new SimpleStringProperty();
 
-    // IDs para operaciones BD
     private int idCuenta;
     private int idCompra;
 
@@ -38,7 +34,6 @@ public class Pago {
         this.idCompra = idCompra;
     }
 
-    // Properties
     public SimpleIntegerProperty idPagoProperty()     { return idPago; }
     public SimpleStringProperty  tipoPagoProperty()   { return tipoPago; }
     public SimpleStringProperty  fechaProperty()      { return fecha; }
@@ -48,7 +43,6 @@ public class Pago {
     public SimpleStringProperty  cuentaProperty()     { return cuenta; }
     public SimpleStringProperty  bancoProperty()      { return banco; }
 
-    // Getters / Setters
     public int    getIdPago()              { return idPago.get(); }
     public void   setIdPago(int v)         { idPago.set(v); }
     public String getTipoPago()            { return tipoPago.get(); }

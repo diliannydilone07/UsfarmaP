@@ -6,16 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 import java.time.LocalDate;
 
-/**
- * Mapea TBL_RECLAMACION_COMPRA + JOIN TBL_COMPRA + TBL_PROVEEDOR
- *
- * Columnas reales de TBL_RECLAMACION_COMPRA:
- *   id_reclamacioncompra, fecha_reclamacion, estado (BIT), id_compra
- *
- * Datos adicionales por JOIN:
- *   nombreProveedor → TBL_PROVEEDOR (via TBL_PEDIDO_C → TBL_COMPRA)
- *   descripcion y cantidad → TBL_PRODUCTO_RECLAMACION_COMPRA (primer producto)
- */
+
 public class ReclamacionCompra {
 
     private final SimpleIntegerProperty           idReclamacioncompra  = new SimpleIntegerProperty();
@@ -40,7 +31,6 @@ public class ReclamacionCompra {
         this.descripcion.set(descripcion != null ? descripcion : "");
     }
 
-    // ── Properties ────────────────────────────────────────────────────────────
     public SimpleIntegerProperty           idReclamacioncompraProperty()  { return idReclamacioncompra; }
     public SimpleIntegerProperty           idCompraProperty()             { return idCompra; }
     public SimpleStringProperty            nombreProveedorProperty()      { return nombreProveedor; }
@@ -49,7 +39,6 @@ public class ReclamacionCompra {
     public SimpleIntegerProperty           cantidadAdevolverProperty()    { return cantidadAdevolver; }
     public SimpleStringProperty            descripcionProperty()          { return descripcion; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────────
     public int       getIdReclamacioncompra()              { return idReclamacioncompra.get(); }
     public void      setIdReclamacioncompra(int v)         { idReclamacioncompra.set(v); }
     public int       getIdCompra()                         { return idCompra.get(); }

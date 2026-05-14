@@ -2,10 +2,7 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Modelo unificado para representar una cuenta pendiente en el módulo de pagos.
- * Cubre: Compras (x Pagar), Ventas (x Cobrar Cliente), Ventas Seguro (x Cobrar Seguro).
- */
+
 public class CuentaPendiente {
 
     public enum TipoCuenta { COMPRA, VENTA, SEGURO_ASEGURADORA, SEGURO_CLIENTE }
@@ -35,7 +32,6 @@ public class CuentaPendiente {
         this.tipo.set(tipo != null ? tipo : "");
         this.tipoCuenta = tipoCuenta;
 
-        // Calcular estado
         if (montoPendiente <= 0) {
             this.estado.set("Pagado");
         } else if (montoPendiente < montoTotal) {
@@ -45,7 +41,6 @@ public class CuentaPendiente {
         }
     }
 
-    // ── Properties ────────────────────────────────────────────────────────
     public SimpleIntegerProperty idRefProperty()          { return idRef; }
     public SimpleStringProperty  descripcionProperty()    { return descripcion; }
     public SimpleStringProperty  fechaProperty()          { return fecha; }
@@ -55,7 +50,6 @@ public class CuentaPendiente {
     public SimpleStringProperty  tipoProperty()           { return tipo; }
     public SimpleStringProperty  estadoProperty()         { return estado; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int    getIdRef()               { return idRef.get(); }
     public void   setIdRef(int v)          { idRef.set(v); }
     public String getDescripcion()         { return descripcion.get(); }

@@ -1,18 +1,27 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
 import com.example.farmaventa.modelo.CuentaPendiente;
 import com.example.farmaventa.modelo.CuentaPendiente.TipoCuenta;
+import com.example.farmaventa.modelo.EmailService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.view.JasperViewer;
+
 import javax.swing.JOptionPane;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.*;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class PagosController {
 
@@ -21,10 +30,11 @@ public class PagosController {
     @FXML private Button btnPagarCompra;
     @FXML private Button btnPagarVenta;
     @FXML private Button btnPagarSeguro;
+    @FXML private Button btnImprimirReciboPago;
+    @FXML private TextField txtIdPagoImprimir;
 
     @FXML private TabPane tabPanePagos;
 
-    // ══ PESTAÑA 0 — CUENTAS POR PAGAR ════════════════════════════════════
     @FXML private TextField                            txtBuscarCompra;
     @FXML private ComboBox<String>                     cmbFiltroCompra;
     @FXML private TableView<CuentaPendiente>           tablaCompras;
@@ -53,7 +63,6 @@ public class PagosController {
     @FXML private TableColumn<HistorialPagoItem, String> colHCmpCuenta;
     @FXML private TableColumn<HistorialPagoItem, String> colHCmpEstado;
 
-    // ══ PESTAÑA 1 — CUENTAS POR COBRAR ═══════════════════════════════════
     @FXML private TextField                            txtBuscarVenta;
     @FXML private ComboBox<String>                     cmbFiltroVenta;
     @FXML private TableView<CuentaPendiente>           tablaVentas;
@@ -80,7 +89,6 @@ public class PagosController {
     @FXML private TableColumn<HistorialPagoItem, String> colHVntMetodo;
     @FXML private TableColumn<HistorialPagoItem, String> colHVntEstado;
 
-    // ══ PESTAÑA 2 — CUENTAS POR COBRAR SEGURO ════════════════════════════
     @FXML private TextField                            txtBuscarSeguro;
     @FXML private ComboBox<String>                     cmbFiltroSeguro;
     @FXML private TableView<CuentaPendiente>           tablaSeguro;
@@ -110,7 +118,6 @@ public class PagosController {
     @FXML private TableColumn<HistorialPagoItem, String> colHSegTipo;
     @FXML private TableColumn<HistorialPagoItem, String> colHSegEstado;
 
-    // ── Datos internos ────────────────────────────────────────────────────
     private final ObservableList<CuentaPendiente>   listaCompras = FXCollections.observableArrayList();
     private final ObservableList<CuentaPendiente>   listaVentas  = FXCollections.observableArrayList();
     private final ObservableList<CuentaPendiente>   listaSeguro  = FXCollections.observableArrayList();
@@ -120,7 +127,6 @@ public class PagosController {
 
     private final LinkedHashMap<String, Integer> mapaCuentas = new LinkedHashMap<>();
 
-    // ── Initialize ────────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         cargarCuentas();
@@ -128,7 +134,6 @@ public class PagosController {
         configurarTablas();
         cargarTodosLosDatos();
 
-        // Ocultar labels al inicio (igual que Nómina)
         ocultarLabel(lblInfoCompraPago);
         ocultarLabel(lblSaldoCompra);
         ocultarLabel(lblInfoVentaPago);
@@ -139,9 +144,9 @@ public class PagosController {
         Permisos.aplicarBtn(btnPagarCompra, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnPagarVenta,  Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnPagarSeguro, Permisos.Accion.REGISTRAR);
+        Permisos.aplicarBtn(btnImprimirReciboPago, Permisos.Accion.REGISTRAR);
     }
 
-    // ── Helpers: mostrar / ocultar label (igual que NominaController) ─────
     private void mostrarLabelContenido(Label lbl, String texto) {
         if (lbl == null) return;
         lbl.setText(texto);
@@ -156,7 +161,6 @@ public class PagosController {
         lbl.setVisible(false);
     }
 
-    // ── Configurar combos de filtro ───────────────────────────────────────
     private void configurarFiltros() {
         String[] estados = {"Todos", "Pendiente", "Parcial", "Pagado"};
 
@@ -192,7 +196,6 @@ public class PagosController {
         if (dpFechaPagoSeguro != null) dpFechaPagoSeguro.setValue(java.time.LocalDate.now());
     }
 
-    // ── Configurar columnas ───────────────────────────────────────────────
     private void configurarTablas() {
         if (tablaCompras != null) {
             colCmpId.setCellValueFactory(c -> c.getValue().idRefProperty());
@@ -274,7 +277,6 @@ public class PagosController {
         tablaHistSeguro.setItems(histSeguro);
     }
 
-    // ── Cargar cuentas bancarias ──────────────────────────────────────────
     private void cargarCuentas() {
         mapaCuentas.clear();
         String sql = "SELECT id_cuenta, nombre, banco FROM tbl_CUENTA ORDER BY banco, nombre";
@@ -292,7 +294,6 @@ public class PagosController {
         }
     }
 
-    // ══ CARGA DE DATOS ════════════════════════════════════════════════════
     private void cargarTodosLosDatos() {
         cargarComprasPendientes();
         cargarVentasPendientes();
@@ -423,7 +424,7 @@ public class PagosController {
                         "  a.nombre                      AS aseguradora, " +
                         "  CONVERT(VARCHAR(10), vs.fecha_transaccion, 120) AS fecha, " +
                         "  vs.monto_total, " +
-                        "  vs.monto_pendiente             AS monto_cliente, " +
+                        "  vs.monto_pendiente_cliente             AS monto_cliente, " +
                         "  vs.condicion, " +
                         "  ISNULL((" +
                         "      SELECT SUM(vps.precio_unitario * vps.cantidad * vps.porcentaje_cobertura / 100.0)" +
@@ -492,7 +493,6 @@ public class PagosController {
         actualizarResumen(listaSeguro, lblResumenSeguro, "cobrar (seguros)");
     }
 
-    // ══ CARGAR EN FORMULARIOS ════════════════════════════════════════════
     private void cargarEnFormularioCompra(CuentaPendiente c) {
         if (txtIdCompraPago != null) txtIdCompraPago.setText(String.valueOf(c.getIdRef()));
 
@@ -552,7 +552,6 @@ public class PagosController {
         cargarHistorialSeguro(c.getIdRef());
     }
 
-    // ══ HISTORIAL DE PAGOS ════════════════════════════════════════════════
     private void cargarHistorialCompra(int idCompra) {
         histCompra.clear();
         String sql =
@@ -649,7 +648,6 @@ public class PagosController {
         }
     }
 
-    // ══ REGISTRAR PAGOS ═══════════════════════════════════════════════════
     @FXML
     public void onRegistrarPagoCompra(ActionEvent ignored) {
         if (txtIdCompraPago == null || txtIdCompraPago.getText().isBlank()) {
@@ -795,7 +793,7 @@ public class PagosController {
         try (Connection con = conexion.establecerConexion()) {
 
             String sqlSaldo =
-                    "SELECT vs.monto_pendiente AS monto_cli, " +
+                    "SELECT vs.monto_pendiente_cliente AS monto_cli, " +
                             "  ISNULL((" +
                             "      SELECT SUM(vps.precio_unitario * vps.cantidad * vps.porcentaje_cobertura / 100.0)" +
                             "      FROM TBL_VENTA_PRODUCTO_SEGURO vps" +
@@ -915,7 +913,6 @@ public class PagosController {
         }
     }
 
-    // ══ BÚSQUEDA ══════════════════════════════════════════════════════════
     @FXML public void onBuscarEnCompras(ActionEvent ignored) {
         filtrarTabla(tablaCompras, listaCompras,
                 cmbFiltroCompra != null ? cmbFiltroCompra.getValue() : "Todos", txtBuscarCompra);
@@ -972,7 +969,6 @@ public class PagosController {
         histSeguro.clear();
     }
 
-    // ══ HELPERS ═══════════════════════════════════════════════════════════
     private double[] leerSaldoCompra(Connection con, int idCompra) throws SQLException {
         PreparedStatement ps = con.prepareStatement(
                 "SELECT monto_total, monto_pendiente FROM tbl_COMPRA WHERE id_compra = ?");
@@ -1050,10 +1046,7 @@ public class PagosController {
         return true;
     }
 
-    /**
-     * Actualiza los labels de info y saldo luego de registrar un pago.
-     * lblInfo cambia de color según si queda saldo; lblSaldo muestra el nuevo monto.
-     */
+
     private void actualizarInfoLuegoDePago(double nuevoPendiente,
                                            Label lblInfo, Label lblSaldo,
                                            TextField txtMonto) {
@@ -1105,7 +1098,85 @@ public class PagosController {
         });
     }
 
-    // ── Clase interna historial ───────────────────────────────────────────
+    @FXML
+    public void onImprimirReciboPago(ActionEvent ignored) {
+        if (txtIdPagoImprimir == null || txtIdPagoImprimir.getText().isBlank()) {
+            JOptionPane.showMessageDialog(null,
+                    "Ingresa el ID del pago para imprimir.",
+                    "ID requerido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        generarReporteReciboPago();
+    }
+
+    private void generarReporteReciboPago() {
+        try {
+            int idPago = Integer.parseInt(txtIdPagoImprimir.getText().trim());
+            InputStream reporte = getClass().getResourceAsStream("/reports/ReciboPago.jrxml");
+            JasperReport jasperReport = JasperCompileManager.compileReport(reporte);
+            Map<String, Object> params = new HashMap<>();
+            params.put("ID_PAGO", idPago);
+            params.put("LOGO_STREAM", getClass().getResourceAsStream("/reports/logusfarmablanco.png"));
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport, params, conexion.establecerConexion());
+            JasperViewer.viewReport(jasperPrint, false);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null,
+                    "El ID del pago debe ser un número.",
+                    "ID inválido", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error al generar el reporte: " + e.getMessage());
+            System.getLogger(getClass().getName())
+                    .log(System.Logger.Level.ERROR, e.getMessage(), e);
+        }
+    }
+
+    @FXML
+    private void onEnviarReciboPago() {
+        try {
+            int idPago = Integer.parseInt(txtIdPagoImprimir.getText().trim());
+            InputStream reporte = getClass().getResourceAsStream("/reports/ReciboPago.jrxml");
+            JasperReport jasperReport = JasperCompileManager.compileReport(reporte);
+            Map<String, Object> params = new HashMap<>();
+            params.put("ID_PAGO", idPago);
+            params.put("LOGO_STREAM", getClass().getResourceAsStream("/reports/logusfarmablanco.png"));
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport, params, conexion.establecerConexion());
+
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Enviar Recibo por Correo");
+            dialog.setHeaderText("Ingrese el correo del destinatario:");
+            dialog.setContentText("Correo:");
+            String destinatario = dialog.showAndWait().orElse(null);
+            if (destinatario == null || destinatario.isBlank()) return;
+
+            byte[] pdf = JasperExportManager.exportReportToPdf(jasperPrint);
+
+            EmailService emailService = new EmailService(
+                    "smtp.gmail.com", "587",
+                    "2230006@ipisa.edu.do", "dfjy zlqx nsve idyf");
+            emailService.enviarConReporte(destinatario, "Recibo de Pago #" + idPago,
+                    "Adjunto el recibo de pago.",
+                    "ReciboPago_" + idPago + ".pdf",
+                    new java.io.ByteArrayInputStream(pdf));
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null,
+                    "El ID del pago debe ser un número.",
+                    "ID inválido", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            JOptionPane.showMessageDialog(null,
+                    "Error al enviar el recibo:\n" + e.getMessage()
+                            + "\n\nDetalle:\n" + sw.toString().substring(0, Math.min(1000, sw.toString().length())),
+                    "Error de envío", JOptionPane.ERROR_MESSAGE);
+            System.getLogger(getClass().getName())
+                    .log(System.Logger.Level.ERROR, e.getMessage(), e);
+        }
+    }
+
     public static class HistorialPagoItem {
         private final javafx.beans.property.SimpleIntegerProperty idPago     = new javafx.beans.property.SimpleIntegerProperty();
         private final javafx.beans.property.SimpleStringProperty  fecha      = new javafx.beans.property.SimpleStringProperty();

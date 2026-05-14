@@ -2,11 +2,7 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Modelo para TBL_VENTA_PRODUCTO_SEGURO.
- * La BD guarda: porcentaje_cobertura y porcentaje_cliente.
- * Los montos (aseguradora/cliente) se calculan en memoria para mostrar en tabla.
- */
+
 public class VentaSeguroItem {
 
     private final SimpleIntegerProperty idProducto       = new SimpleIntegerProperty();
@@ -16,7 +12,7 @@ public class VentaSeguroItem {
     private final SimpleDoubleProperty  subtotal         = new SimpleDoubleProperty();
     private final SimpleDoubleProperty  porcentajeCobert = new SimpleDoubleProperty(); // % aseguradora
     private final SimpleDoubleProperty  porcentajeCli    = new SimpleDoubleProperty(); // % cliente
-    // calculados en memoria, NO se guardan en BD
+
     private final SimpleDoubleProperty  montoAseguradora = new SimpleDoubleProperty();
     private final SimpleDoubleProperty  montoCliente     = new SimpleDoubleProperty();
     private int idPresentacion = 1;
@@ -30,10 +26,7 @@ public class VentaSeguroItem {
         recalcular(cantidad, precioUnitario, pctCobertura);
     }
 
-    /**
-     * Recalcula todos los valores derivados.
-     * porcentaje_cliente = 100 - pctCobertura
-     */
+
     public void recalcular(int cant, double precio, double pctCobertura) {
         double sub  = cant * precio;
         double aseg = sub * (pctCobertura / 100.0);
@@ -46,7 +39,6 @@ public class VentaSeguroItem {
         montoCliente.set(sub - aseg);
     }
 
-    // ── Getters ───────────────────────────────────────────────────────
     public int    getIdProducto()       { return idProducto.get(); }
     public String getProducto()         { return producto.get(); }
     public int    getCantidad()         { return cantidad.get(); }
@@ -59,7 +51,6 @@ public class VentaSeguroItem {
     public int    getIdPresentacion()   { return idPresentacion; }
     public void   setIdPresentacion(int v) { idPresentacion = v; }
 
-    // ── Properties ───────────────────────────────────────────────────
     public SimpleIntegerProperty idProductoProperty()       { return idProducto; }
     public SimpleStringProperty  productoProperty()         { return producto; }
     public SimpleIntegerProperty cantidadProperty()         { return cantidad; }

@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -20,8 +20,7 @@ public class FidelizacionController implements Initializable {
 
     Conexion conexion = new Conexion();
 
-    // ── Formulario ────────────────────────────────────────────────────────────
-    // ── Botones con restricción de permisos ───────────────────────────────
+
     @FXML private Button btnRegistrarFidelizacion;
     @FXML private Button btnAgregarPuntos;
     @FXML private Button btnCanjearPuntos;
@@ -34,11 +33,9 @@ public class FidelizacionController implements Initializable {
     @FXML private TextField  txtPuntos;
     @FXML private DatePicker dpFechaCaducidad;
 
-    // ── Panel canjear ─────────────────────────────────────────────────────────
     @FXML private TextField txtPuntosACanjear;
     @FXML private Label     lblPuntosRestantes;
 
-    // ── Tabla ─────────────────────────────────────────────────────────────────
     @FXML private TableView<SistemaFidelizacion>              tablaFidelizacion;
     @FXML private TableColumn<SistemaFidelizacion, Integer>   colId;
     @FXML private TableColumn<SistemaFidelizacion, Integer>   colCliente;
@@ -47,27 +44,22 @@ public class FidelizacionController implements Initializable {
     @FXML private TableColumn<SistemaFidelizacion, LocalDate> colCaducidad;
     @FXML private TableColumn<SistemaFidelizacion, String>    colEstado;
 
-    // ── Filtros ───────────────────────────────────────────────────────────────
     @FXML private ComboBox<String> cmbFiltroEstado;
     @FXML private TextField        txtBusqueda;
 
-    // ── Historial ─────────────────────────────────────────────────────────────
     @FXML private ListView<String> listHistorial;
     @FXML private Label            lblHistorialDe;
 
-    // ── Pastillas ─────────────────────────────────────────────────────────────
     @FXML private Label lblContActivo;
     @FXML private Label lblContVencido;
     @FXML private Label lblTotalPuntos;
 
-    // ── Lista de datos ────────────────────────────────────────────────────────
     private ObservableList<SistemaFidelizacion> listaFidelizacion = FXCollections.observableArrayList();
     private ObservableList<String>              listaHistorial    = FXCollections.observableArrayList();
 
     private static final String ACTIVO  = "ACTIVO";
     private static final String VENCIDO = "VENCIDO";
 
-    // ── Inicializar ───────────────────────────────────────────────────────────
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         colId.setCellValueFactory(new PropertyValueFactory<>("idFidelizacion"));
@@ -84,7 +76,6 @@ public class FidelizacionController implements Initializable {
 
         listHistorial.setItems(listaHistorial);
 
-        // Clic en fila → cargar formulario e historial
         tablaFidelizacion.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (sel != null) { cargarEnFormulario(sel); cargarHistorial(sel); }
         });
@@ -92,7 +83,6 @@ public class FidelizacionController implements Initializable {
         dpFechaCaducidad.setValue(LocalDate.now().plusYears(1));
         actualizarTabla();
 
-        // ── Permisos ──────────────────────────────────────────────────────
         Permisos.aplicarBtn(btnRegistrarFidelizacion, Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnAgregarPuntos,         Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnCanjearPuntos,         Permisos.Accion.EDITAR);
@@ -101,7 +91,6 @@ public class FidelizacionController implements Initializable {
 
     }
 
-    // ── Buscar cliente por ID ─────────────────────────────────────────────────
     @FXML
     public void onBuscarCliente() {
         String idC = txtIdCliente.getText().trim();
@@ -123,7 +112,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Buscar en tabla ───────────────────────────────────────────────────────
     @FXML
     public void fnBuscar() {
         String busqueda = txtBusqueda.getText().trim().toLowerCase();
@@ -141,7 +129,6 @@ public class FidelizacionController implements Initializable {
         tablaFidelizacion.setItems(listaFiltrada);
     }
 
-    // ── Registrar nueva fidelización ──────────────────────────────────────────
     @FXML
     public void onRegistrar() {
         if (txtIdCliente.getText().isBlank()) {
@@ -154,7 +141,6 @@ public class FidelizacionController implements Initializable {
             JOptionPane.showMessageDialog(null, "Selecciona la fecha de caducidad."); return;
         }
 
-        // Verificar si el cliente ya tiene fidelizacion
         String sqlCheck = "SELECT id_fidelizacion FROM TBL_SISTEMA_FIDELIZACION WHERE id_cliente = ?";
         try (Connection con = conexion.establecerConexion();
              PreparedStatement psCheck = con.prepareStatement(sqlCheck)) {
@@ -187,7 +173,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Agregar puntos al cliente seleccionado ────────────────────────────────
     @FXML
     public void onAgregarPuntos() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
@@ -215,7 +200,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Canjear puntos ────────────────────────────────────────────────────────
     @FXML
     public void onCanjearPuntos() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
@@ -258,7 +242,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Renovar fecha de caducidad ────────────────────────────────────────────
     @FXML
     public void onRenovarCaducidad() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
@@ -279,7 +262,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Eliminar ──────────────────────────────────────────────────────────────
     @FXML
     public void onEliminar() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
@@ -306,7 +288,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Limpiar formulario ────────────────────────────────────────────────────
     @FXML
     public void onLimpiar() { limpiar(); }
 
@@ -324,7 +305,6 @@ public class FidelizacionController implements Initializable {
         tablaFidelizacion.setItems(listaFidelizacion);
     }
 
-    // ── Listener campo canjear → mostrar restantes ────────────────────────────
     @FXML
     public void onCanjearInput() {
         SistemaFidelizacion sel = tablaFidelizacion.getSelectionModel().getSelectedItem();
@@ -339,7 +319,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Cargar tabla desde BD ─────────────────────────────────────────────────
     private void actualizarTabla() {
         listaFidelizacion.clear();
         String sql = "SELECT f.id_fidelizacion, f.id_cliente, " +
@@ -368,7 +347,6 @@ public class FidelizacionController implements Initializable {
         }
     }
 
-    // ── Cargar historial del cliente seleccionado ─────────────────────────────
     private void cargarHistorial(SistemaFidelizacion f) {
         listaHistorial.clear();
         if (lblHistorialDe != null) lblHistorialDe.setText(f.getNombreCliente());
@@ -394,7 +372,6 @@ public class FidelizacionController implements Initializable {
             lblPuntosRestantes.setText("Disponibles: " + f.getPuntosAcumulados() + " pts");
     }
 
-    // ── Cargar fila en formulario ─────────────────────────────────────────────
     private void cargarEnFormulario(SistemaFidelizacion f) {
         txtIdFidelizacion.setText(String.valueOf(f.getIdFidelizacion()));
         txtIdCliente.setText(String.valueOf(f.getIdCliente()));
@@ -403,7 +380,6 @@ public class FidelizacionController implements Initializable {
         dpFechaCaducidad.setValue(f.getFechaCaducidad());
     }
 
-    // ── Pastillas de conteo ───────────────────────────────────────────────────
     private void actualizarContadores() {
         int activos = 0, vencidos = 0, totalPts = 0;
         for (SistemaFidelizacion f : listaFidelizacion) {

@@ -6,15 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 import java.time.LocalDate;
 
-/**
- * Mapea TBL_SISTEMA_FIDELIZACION + JOIN TBL_CLIENTE + TBL_PERSONA
- *
- * Columnas reales de TBL_SISTEMA_FIDELIZACION:
- *   id_fidelizacion, id_cliente, puntos_acumulados, fecha_caducidad
- *
- * Datos adicionales por JOIN:
- *   nombreCliente → TBL_PERSONA (via TBL_CLIENTE)
- */
+
 public class SistemaFidelizacion {
 
     private final SimpleIntegerProperty           idFidelizacion    = new SimpleIntegerProperty();
@@ -22,7 +14,7 @@ public class SistemaFidelizacion {
     private final SimpleStringProperty            nombreCliente     = new SimpleStringProperty();
     private final SimpleIntegerProperty           puntosAcumulados  = new SimpleIntegerProperty();
     private final SimpleObjectProperty<LocalDate> fechaCaducidad    = new SimpleObjectProperty<>();
-    /** Estado calculado: ACTIVO si fecha_caducidad >= hoy, VENCIDO si no */
+
     private final SimpleStringProperty            estadoPuntos      = new SimpleStringProperty();
 
     public SistemaFidelizacion() {}
@@ -34,14 +26,13 @@ public class SistemaFidelizacion {
         this.nombreCliente.set(nombreCliente != null ? nombreCliente : "");
         this.puntosAcumulados.set(puntosAcumulados);
         this.fechaCaducidad.set(fechaCaducidad);
-        // Calcular estado automáticamente
+
         this.estadoPuntos.set(
                 fechaCaducidad != null && !fechaCaducidad.isBefore(LocalDate.now())
                         ? "ACTIVO" : "VENCIDO"
         );
     }
 
-    // ── Properties ────────────────────────────────────────────────────────────
     public SimpleIntegerProperty           idFidelizacionProperty()   { return idFidelizacion; }
     public SimpleIntegerProperty           idClienteProperty()        { return idCliente; }
     public SimpleStringProperty            nombreClienteProperty()    { return nombreCliente; }
@@ -49,7 +40,6 @@ public class SistemaFidelizacion {
     public SimpleObjectProperty<LocalDate> fechaCaducidadProperty()   { return fechaCaducidad; }
     public SimpleStringProperty            estadoPuntosProperty()     { return estadoPuntos; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────────
     public int       getIdFidelizacion()              { return idFidelizacion.get(); }
     public void      setIdFidelizacion(int v)         { idFidelizacion.set(v); }
     public int       getIdCliente()                   { return idCliente.get(); }

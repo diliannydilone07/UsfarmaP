@@ -4,9 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.PagosController">
+<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.controlador.PagosController">
 
-    <!-- ══ ENCABEZADO ══════════════════════════════════════════════════════ -->
+
     <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF;                  -fx-border-color: #E0E0E0;                  -fx-border-width: 0 0 1 0;">
         <padding><Insets bottom="18" left="24" right="24" top="18" /></padding>
         <VBox spacing="2">
@@ -14,27 +14,28 @@
             <Label style="-fx-font-size: 12px; -fx-text-fill: #78909C;" text="Gestión de cuentas por pagar y por cobrar" />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
+        <TextField fx:id="txtIdPagoImprimir" promptText="ID Pago..." prefWidth="100" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8; -fx-pref-height: 36;" />
+        <Button fx:id="btnImprimirReciboPago" onAction="#onImprimirReciboPago" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="🖨 Imprimir Recibo" />
+        <Button onAction="#onEnviarReciboPago" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BBDEFB; -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="📧 Enviar Recibo" />
         <Button onAction="#onRefrescarCompras" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="↻  Refrescar" />
     </HBox>
 
-    <!-- ══ TAB PANE PRINCIPAL ════════════════════════════════════════════ -->
+
     <TabPane fx:id="tabPanePagos" style="-fx-tab-min-height: 38px; -fx-tab-max-height: 38px;" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
 
-        <!-- ╔══════════════════════════════════════════════════════════════╗
-             ║  PESTAÑA 0 — CUENTAS POR PAGAR (Compras a proveedores)      ║
-             ╚══════════════════════════════════════════════════════════════╝ -->
+
         <Tab text="💸  Cuentas por Pagar">
             <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-                <!-- COLUMNA IZQUIERDA — Formulario Pago Compra -->
+
                 <VBox prefWidth="360" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
                     <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Registrar Pago" />
                     <Separator style="-fx-background-color: #E8F5E9;" />
 
-                    <!-- Búsqueda / filtro -->
+
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Buscar compra" />
                         <HBox spacing="8">
@@ -46,7 +47,7 @@
 
                     <Separator style="-fx-background-color: #E8F5E9;" />
 
-                    <!-- ID de compra seleccionada -->
+
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="ID Compra" />
                         <TextField fx:id="txtIdCompraPago" promptText="Se llena al seleccionar" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8; -fx-pref-height: 36;" />
@@ -54,7 +55,7 @@
                                style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
                     </VBox>
 
-                    <!-- Saldo pendiente — oculto hasta seleccionar fila -->
+
                     <Label fx:id="lblSaldoCompra" managed="false" visible="false"
                            style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;
                                   -fx-background-color: #FFEBEE; -fx-background-radius: 6;
@@ -90,7 +91,7 @@
                     </HBox>
                 </VBox>
 
-                <!-- COLUMNA DERECHA — Tabla + Historial Compras -->
+
                 <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
@@ -134,14 +135,12 @@
             </HBox>
         </Tab>
 
-        <!-- ╔══════════════════════════════════════════════════════════════╗
-             ║  PESTAÑA 1 — CUENTAS POR COBRAR (Ventas normales)           ║
-             ╚══════════════════════════════════════════════════════════════╝ -->
+
         <Tab text="📈  Cuentas por Cobrar">
             <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-                <!-- COLUMNA IZQUIERDA — Formulario Cobro Venta -->
+
                 <VBox prefWidth="360" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
@@ -166,7 +165,7 @@
                                style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
                     </VBox>
 
-                    <!-- Saldo pendiente — oculto hasta seleccionar fila -->
+
                     <Label fx:id="lblSaldoVenta" managed="false" visible="false"
                            style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;
                                   -fx-background-color: #FFEBEE; -fx-background-radius: 6;
@@ -197,7 +196,7 @@
                     </HBox>
                 </VBox>
 
-                <!-- COLUMNA DERECHA — Tabla + Historial Ventas -->
+
                 <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
@@ -240,14 +239,12 @@
             </HBox>
         </Tab>
 
-        <!-- ╔══════════════════════════════════════════════════════════════╗
-             ║  PESTAÑA 2 — CUENTAS POR COBRAR SEGURO                      ║
-             ╚══════════════════════════════════════════════════════════════╝ -->
+
         <Tab text="🏥  Cuentas Seguro">
             <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-                <!-- COLUMNA IZQUIERDA — Formulario Cobro Seguro -->
+
                 <VBox prefHeight="821.0" prefWidth="496.0" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
@@ -272,7 +269,7 @@
                                style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
                     </VBox>
 
-                    <!-- Tipo de factura -->
+
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Tipo de Factura *" />
                         <ComboBox fx:id="cmbTipoFacturaSeguro" maxWidth="Infinity" style="-fx-background-radius: 6; -fx-border-color: #A5D6A7;
@@ -280,7 +277,7 @@
                                           -fx-background-color: #E8F5E9;" />
                     </VBox>
 
-                    <!-- Saldo pendiente — oculto hasta seleccionar fila -->
+
                     <Label fx:id="lblSaldoSeguro" managed="false" visible="false"
                            style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;
                                   -fx-background-color: #FFEBEE; -fx-background-radius: 6;
@@ -311,7 +308,7 @@
                     </HBox>
                 </VBox>
 
-                <!-- COLUMNA DERECHA — Tabla + Historial Seguro -->
+
                 <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
@@ -321,7 +318,7 @@
                         <Button onAction="#onRefrescarSeguros" style="-fx-background-color: #ECEFF1; -fx-text-fill: #455A64; -fx-font-size: 12px; -fx-background-radius: 9; -fx-border-color: #CFD8DC; -fx-border-radius: 9; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="↻ Refrescar" />
                     </HBox>
 
-                    <!-- Aviso explicativo -->
+
                     <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-background-color: #E8F5E9; -fx-background-radius: 6;                                  -fx-border-color: #A5D6A7; -fx-border-radius: 6; -fx-border-width: 1;                                  -fx-padding: 8 12 8 12;">
                         <Label style="-fx-font-size: 12px;" text="ℹ" />
                         <Label style="-fx-font-size: 11px; -fx-text-fill: #1B5E20;" text="Cada venta genera 2 filas: Aseguradora (monto cubierto) y Cliente (copago). Selecciona la fila y elige el tipo antes de cobrar." wrapText="true" />

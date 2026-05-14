@@ -1,9 +1,6 @@
 package Usuarios;
 
-/**
- * Singleton que guarda el usuario autenticado durante toda la sesión.
- * Accede con: SesionUsuario.getInstance().getUsuarioActual()
- */
+
 public class SesionUsuario {
 
     private static SesionUsuario instancia;

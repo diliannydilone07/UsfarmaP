@@ -2,10 +2,7 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Representa una fila en la tabla de nómina.
- * Cada NominaItem = un empleado con su detalle de nómina (TBL_NOMINA + TBL_DETALLE_NOMINA).
- */
+
 public class NominaItem {
 
     private final SimpleIntegerProperty idNomina        = new SimpleIntegerProperty();
@@ -22,7 +19,6 @@ public class NominaItem {
     private final SimpleStringProperty  fechaPago       = new SimpleStringProperty();
     private final SimpleStringProperty  estado          = new SimpleStringProperty();   // "Pendiente" / "Pagado"
 
-    // No expuestos en tabla pero necesarios para operaciones
     private int    idCuenta;
     private int    periodo;
     private double horasExtrasTiempo; // horas reales (time → double)
@@ -51,7 +47,6 @@ public class NominaItem {
         this.periodo  = periodo;
     }
 
-    // ── Properties ────────────────────────────────────────────────────────
     public SimpleIntegerProperty idNominaProperty()       { return idNomina; }
     public SimpleIntegerProperty idEmpleadoProperty()     { return idEmpleado; }
     public SimpleStringProperty  nombreEmpleadoProperty() { return nombreEmpleado; }
@@ -66,7 +61,6 @@ public class NominaItem {
     public SimpleStringProperty  fechaPagoProperty()      { return fechaPago; }
     public SimpleStringProperty  estadoProperty()         { return estado; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int    getIdNomina()                  { return idNomina.get(); }
     public void   setIdNomina(int v)             { idNomina.set(v); }
     public int    getIdEmpleado()                { return idEmpleado.get(); }
@@ -100,7 +94,7 @@ public class NominaItem {
     public double getHorasExtrasTiempo()         { return horasExtrasTiempo; }
     public void   setHorasExtrasTiempo(double v) { horasExtrasTiempo = v; }
 
-    /** Recalcula salario_neto = base + bonificacion + comision + horas_extras - descuento */
+
     public void recalcular() {
         double neto = salarioBase.get()
                 + bonificacion.get()

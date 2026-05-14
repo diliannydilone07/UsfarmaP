@@ -2,16 +2,9 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Modelo Envio — basado en TBL_ENVIO + diagrama de clases.
- *
- * BD: TBL_ENVIO (id_envio, fecha_envio, id_venta, costo_servicio,
- *                persona_recibe, metodo_envio)
- * Se muestra en tabla con JOIN a TBL_VENTA para mostrar info de la venta.
- */
+
 public class Envio {
 
-    // ── JavaFX Properties ─────────────────────────────────────────────────
     private final SimpleIntegerProperty idEnvio        = new SimpleIntegerProperty();
     private final SimpleStringProperty  fechaEnvio     = new SimpleStringProperty();
     private final SimpleDoubleProperty  costoServicio  = new SimpleDoubleProperty();
@@ -21,10 +14,8 @@ public class Envio {
     private final SimpleStringProperty  infoVenta      = new SimpleStringProperty(); // JOIN: cliente + fecha
     private final SimpleStringProperty  estadoEnvio    = new SimpleStringProperty(); // del patrón State
 
-    // ── Constructor vacío ─────────────────────────────────────────────────
     public Envio() {}
 
-    // ── Constructor completo ──────────────────────────────────────────────
     public Envio(int idEnvio, String fechaEnvio, double costoServicio,
                  String personaRecibe, String metodoEnvio,
                  int idVenta, String infoVenta, String estadoEnvio) {
@@ -38,7 +29,6 @@ public class Envio {
         this.estadoEnvio.set(estadoEnvio   != null ? estadoEnvio   : "EN_PREPARACION");
     }
 
-    // ── Métodos del diagrama (patrón State) ───────────────────────────────
     public void programarEnvio()   { estadoEnvio.set("EN_PREPARACION"); }
     public void despachar()        { estadoEnvio.set("EN_CAMINO"); }
     public void entregar()         { estadoEnvio.set("ENTREGADO"); }
@@ -50,7 +40,6 @@ public class Envio {
         return "Repartidor asignado: " + nombreEmpleado;
     }
 
-    // ── Properties ────────────────────────────────────────────────────────
     public SimpleIntegerProperty idEnvioProperty()       { return idEnvio; }
     public SimpleStringProperty  fechaEnvioProperty()    { return fechaEnvio; }
     public SimpleDoubleProperty  costoServicioProperty() { return costoServicio; }
@@ -60,7 +49,6 @@ public class Envio {
     public SimpleStringProperty  infoVentaProperty()     { return infoVenta; }
     public SimpleStringProperty  estadoEnvioProperty()   { return estadoEnvio; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int    getIdEnvio()              { return idEnvio.get(); }
     public void   setIdEnvio(int v)         { idEnvio.set(v); }
     public String getFechaEnvio()           { return fechaEnvio.get(); }

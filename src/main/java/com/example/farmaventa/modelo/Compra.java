@@ -2,13 +2,9 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Modelo Compra — representa el JOIN de TBL_COMPRA + TBL_COMPRA_PRODUCTO + TBL_PRODUCTO
- * Cada fila en la TableView = un producto dentro de una compra.
- */
+
 public class Compra {
 
-    // ── Propiedades para TableView ────────────────────────────────────────
     private final SimpleIntegerProperty idCompra      = new SimpleIntegerProperty();
     private final SimpleStringProperty  proveedor     = new SimpleStringProperty();
     private final SimpleStringProperty  producto      = new SimpleStringProperty();
@@ -19,7 +15,6 @@ public class Compra {
     private final SimpleStringProperty  fecha         = new SimpleStringProperty();
     private final SimpleStringProperty  condicion     = new SimpleStringProperty();
 
-    // ── IDs necesarios para operaciones en BD ────────────────────────────
     private int    idProducto;
     private int    idProveedor;
     private int    idPedidoC;
@@ -53,7 +48,6 @@ public class Compra {
         this.montoPendiente = montoPendiente;
     }
 
-    // ── Properties ───────────────────────────────────────────────────────
     public SimpleIntegerProperty idCompraProperty()       { return idCompra; }
     public SimpleStringProperty  proveedorProperty()      { return proveedor; }
     public SimpleStringProperty  productoProperty()       { return producto; }
@@ -64,7 +58,6 @@ public class Compra {
     public SimpleStringProperty  fechaProperty()          { return fecha; }
     public SimpleStringProperty  condicionProperty()      { return condicion; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int    getIdCompra()               { return idCompra.get(); }
     public void   setIdCompra(int v)          { idCompra.set(v); }
     public String getProveedor()              { return proveedor.get(); }
@@ -97,6 +90,5 @@ public class Compra {
     public double getMontoPendiente()         { return montoPendiente; }
     public void   setMontoPendiente(double v) { montoPendiente = v; }
 
-    // Métodos de negocio
     public double calcularSubtotal() { return precioUnitario.get() * cantidad.get(); }
 }

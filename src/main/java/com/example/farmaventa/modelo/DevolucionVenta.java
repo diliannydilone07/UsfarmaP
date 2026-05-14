@@ -31,7 +31,6 @@ public class DevolucionVenta {
         this.montoTotal.set(montoTotal != null ? montoTotal : "0.00");
     }
 
-    // ── Properties ──────────────────────────────────────────────────────────
     public SimpleIntegerProperty           idDevolucionventaProperty()  { return idDevolucionventa; }
     public SimpleIntegerProperty           idVentaProperty()            { return idVenta; }
     public SimpleIntegerProperty           idReclamacionventaProperty() { return idReclamacionventa; }
@@ -41,7 +40,6 @@ public class DevolucionVenta {
     public SimpleStringProperty            estadoNombreProperty()       { return estadoNombre; }
     public SimpleStringProperty            montoTotalProperty()         { return montoTotal; }
 
-    // ── Getters / Setters ────────────────────────────────────────────────────
     public int       getIdDevolucionventa()            { return idDevolucionventa.get(); }
     public void      setIdDevolucionventa(int v)       { idDevolucionventa.set(v); }
     public int       getIdVenta()                      { return idVenta.get(); }

@@ -2,15 +2,9 @@ package com.example.farmaventa.modelo;
 
 import javafx.beans.property.*;
 
-/**
- * Modelo Convenio — basado en TBL_CONVENIO + diagrama de clases.
- *
- * BD: TBL_CONVENIO (id_convenio, fecha_inicio, fecha_fin, acuerdo, id_proveedor, id_producto)
- * Se muestra en pantalla con nombres de proveedor y producto (JOIN).
- */
+
 public class Convenio {
 
-    // ── JavaFX Properties para TableView ──────────────────────────────────
     private final SimpleIntegerProperty idConvenio    = new SimpleIntegerProperty();
     private final SimpleStringProperty  fechaInicio   = new SimpleStringProperty();
     private final SimpleStringProperty  fechaFin      = new SimpleStringProperty();
@@ -19,11 +13,9 @@ public class Convenio {
     private final SimpleStringProperty  producto      = new SimpleStringProperty(); // JOIN nombre
     private final SimpleStringProperty  vigencia      = new SimpleStringProperty(); // calculado
 
-    // ── IDs raw para operaciones de BD ────────────────────────────────────
     private int idProveedor;
     private int idProducto;
 
-    // ── Constructores ─────────────────────────────────────────────────────
     public Convenio() {}
 
     public Convenio(int idConvenio, String fechaInicio, String fechaFin, String acuerdo,
@@ -40,11 +32,7 @@ public class Convenio {
         this.vigencia.set(calcularVigencia(fechaFin));
     }
 
-    // ── Método del diagrama ───────────────────────────────────────────────
-    /**
-     * Determina si el convenio sigue vigente comparando fecha_fin con hoy.
-     * Retorna "Vigente" o "Vencido".
-     */
+
     public String validarVigencia() {
         return calcularVigencia(fechaFin.get());
     }
@@ -59,7 +47,6 @@ public class Convenio {
         }
     }
 
-    // ── Properties ────────────────────────────────────────────────────────
     public SimpleIntegerProperty idConvenioProperty()  { return idConvenio; }
     public SimpleStringProperty  fechaInicioProperty() { return fechaInicio; }
     public SimpleStringProperty  fechaFinProperty()    { return fechaFin; }
@@ -68,7 +55,6 @@ public class Convenio {
     public SimpleStringProperty  productoProperty()    { return producto; }
     public SimpleStringProperty  vigenciaProperty()    { return vigencia; }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────
     public int    getIdConvenio()            { return idConvenio.get(); }
     public void   setIdConvenio(int v)       { idConvenio.set(v); }
 

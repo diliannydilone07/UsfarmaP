@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -19,9 +19,8 @@ public class ProductoController {
 
     Conexion conexion = new Conexion();
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  FORMULARIO PRINCIPAL
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML private Button btnGuardarProducto;
     @FXML private Button btnAnadirStock;
     @FXML private Button btnEliminarDetalle;
@@ -37,9 +36,8 @@ public class ProductoController {
     @FXML private TextField        txtBusqueda;
     @FXML private Spinner<Integer> spinCantidad;
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  SECCIÓN DETALLE DE PRESENTACIONES
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML private ComboBox<String> cmbDetPresentacion;
     @FXML private TextField        txtNuevaPresentacion;
     @FXML private TextField        txtDetPrecio;
@@ -55,9 +53,8 @@ public class ProductoController {
 
     private final Map<String, Integer> mapPresentaciones = new LinkedHashMap<>();
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  TABLA PRINCIPAL DE PRODUCTOS
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML private TableView<Producto>           tablaProductos;
     @FXML private TableColumn<Producto, Number> colId;
     @FXML private TableColumn<Producto, String> colNombre;
@@ -72,9 +69,8 @@ public class ProductoController {
     private final ObservableList<Producto> listaProductos =
             FXCollections.observableArrayList();
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  INICIALIZAR
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void initialize() {
         spinCantidad.setValueFactory(
@@ -83,7 +79,6 @@ public class ProductoController {
         cargarComboCategorias();
         cargarComboPresentaciones();
 
-        // ── Tabla principal ───────────────────────────────────────────────
         colId.setCellValueFactory(c -> c.getValue().idProductoProperty());
         colNombre.setCellValueFactory(c -> c.getValue().nombreProperty());
         colCategoria.setCellValueFactory(c -> c.getValue().categoriaProperty());
@@ -98,7 +93,6 @@ public class ProductoController {
         tablaProductos.getSelectionModel().selectedItemProperty().addListener(
                 (obs, old, sel) -> { if (sel != null) cargarEnFormulario(sel); });
 
-        // ── Mini-tabla de detalle ─────────────────────────────────────────
         colDetNombre.setCellValueFactory(c -> c.getValue().nombrePresentacionProperty());
         colDetPrecio.setCellValueFactory(c -> c.getValue().precioProperty());
         colDetFecha.setCellValueFactory(c -> c.getValue().fechaCaducidadProperty());
@@ -106,16 +100,14 @@ public class ProductoController {
 
         actualizarTabla();
 
-        // ── Permisos ──────────────────────────────────────────────────────
         Permisos.aplicarBtn(btnGuardarProducto,  Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnAnadirStock,      Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnEliminarDetalle,  Permisos.Accion.ELIMINAR);
         Permisos.aplicarBtn(btnEliminarProducto, Permisos.Accion.ELIMINAR); // ← NUEVO
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  CARGA DE COMBOS
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     private void cargarComboCategorias() {
         String sql = "SELECT nombre_categoria FROM TBL_CATEGORIA_DE_PRODUCTO " +
                 "ORDER BY nombre_categoria";
@@ -148,9 +140,8 @@ public class ProductoController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  DETALLE: AGREGAR FILA A LA MINI-TABLA
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onAgregarPresentacionDetalle(ActionEvent event) {
         String nombrePres = cmbDetPresentacion.getValue();
@@ -194,7 +185,6 @@ public class ProductoController {
         dpDetFechaCaducidad.setValue(null);
     }
 
-    // ── Quitar fila seleccionada de la mini-tabla ─────────────────────────
     @FXML
     public void onQuitarPresentacionDetalle(ActionEvent event) {
         PresentacionDetalle sel = tablaDetalle.getSelectionModel().getSelectedItem();
@@ -206,9 +196,8 @@ public class ProductoController {
         listaDetalle.remove(sel);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  CREAR NUEVA PRESENTACIÓN EN TBL_PRESENTACION Y RECARGAR COMBO
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onCrearPresentacion(ActionEvent event) {
         String nombre = txtNuevaPresentacion.getText().trim();
@@ -243,11 +232,10 @@ public class ProductoController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  BUSCAR EN TABLA PRINCIPAL
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
-    public void fnBuscar(ActionEvent event) {
+    public void fnBuscar() {
         String busqueda = txtBusqueda.getText().trim().toLowerCase();
         if (busqueda.isEmpty()) { tablaProductos.setItems(listaProductos); return; }
         ObservableList<Producto> filtrada = FXCollections.observableArrayList();
@@ -261,9 +249,8 @@ public class ProductoController {
         tablaProductos.setItems(filtrada);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  GUARDAR O EDITAR
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onGuardarProductoClick(ActionEvent event) {
         if (txtNombre.getText().isBlank()) {
@@ -286,9 +273,8 @@ public class ProductoController {
         else                            insertarProducto(idCategoria);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  INSERTAR PRODUCTO + DETALLE DE PRESENTACIONES
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     private void insertarProducto(int idCategoria) {
         String sqlProducto =
                 "INSERT INTO TBL_PRODUCTO " +
@@ -327,9 +313,8 @@ public class ProductoController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  EDITAR PRODUCTO + SINCRONIZAR DETALLE DE PRESENTACIONES
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     private void editarProducto(int idCategoria) {
         int idProducto = Integer.parseInt(txtId.getText().trim());
         String sqlProducto =
@@ -370,9 +355,8 @@ public class ProductoController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  INSERTAR FILAS DEL DETALLE EN TBL_PRESENTACION_PRODUCTO
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     private void insertarDetallePresentaciones(Connection con, int idProducto)
             throws SQLException {
         String sqlIns =
@@ -391,9 +375,8 @@ public class ProductoController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  ELIMINAR PRODUCTO
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onCancelarClick(ActionEvent event) {
         if (txtId.getText().isBlank()) {
@@ -454,9 +437,8 @@ public class ProductoController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  LIMPIAR FORMULARIO COMPLETO
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void Limpiar() {
         txtId.clear();
@@ -477,9 +459,8 @@ public class ProductoController {
         tablaProductos.setItems(listaProductos);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  AÑADIR AL CARRITO
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     @FXML
     public void onAñadirClick(ActionEvent event) {
         Producto sel = tablaProductos.getSelectionModel().getSelectedItem();
@@ -491,9 +472,8 @@ public class ProductoController {
                         + " listo para agregar.");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  ACTUALIZAR TABLA PRINCIPAL
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     public void actualizarTabla() {
         listaProductos.clear();
         String sql =
@@ -545,9 +525,8 @@ public class ProductoController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    //  HELPERS PRIVADOS
-    // ═══════════════════════════════════════════════════════════════════════
+
+
     private int obtenerIdCategoria(String nombre) {
         String sql = "SELECT id_categoria FROM TBL_CATEGORIA_DE_PRODUCTO " +
                 "WHERE nombre_categoria=?";

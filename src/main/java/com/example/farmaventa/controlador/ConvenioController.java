@@ -1,4 +1,4 @@
-package com.example.farmaventa;
+package com.example.farmaventa.controlador;
 
 import Usuarios.Permisos;
 import com.example.farmaventa.database.Conexion;
@@ -16,8 +16,7 @@ public class ConvenioController {
 
     Conexion conexion = new Conexion();
 
-    // ── Formulario ────────────────────────────────────────────────────────
-    // ── Botones con restricción de permisos ───────────────────────────────
+
     @FXML private Button btnGuardarConvenio;
     @FXML private Button btnEditarConvenio;
     @FXML private Button btnEliminarConvenio;
@@ -29,7 +28,6 @@ public class ConvenioController {
     @FXML private TextArea   taAcuerdo;
     @FXML private Label      lblVigencia;
 
-    // ── Tabla ─────────────────────────────────────────────────────────────
     @FXML private TextField                     txtBuscar;
     @FXML private TableView<Convenio>           tablaConvenios;
     @FXML private TableColumn<Convenio, Number> colId;
@@ -39,11 +37,9 @@ public class ConvenioController {
     @FXML private TableColumn<Convenio, String> colFechaFin;
     @FXML private TableColumn<Convenio, String> colVigencia;
 
-    // ── Lista de datos ────────────────────────────────────────────────────
     private ObservableList<Convenio> listaConvenios = FXCollections.observableArrayList();
     private int idConvenioSeleccionado = -1;
 
-    // ── Inicializar ───────────────────────────────────────────────────────
     @FXML
     public void initialize() {
         dpFechaInicio.setValue(java.time.LocalDate.now());
@@ -58,20 +54,17 @@ public class ConvenioController {
 
         tablaConvenios.setItems(listaConvenios);
 
-        // Clic en fila → carga datos en formulario
         tablaConvenios.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldSel, newSel) -> {
                     if (newSel != null) cargarEnFormulario(newSel);
                 });
 
-        // ── Permisos ──────────────────────────────────────────────────────
         Permisos.aplicarBtn(btnGuardarConvenio,  Permisos.Accion.REGISTRAR);
         Permisos.aplicarBtn(btnEditarConvenio,   Permisos.Accion.EDITAR);
         Permisos.aplicarBtn(btnEliminarConvenio, Permisos.Accion.ELIMINAR);
         cargarConvenios();
     }
 
-    // ── Cargar tabla ──────────────────────────────────────────────────────
     @FXML
     public void cargarConvenios() {
         listaConvenios.clear();
@@ -112,9 +105,8 @@ public class ConvenioController {
         }
     }
 
-    // ── Buscar por proveedor o producto ───────────────────────────────────
     @FXML
-    public void fnBuscar(ActionEvent event) {
+    public void fnBuscar() {
         String busqueda = txtBuscar.getText().trim().toLowerCase();
         if (busqueda.isEmpty()) {
             cargarConvenios();
@@ -132,7 +124,6 @@ public class ConvenioController {
         tablaConvenios.setItems(listaFiltrada);
     }
 
-    // ── Guardar nuevo ─────────────────────────────────────────────────────
     @FXML
     public void onGuardarConvenio(ActionEvent event) {
         if (!validarFormulario()) return;
@@ -159,7 +150,6 @@ public class ConvenioController {
         }
     }
 
-    // ── Editar convenio seleccionado ──────────────────────────────────────
     @FXML
     public void onEditarConvenio(ActionEvent event) {
         if (idConvenioSeleccionado == -1) {
@@ -192,7 +182,6 @@ public class ConvenioController {
         }
     }
 
-    // ── Eliminar ──────────────────────────────────────────────────────────
     @FXML
     public void onEliminarConvenio(ActionEvent event) {
         if (idConvenioSeleccionado == -1) {
@@ -221,7 +210,6 @@ public class ConvenioController {
         }
     }
 
-    // ── Limpiar formulario ────────────────────────────────────────────────
     @FXML
     public void limpiar() {
         txtIdProveedor.clear();
@@ -236,7 +224,6 @@ public class ConvenioController {
         if (lblVigencia != null) lblVigencia.setText("");
     }
 
-    // ── Cargar fila seleccionada en formulario ────────────────────────────
     private void cargarEnFormulario(Convenio c) {
         idConvenioSeleccionado = c.getIdConvenio();
         txtIdProveedor.setText(String.valueOf(c.getIdProveedor()));
@@ -248,7 +235,6 @@ public class ConvenioController {
             dpFechaFin.setValue(java.time.LocalDate.parse(c.getFechaFin().substring(0, 10)));
         } catch (Exception ignored) {}
 
-        // Actualizar etiqueta vigencia
         if (lblVigencia != null && dpFechaFin.getValue() != null) {
             boolean vigente = !dpFechaFin.getValue().isBefore(java.time.LocalDate.now());
             lblVigencia.setText(vigente ? "Vigente" : "Vencido");
@@ -258,7 +244,6 @@ public class ConvenioController {
         }
     }
 
-    // ── Validaciones ──────────────────────────────────────────────────────
     private boolean validarFormulario() {
         if (txtIdProveedor.getText().isBlank()) {
             JOptionPane.showMessageDialog(null, "El ID del Proveedor es obligatorio."); return false;

@@ -7,9 +7,9 @@
 <VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS"
       xmlns="http://javafx.com/javafx/17.0.12"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.farmaventa.HelloController">
+      fx:controller="com.example.farmaventa.controlador.HelloController">
 
-    <!-- ══ ENCABEZADO ══ -->
+
     <HBox alignment="CENTER_LEFT" spacing="10"
           style="-fx-background-color: #FFFFFF; -fx-border-color: #DCE8DC; -fx-border-width: 0 0 1 0;
                  -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.07), 8, 0, 0, 2);">
@@ -29,14 +29,14 @@
              style="-fx-tab-min-height: 38px; -fx-tab-max-height: 38px;"
              tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
 
-        <!-- ══════════════════════════════════════════ -->
-        <!--              TAB: VENTA NORMAL             -->
-        <!-- ══════════════════════════════════════════ -->
+
+
+
         <Tab text="Venta Normal">
             <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="20" left="20" right="20" top="20"/></padding>
 
-                <!-- Columna izquierda -->
+
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="356" minWidth="356"
                             style="-fx-background-color: transparent; -fx-background: transparent;
                                    -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;"
@@ -100,6 +100,12 @@
                                        style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;"/>
                         </VBox>
 
+                        <VBox spacing="4">
+                            <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Metodo de Pago"/>
+                            <ComboBox fx:id="cmbMetodoPagoVenta" maxWidth="Infinity" promptText="Efectivo..."
+                                      style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;"/>
+                        </VBox>
+
                         <Separator opacity="0.16" style="-fx-background-color: #E8F5E9;"/>
                         <VBox spacing="8">
                             <CheckBox fx:id="chkComprobante"
@@ -134,22 +140,30 @@
                         </HBox>
                         <Separator opacity="0.16" style="-fx-background-color: #E8F5E9;"/>
 
-                        <HBox spacing="8">
-                            <Button fx:id="btnRegistrarVenta" maxWidth="Infinity" onAction="#onRegistrarVenta"
-                                    style="-fx-background-color: #1B5E20; -fx-text-fill: #FFFFFF; -fx-font-size: 13px; -fx-font-weight: bold;
-                                           -fx-background-radius: 9; -fx-border-color: #145214; -fx-border-radius: 9; -fx-border-width: 1;
-                                           -fx-cursor: hand; -fx-padding: 9 18 9 18;"
-                                    text="Registrar Venta" HBox.hgrow="ALWAYS"/>
-                            <Button onAction="#onLimpiarVenta" prefHeight="39.0" prefWidth="125.0"
-                                    style="-fx-background-color: #ECEFF1; -fx-text-fill: #455A64; -fx-font-size: 13px;
-                                           -fx-background-radius: 9; -fx-border-color: #CFD8DC; -fx-border-radius: 9; -fx-border-width: 1;
-                                           -fx-cursor: hand; -fx-padding: 9 16 9 16;"
-                                    text="Limpiar"/>
-                        </HBox>
+                        <VBox spacing="8">
+                            <HBox spacing="8">
+                                <Button fx:id="btnRegistrarVenta" maxWidth="Infinity" onAction="#onRegistrarVenta"
+                                        style="-fx-background-color: #1B5E20; -fx-text-fill: #FFFFFF; -fx-font-size: 13px; -fx-font-weight: bold;
+                                               -fx-background-radius: 9; -fx-border-color: #145214; -fx-border-radius: 9; -fx-border-width: 1;
+                                               -fx-cursor: hand; -fx-padding: 9 18 9 18;"
+                                        text="Registrar Venta" HBox.hgrow="ALWAYS"/>
+                                <Button onAction="#onLimpiarVenta" prefHeight="39.0" prefWidth="125.0"
+                                        style="-fx-background-color: #ECEFF1; -fx-text-fill: #455A64; -fx-font-size: 13px;
+                                               -fx-background-radius: 9; -fx-border-color: #CFD8DC; -fx-border-radius: 9; -fx-border-width: 1;
+                                               -fx-cursor: hand; -fx-padding: 9 16 9 16;"
+                                        text="Limpiar"/>
+                            </HBox>
+                            <Button fx:id="btnRegistrarPagoVenta" maxWidth="Infinity"
+                                    onAction="#onRegistrarPagoVenta"
+                                    style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold;
+                                           -fx-background-radius: 9; -fx-border-color: #C8E6C9; -fx-border-radius: 9; -fx-border-width: 1;
+                                           -fx-cursor: hand; -fx-padding: 8 18 8 18;"
+                                    text="💳 Registrar Pago Venta Existente"/>
+                        </VBox>
                     </VBox>
                 </ScrollPane>
 
-                <!-- Columna derecha: productos -->
+
                 <VBox spacing="12"
                       style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
                              -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;"
@@ -251,19 +265,30 @@
                                        -fx-background-radius: 8; -fx-border-color: #FFCDD2; -fx-border-radius: 8; -fx-border-width: 1;
                                        -fx-cursor: hand; -fx-padding: 8 16 8 16;"
                                 text="Quitar Producto"/>
+                        <Button fx:id="btnImprimirFactura" onAction="#onImprimirVenta"
+                                style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-size: 12px; -fx-font-weight: bold;
+                                          -fx-background-radius: 8; -fx-border-color: #BBDEFB; -fx-border-radius: 8; -fx-border-width: 1;
+                                          -fx-cursor: hand; -fx-padding: 8 16 8 16;"
+                                text="🖨️ Imprimir Factura"/>
+                        <Button onAction="#onEnviarFactura"
+                                style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-size: 12px; -fx-font-weight: bold;
+                                          -fx-background-radius: 8; -fx-border-color: #BBDEFB; -fx-border-radius: 8; -fx-border-width: 1;
+                                          -fx-cursor: hand; -fx-padding: 8 16 8 16;"
+                                text="📧 Enviar Factura"/>
                     </HBox>
+
                 </VBox>
             </HBox>
         </Tab>
 
-        <!-- ══════════════════════════════════════════ -->
-        <!--           TAB: VENTA CON SEGURO            -->
-        <!-- ══════════════════════════════════════════ -->
+
+
+
         <Tab text="Venta con Seguro">
             <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="20" left="20" right="20" top="20"/></padding>
 
-                <!-- ══ COLUMNA IZQUIERDA ══════════════════════════════ -->
+
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="356" minWidth="356"
                             style="-fx-background-color: transparent; -fx-background: transparent;
                                    -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;"
@@ -275,7 +300,7 @@
                                text="Datos de la Venta con Seguro"/>
                         <Separator opacity="0.16" style="-fx-background-color: #E8F5E9;"/>
 
-                        <!-- ID Venta Seguro -->
+
                         <VBox spacing="4">
                             <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;"
                                    text="ID Venta Seguro (buscar)"/>
@@ -293,7 +318,7 @@
                                    style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true"/>
                         </VBox>
 
-                        <!-- ID Cliente -->
+
                         <VBox spacing="4">
                             <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;"
                                    text="ID Cliente *"/>
@@ -323,7 +348,7 @@
                                    text="" visible="false" wrapText="true"/>
                         </VBox>
 
-                        <!-- ID Empleado -->
+
                         <VBox spacing="4">
                             <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;"
                                    text="ID Empleado"/>
@@ -331,7 +356,7 @@
                                        style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;"/>
                         </VBox>
 
-                        <!-- Numero Autorizacion -->
+
                         <VBox spacing="4">
                             <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;"
                                    text="Numero de Autorizacion *"/>
@@ -339,7 +364,7 @@
                                        style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;"/>
                         </VBox>
 
-                        <!-- Fecha -->
+
                         <VBox spacing="4">
                             <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;"
                                    text="Fecha"/>
@@ -347,7 +372,7 @@
                                         style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8;"/>
                         </VBox>
 
-                        <!-- Condicion -->
+
                         <VBox spacing="4">
                             <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;"
                                    text="Condicion"/>
@@ -355,7 +380,7 @@
                                        style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8;"/>
                         </VBox>
 
-                        <!-- ══ COMPROBANTE FISCAL ══ -->
+
                         <Separator opacity="0.16" style="-fx-background-color: #E8F5E9;"/>
                         <VBox spacing="8">
                             <CheckBox fx:id="chkComprobanteSeguro"
@@ -378,12 +403,12 @@
                             </VBox>
                         </VBox>
 
-                        <!-- ══ PAGOS ══════════════════════════════════════ -->
+
                         <Separator opacity="0.16" style="-fx-background-color: #E8F5E9;"/>
                         <Label style="-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #1B5E20;"
                                text="Pagos"/>
 
-                        <!-- Pago aseguradora -->
+
                         <VBox spacing="4"
                               style="-fx-background-color: #F1F8E9; -fx-background-radius: 8;
                                      -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1;">
@@ -409,7 +434,7 @@
                                    text="RD$ 0.00" wrapText="true"/>
                         </VBox>
 
-                        <!-- Pago cliente -->
+
                         <VBox spacing="4"
                               style="-fx-background-color: #FFF8F8; -fx-background-radius: 8;
                                      -fx-border-color: #FFCDD2; -fx-border-radius: 8; -fx-border-width: 1;">
@@ -437,7 +462,7 @@
 
                         <Separator opacity="0.16" style="-fx-background-color: #E8F5E9;"/>
 
-                        <!-- Totales -->
+
                         <HBox spacing="10">
                             <VBox spacing="2" HBox.hgrow="ALWAYS">
                                 <Label style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E; -fx-font-weight: bold;"
@@ -453,6 +478,7 @@
                                   style="-fx-background-color: #E8F5E9; -fx-background-radius: 6;
                                          -fx-border-color: #C8E6C9; -fx-border-radius: 6; -fx-border-width: 1;"
                                   HBox.hgrow="ALWAYS">
+                                <padding><Insets bottom="8" left="10" right="10" top="8"/></padding>
                                 <padding><Insets bottom="8" left="10" right="10" top="8"/></padding>
                                 <Label style="-fx-font-size: 10px; -fx-text-fill: #757575; -fx-font-weight: bold;"
                                        text="ASEGURADORA"/>
@@ -475,7 +501,7 @@
 
                         <Separator opacity="0.16" style="-fx-background-color: #E8F5E9;"/>
 
-                        <!-- Botones -->
+
                         <VBox spacing="8">
                             <HBox spacing="8">
                                 <Button fx:id="btnRegistrarVentaSeguro" maxWidth="Infinity"
@@ -490,19 +516,18 @@
                                                -fx-cursor: hand; -fx-padding: 9 16 9 16;"
                                         text="Limpiar"/>
                             </HBox>
-                            <!-- Botón pago adicional sobre venta ya registrada -->
+
                             <Button fx:id="btnRegistrarPagoSeguro" maxWidth="Infinity"
                                     onAction="#onRegistrarPagoSeguro"
-                                    style="-fx-backgroun
-                                    d-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold;
-                                           -fx-background-radius: 9; -fx-border-color: #C8E6C9; -fx-border-radius: 9; -fx-border-width: 1;
-                                           -fx-cursor: hand; -fx-padding: 8 18 8 18;"
+                                    style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold;
+                                            -fx-background-radius: 9; -fx-border-color: #C8E6C9; -fx-border-radius: 9; -fx-border-width: 1;
+                                            -fx-cursor: hand; -fx-padding: 8 18 8 18;"
                                     text="💳 Registrar Pago sobre Venta Existente"/>
                         </VBox>
                     </VBox>
                 </ScrollPane>
 
-                <!-- ══ COLUMNA DERECHA: productos asegurados ══════════ -->
+
                 <VBox spacing="12"
                       style="-fx-background-color: #FFFFFF; -fx-background-radius: 10;
                              -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;"
@@ -604,6 +629,16 @@
                                        -fx-background-radius: 8; -fx-border-color: #FFCDD2; -fx-border-radius: 8; -fx-border-width: 1;
                                        -fx-cursor: hand; -fx-padding: 8 16 8 16;"
                                 text="Quitar Producto"/>
+                        <Button fx:id="btnImprimirFacturaSeguro" onAction="#onImprimirVentaSeguro"
+                                style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-size: 12px; -fx-font-weight: bold;
+                                         -fx-background-radius: 8; -fx-border-color: #BBDEFB; -fx-border-radius: 8; -fx-border-width: 1;
+                                         -fx-cursor: hand; -fx-padding: 8 16 8 16;"
+                                text="🖨️ Imprimir Factura"/>
+                        <Button onAction="#onEnviarFacturaSeguro"
+                                style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-size: 12px; -fx-font-weight: bold;
+                                         -fx-background-radius: 8; -fx-border-color: #BBDEFB; -fx-border-radius: 8; -fx-border-width: 1;
+                                         -fx-cursor: hand; -fx-padding: 8 16 8 16;"
+                                text="📧 Enviar Factura"/>
                     </HBox>
                 </VBox>
             </HBox>

@@ -4,9 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.NominaController">
+<VBox maxHeight="Infinity" spacing="0" style="-fx-background-color: #F0F4F1;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.farmaventa.controlador.NominaController">
 
-    <!-- ══ ENCABEZADO ══════════════════════════════════════════════════════ -->
+
     <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #FFFFFF; -fx-border-color: #DCE8DC; -fx-border-width: 0 0 1 0; -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.07), 8, 0, 0, 2);">
         <padding><Insets bottom="18" left="24" right="24" top="18" /></padding>
         <VBox spacing="2">
@@ -18,17 +18,15 @@
         <Label fx:id="lblTotalNomina" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;                        -fx-background-color: #E8F5E9; -fx-background-radius: 6;                        -fx-border-color: #C8E6C9; -fx-border-radius: 6; -fx-border-width: 1;                        -fx-padding: 5 14 5 14;" text="Total nómina: RD$ 0.00" />
     </HBox>
 
-    <!-- ══ TAB PANE ══════════════════════════════════════════════════════ -->
+
     <TabPane style="-fx-tab-min-height: 38px; -fx-tab-max-height: 38px;" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
 
-        <!-- ╔══════════════════════════════════════════════════╗
-             ║  PESTAÑA 0 — CREAR NÓMINA                       ║
-             ╚══════════════════════════════════════════════════╝ -->
+
         <Tab text="📝  Crear Nómina">
             <ScrollPane fitToHeight="false" fitToWidth="true" style="-fx-background-color: #F0F4F1; -fx-background: #F0F4F1; -fx-border-color: transparent;">
                 <VBox spacing="14" style="-fx-padding: 20 20 20 20;">
 
-                    <!-- Configuración nómina -->
+
                     <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
                         <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                         <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Configuración de la Nómina" />
@@ -53,13 +51,13 @@
                         </HBox>
                     </VBox>
 
-                    <!-- Agregar empleado -->
+
                     <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
                         <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                         <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Agregar Empleado" />
                         <Separator style="-fx-background-color: #E8F5E9;" />
 
-                        <!-- Fila búsqueda -->
+
                         <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-background-color: #F4F8F4; -fx-background-radius: 9;                                              -fx-border-color: #DCE8DC; -fx-border-radius: 9; -fx-border-width: 1;">
                             <padding><Insets bottom="10" left="12" right="12" top="10" /></padding>
                             <VBox prefWidth="130" spacing="3">
@@ -78,7 +76,7 @@
 
                         <Label fx:id="lblSalarioBaseRef" managed="false" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1B5E20;                                                        -fx-background-color: #E8F5E9; -fx-background-radius: 6;                                                        -fx-border-color: #C8E6C9; -fx-border-radius: 6; -fx-border-width: 1;                                                        -fx-padding: 5 12 5 12;" text="" visible="false" />
 
-                        <!-- Campos de ajuste -->
+
                         <HBox alignment="CENTER_LEFT" spacing="12">
                             <VBox spacing="4" HBox.hgrow="ALWAYS">
                                 <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Bonificación (RD$)" />
@@ -107,7 +105,7 @@
                         </HBox>
                     </VBox>
 
-                    <!-- Tabla empleados en nómina -->
+
                     <VBox spacing="10" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                                      -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                                      -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
                         <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                         <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Empleados en esta Nómina" />
@@ -138,14 +136,12 @@
             </ScrollPane>
         </Tab>
 
-        <!-- ╔══════════════════════════════════════════════════╗
-             ║  PESTAÑA 1 — REGISTRAR PAGO                     ║
-             ╚══════════════════════════════════════════════════╝ -->
+
         <Tab text="💳  Registrar Pago">
             <HBox minHeight="580" spacing="16" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
-                <!-- COLUMNA IZQUIERDA -->
+
                 <VBox prefHeight="796.0" prefWidth="470.0" spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
 
@@ -192,11 +188,12 @@
 
                     <HBox spacing="8">
                         <Button fx:id="btnRegistrarPagoNomina" maxWidth="Infinity" onAction="#onRegistrarPagoNomina" style="-fx-background-color: #1B5E20; -fx-text-fill: #FFFFFF; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 9; -fx-border-color: #145214; -fx-border-radius: 9; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 10 18 10 18;" text="✔  Confirmar Pago" HBox.hgrow="ALWAYS" />
-                        <Button onAction="#onRefrescarPendientes" style="-fx-background-color: #ECEFF1; -fx-text-fill: #455A64; -fx-font-size: 13px; -fx-background-radius: 9; -fx-border-color: #CFD8DC; -fx-border-radius: 9; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 10 16 10 16;" text="↻ Refrescar" />
+                        <Button onAction="#onLimpiarNomina" style="-fx-background-color: #ECEFF1; -fx-text-fill: #455A64; -fx-font-size: 13px; -fx-background-radius: 9; -fx-border-color: #CFD8DC; -fx-border-radius: 9; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 10 16 10 16;" text="Limpiar" />
                     </HBox>
+                    <Button fx:id="btnImprimirReciboNomina" maxWidth="Infinity" onAction="#onImprimirReciboNomina" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 9; -fx-border-color: #C8E6C9; -fx-border-radius: 9; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 12 18 12 18;" text="🖨 Imprimir Recibo de Nómina" />
                 </VBox>
 
-                <!-- COLUMNA DERECHA -->
+
                 <VBox spacing="12" style="-fx-background-color: #FFFFFF; -fx-background-radius: 12;                              -fx-border-color: #DCE8DC; -fx-border-radius: 12; -fx-border-width: 1;                              -fx-effect: dropshadow(gaussian, rgba(27,94,32,0.06), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                     <padding><Insets bottom="20" left="18" right="18" top="20" /></padding>
                     <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1B5E20;" text="Nóminas Registradas" />
@@ -217,9 +214,7 @@
             </HBox>
         </Tab>
 
-        <!-- ╔══════════════════════════════════════════════════╗
-             ║  PESTAÑA 2 — HISTORIAL                          ║
-             ╚══════════════════════════════════════════════════╝ -->
+
         <Tab text="📋  Historial">
             <VBox spacing="14" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
