@@ -14,7 +14,7 @@
             <Label style="-fx-font-size: 12px; -fx-text-fill: #78909C;" text="Gestión de cuentas por pagar y por cobrar" />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
-        <TextField fx:id="txtIdPagoImprimir" promptText="ID Pago..." prefWidth="100" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8; -fx-pref-height: 36;" />
+        <TextField fx:id="txtIdPagoImprimir" prefWidth="119.0" promptText="ID Pago/Cobro..." style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8; -fx-pref-height: 36;" />
         <Button fx:id="btnImprimirReciboPago" onAction="#onImprimirReciboPago" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="🖨 Imprimir Recibo" />
         <Button onAction="#onEnviarReciboPago" style="-fx-background-color: #E3F2FD; -fx-text-fill: #1565C0; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #BBDEFB; -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="📧 Enviar Recibo" />
         <Button onAction="#onRefrescarCompras" style="-fx-background-color: #E8F5E9; -fx-text-fill: #1B5E20; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #C8E6C9; -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 16 8 16;" text="↻  Refrescar" />
@@ -51,16 +51,11 @@
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="ID Compra" />
                         <TextField fx:id="txtIdCompraPago" promptText="Se llena al seleccionar" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8; -fx-pref-height: 36;" />
-                        <Label fx:id="lblInfoCompraPago" managed="false" visible="false"
-                               style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
+                        <Label fx:id="lblInfoCompraPago" managed="false" style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" visible="false" wrapText="true" />
                     </VBox>
 
 
-                    <Label fx:id="lblSaldoCompra" managed="false" visible="false"
-                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;
-                                  -fx-background-color: #FFEBEE; -fx-background-radius: 6;
-                                  -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;
-                                  -fx-padding: 6 10 6 10;" text="" />
+                    <Label fx:id="lblSaldoCompra" managed="false" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;                                   -fx-background-color: #FFEBEE; -fx-background-radius: 6;                                   -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;                                   -fx-padding: 6 10 6 10;" text="" visible="false" />
 
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Monto a Pagar (RD$)" />
@@ -161,16 +156,11 @@
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="ID Venta" />
                         <TextField fx:id="txtIdVentaPago" promptText="Se llena al seleccionar" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8; -fx-pref-height: 36;" />
-                        <Label fx:id="lblInfoVentaPago" managed="false" visible="false"
-                               style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
+                        <Label fx:id="lblInfoVentaPago" managed="false" style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" visible="false" wrapText="true" />
                     </VBox>
 
 
-                    <Label fx:id="lblSaldoVenta" managed="false" visible="false"
-                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;
-                                  -fx-background-color: #FFEBEE; -fx-background-radius: 6;
-                                  -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;
-                                  -fx-padding: 6 10 6 10;" text="" />
+                    <Label fx:id="lblSaldoVenta" managed="false" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;                                   -fx-background-color: #FFEBEE; -fx-background-radius: 6;                                   -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;                                   -fx-padding: 6 10 6 10;" text="" visible="false" />
 
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Monto a Cobrar (RD$)" />
@@ -265,24 +255,17 @@
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="ID Venta Seguro" />
                         <TextField fx:id="txtIdSeguroPago" promptText="Se llena al seleccionar" style="-fx-background-radius: 8; -fx-border-color: #C8D8C8; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 8; -fx-pref-height: 36;" />
-                        <Label fx:id="lblInfoSeguroPago" managed="false" visible="false"
-                               style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" wrapText="true" />
+                        <Label fx:id="lblInfoSeguroPago" managed="false" style="-fx-font-size: 11px; -fx-text-fill: #2E7D32;" text="" visible="false" wrapText="true" />
                     </VBox>
 
 
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Tipo de Factura *" />
-                        <ComboBox fx:id="cmbTipoFacturaSeguro" maxWidth="Infinity" style="-fx-background-radius: 6; -fx-border-color: #A5D6A7;
-                                          -fx-border-radius: 6; -fx-border-width: 1.5;
-                                          -fx-background-color: #E8F5E9;" />
+                        <ComboBox fx:id="cmbTipoFacturaSeguro" maxWidth="Infinity" style="-fx-background-radius: 6; -fx-border-color: #A5D6A7;                                           -fx-border-radius: 6; -fx-border-width: 1.5;                                           -fx-background-color: #E8F5E9;" />
                     </VBox>
 
 
-                    <Label fx:id="lblSaldoSeguro" managed="false" visible="false"
-                           style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;
-                                  -fx-background-color: #FFEBEE; -fx-background-radius: 6;
-                                  -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;
-                                  -fx-padding: 6 10 6 10;" text="" />
+                    <Label fx:id="lblSaldoSeguro" managed="false" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #C62828;                                   -fx-background-color: #FFEBEE; -fx-background-radius: 6;                                   -fx-border-color: #FFCDD2; -fx-border-radius: 6; -fx-border-width: 1;                                   -fx-padding: 6 10 6 10;" text="" visible="false" />
 
                     <VBox spacing="4">
                         <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #455A64;" text="Monto a Cobrar (RD$)" />
